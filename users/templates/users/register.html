@@ -1,0 +1,304 @@
+{% extends "users/base.html" %}
+{% block title %} Register Page {% endblock title %}
+{% block content %}
+<style>
+    :root {
+        --paper: #f8f6f2;
+        --ink: #2b2a27;
+        --accent: #5a5348;
+        --border: #d4d0c7;
+        --highlight: #e3dac9;
+        --success: #4CAF50;
+        --danger: #f44336;
+    }
+
+    body {
+        background-color: var(--paper);
+        color: var(--ink);
+        font-family: 'Merriweather', serif;
+    }
+
+    .container {
+        max-width: 100%;
+        padding: 0 1rem;
+    }
+
+    /* Card Styles */
+    .card {
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        background-color: var(--paper);
+    }
+
+    .card-header {
+        background-color: transparent;
+        border-bottom: 1px solid var(--border);
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .card-header h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        color: var(--ink);
+        margin: 0;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    /* Fieldset and Legend (Step Navigation) */
+    fieldset {
+        border: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    legend {
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        color: var(--ink);
+    }
+
+    /* Form Control Styles */
+    .form-group label {
+        font-size: 1.1rem;
+        color: var(--ink);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    /* You can add the 'form-control' class to your widgets by configuring your form in Python.
+       For this example, the fields are rendered as is. */
+
+    /* Button Styles */
+    .btn {
+        font-size: 1rem;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+    }
+
+    .btn-primary {
+        background-color: var(--ink);
+        border: none;
+        color: var(--paper);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--accent);
+    }
+
+    .btn-dark {
+        background-color: var(--ink);
+        border: none;
+        color: var(--paper);
+    }
+
+    .btn-dark:hover {
+        background-color: var(--accent);
+    }
+
+    .btn-secondary {
+        background-color: var(--highlight);
+        border: none;
+        color: var(--ink);
+    }
+
+    .btn-secondary:hover {
+        background-color: var(--accent);
+        color: var(--paper);
+    }
+
+    /* Alert Styles */
+    .alert-danger {
+        background-color: var(--danger);
+        border-color: var(--danger);
+        color: var(--paper);
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Layout for Form Rows */
+    .form-row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0 -0.5rem;
+    }
+
+    .form-row > [class*="col-"] {
+        padding: 0 0.5rem;
+        flex: 1;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    /* Card Footer */
+    .card-footer {
+        background-color: transparent;
+        border-top: 1px solid var(--border);
+        padding: 1rem;
+        text-align: center;
+    }
+
+    .card-footer .small a {
+        color: var(--accent);
+        text-decoration: none;
+    }
+
+    .card-footer .small a:hover {
+        text-decoration: underline;
+    }
+
+    /* Hide all steps by default */
+    .step {
+        display: none;
+    }
+</style>
+
+<div class="form-content my-3 p-3">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+                <div class="card shadow-lg mt-0 mb-5">
+                    <div class="card-header">
+                        <h3 class="font-weight-light my-4">Create Account</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" id="registerForm">
+                            {% csrf_token %}
+                            {% if form.errors %}
+                                <div class="alert alert-danger alert-dismissible" role="alert">
+                                    <div id="form_errors">
+                                        {% for key, value in form.errors.items %}
+                                            <strong>{{ value }}</strong>
+                                        {% endfor %}
+                                    </div>
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            {% endif %}
+
+                            <!-- Step 1: Personal Information -->
+                            <fieldset class="step" id="step-1">
+                                <legend>Personal Information</legend>
+                                <div class="form-row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>First Name</label>
+                                            {{ form.first_name }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Last Name</label>
+                                            {{ form.last_name }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <button type="button" class="btn btn-primary btn-block next-step">Next</button>
+                                </div>
+                            </fieldset>
+
+                            <!-- Step 2: Account Details -->
+                            <fieldset class="step" id="step-2">
+                                <legend>Account Details</legend>
+                                <div class="form-row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Username</label>
+                                            {{ form.username }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Email</label>
+                                            {{ form.email }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group d-flex justify-content-between">
+                                    <button type="button" class="btn btn-secondary prev-step">Previous</button>
+                                    <button type="button" class="btn btn-primary next-step">Next</button>
+                                </div>
+                            </fieldset>
+
+                            <!-- Step 3: Password -->
+                            <fieldset class="step" id="step-3">
+                                <legend>Password</legend>
+                                <div class="form-row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Password</label>
+                                            {{ form.password1 }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Confirm Password</label>
+                                            {{ form.password2 }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group d-flex justify-content-between">
+                                    <button type="button" class="btn btn-secondary prev-step">Previous</button>
+                                    <button type="submit" class="btn btn-dark btn-block">Sign Up</button>
+                                </div>
+                            </fieldset>
+                        </form>
+                    </div>
+                    <div class="card-footer">
+                        <div class="small">
+                            <a href="{% url 'login' %}">Have an account? Go to Sign in</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // JavaScript to handle multi-step form navigation
+    document.addEventListener('DOMContentLoaded', function () {
+        const steps = document.querySelectorAll('.step');
+        const nextButtons = document.querySelectorAll('.next-step');
+        const prevButtons = document.querySelectorAll('.prev-step');
+        let currentStep = 0;
+
+        function showStep(stepIndex) {
+            steps.forEach((step, index) => {
+                step.style.display = (index === stepIndex) ? 'block' : 'none';
+            });
+        }
+
+        nextButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                if (currentStep < steps.length - 1) {
+                    currentStep++;
+                    showStep(currentStep);
+                }
+            });
+        });
+
+        prevButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                if (currentStep > 0) {
+                    currentStep--;
+                    showStep(currentStep);
+                }
+            });
+        });
+
+        // Show the first step on page load
+        showStep(currentStep);
+    });
+</script>
+{% endblock content %}

@@ -1,0 +1,199 @@
+{% extends "users/base.html" %}
+{% block title %}Home Page{% endblock title %}
+{% block content %}
+<!-- In base.html -->
+<style>
+{#:root {#}
+{#    --primary-color: #2D2A32;    /* Charcoal Gray */#}
+{#    --accent-color: #7A6F5B;     /* Warm Taupe */#}
+{#    --background-color: #F5F3EF; /* Parchment White */#}
+{#    --text-primary: #2D2A32;     /* Dark Gray */#}
+{#    --text-secondary: #5F5B54;   /* Muted Gray */#}
+{#    --border-color: #ffffff;     /* Soft Beige */#}
+{#}#}
+:root {
+    --primary-color: #2D2A32;    /* Charcoal Gray */
+    --accent-color: #7A6F5B;     /* Warm Taupe */
+    --background-color: #FFFFFF; /* Parchment White */
+    --text-primary: #2D2A32;     /* Dark Gray */
+    --text-secondary: #5F5B54;   /* Muted Gray */
+    --border-color: #ffffff;     /* Soft Beige */
+}
+
+body {
+    font-family: 'Merriweather', serif;
+    background-color: var(--background-color);
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+.navbar {
+    background: var(--background-color) !important;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 0;
+}
+
+.navbar-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.75rem;
+    color: var(--primary-color) !important;
+    letter-spacing: 0.5px;
+}
+
+.nav-link {
+    color: var(--text-primary) !important;
+    font-size: 1rem;
+    padding: 0.5rem 1rem !important;
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--accent-color) !important;
+    transform: translateY(-1px);
+}
+
+.content-wrapper {
+    background-color: var(--background-color);
+    box-shadow: none;
+    padding: 3rem 0;
+}
+</style>
+
+
+
+<!-- In home.html -->
+<style>
+/* Add to home.html styles */
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Playfair+Display:wght@400;600&display=swap');
+
+.hero-section {
+    background: var(--background-color);
+    height: 70vh;
+    padding: 6rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center; /* Add this */
+}
+.hero-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.hero-title {
+    font-family: 'Playfair Display', serif;
+    font-weight: 600;
+    font-size: 3.5rem;
+    color: var(--primary-color);
+    margin-bottom: 2rem;
+    line-height: 1.2;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    max-width: 700px;
+    margin: 0 auto 3rem;
+    font-weight: 300;
+}
+
+.services-section .container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.services-section .row {
+    justify-content: center; /* Center cards horizontally */
+}
+
+.service-card {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 2rem;
+    transition: all 0.3s ease;
+}
+
+.service-card:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+    transform: translateY(-3px);
+}
+
+.service-icon {
+    color: var(--accent-color);
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.service-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.btn-minimal {
+    background: transparent;
+    border: 2px solid var(--accent-color);
+    color: var(--accent-color);
+    padding: 0.8rem 2rem;
+    border-radius: 30px;
+    font-family: 'Merriweather', serif;
+    transition: all 0.3s ease;
+}
+
+.btn-minimal:hover {
+    background: var(--accent-color);
+    color: white;
+    transform: translateY(-2px);
+}
+</style>
+
+<!-- Full-width Hero Section -->
+<section class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title">Connecting Researchers<br>Worldwide</h1>
+        <p class="hero-subtitle">
+            Collaborate on groundbreaking research and accelerate scientific discovery through our secure academic network.
+        </p>
+        <a href="{% url 'marketplace' %}" class="btn btn-minimal">Explore Marketplace</a>
+    </div>
+</section>
+
+<!-- Full-width Services Section -->
+<section class="services-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="service-card">
+                    <i class="fas fa-brain service-icon"></i>
+                    <h3 class="service-title">Intelligent Matching</h3>
+                    <p class="service-description">
+                        AI-powered researcher matching based on skills, interests, and project requirements.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="service-card">
+                    <i class="fas fa-project-diagram service-icon"></i>
+                    <h3 class="service-title">Collaboration Hub</h3>
+                    <p class="service-description">
+                        Real-time collaboration tools and shared workspaces for research teams.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="service-card">
+                    <i class="fas fa-database service-icon"></i>
+                    <h3 class="service-title">Knowledge Base</h3>
+                    <p class="service-description">
+                        Central repository for research papers, datasets, and experimental results.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock content %}

@@ -1,0 +1,90 @@
+{% extends 'users/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white text-center">
+            <h4>Create New Project</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <!-- Project Information Form -->
+                <div class="mb-3">
+                    <label for="id_title" class="form-label">Project Name</label>
+                    <input type="text" name="title" class="form-control" id="id_title" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_publish_date" class="form-label">Publish Date</label>
+                    <input type="date" name="publish_date" class="form-control" id="id_publish_date" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_abstract" class="form-label">Abstract</label>
+                    <textarea name="abstract" class="form-control" id="id_abstract" required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_pdf_file" class="form-label">PDF File</label>
+                    <input type="file" name="pdf_file" class="form-control" id="id_pdf_file">
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_tags" class="form-label">Tags</label>
+                    <input type="text" name="tags" class="form-control" id="id_tags">
+                </div>
+
+                <!-- Research Sections -->
+                <div id="research-sections">
+                    <div class="mb-3">
+                        <label class="form-label">Research Section Title</label>
+                        <input type="text" name="section_title[]" class="form-control" placeholder="Enter section title (e.g., Introduction)">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Research Section Content</label>
+                        <textarea name="section_content[]" class="form-control" placeholder="Enter section content"></textarea>
+                    </div>
+                </div>
+
+                <!-- Add Research Section Button -->
+                <div class="text-center mb-3">
+                    <button type="button" id="add-section" class="btn btn-success">+ Add Research Section</button>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">Create Project</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Add new research section dynamically
+    document.getElementById('add-section').addEventListener('click', function() {
+        const researchSectionsContainer = document.getElementById('research-sections');
+
+        const newSection = document.createElement('div');
+        newSection.classList.add('mb-3');
+
+        const newTitleField = document.createElement('input');
+        newTitleField.type = 'text';
+        newTitleField.name = 'section_title[]';
+        newTitleField.classList.add('form-control');
+        newTitleField.placeholder = 'Enter section title (e.g., Introduction)';
+
+        const newContentField = document.createElement('textarea');
+        newContentField.name = 'section_content[]';
+        newContentField.classList.add('form-control');
+        newContentField.placeholder = 'Enter section content';
+
+        newSection.appendChild(newTitleField);
+        newSection.appendChild(newContentField);
+
+        researchSectionsContainer.appendChild(newSection);
+    });
+</script>
+
+{% endblock %}

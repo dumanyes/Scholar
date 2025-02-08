@@ -1,0 +1,28 @@
+{% extends 'users/base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white text-center">
+            <h4>{{ project.title }}</h4>
+        </div>
+        <div class="card-body">
+            <p><strong>Published on:</strong> {{ project.publish_date }}</p>
+            <p><strong>Abstract:</strong> {{ project.abstract }}</p>
+
+            {% if project.pdf_file %}
+                <a href="{{ project.pdf_file.url }}" class="btn btn-success" target="_blank">Download PDF</a>
+            {% endif %}
+
+            <p><strong>Tags:</strong> {{ project.tags.all|join:", " }}</p>
+            <p><strong>Citation:</strong> {{ project.citation }}</p>
+            <p><strong>Citation Link:</strong> <a href="{{ project.citation_link }}">{{ project.citation_link }}</a></p>
+
+            {% for section in project.sections.all %}
+                <h5>{{ section.title }}</h5>
+                <div>{{ section.content|safe }}</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

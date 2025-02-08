@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>My Works</h2>
+<ul>
+  {% for publication in publications %}
+      <li>{{ publication.title }} ({{ publication.year }})</li>
+  {% endfor %}
+</ul>
+{% endblock %}

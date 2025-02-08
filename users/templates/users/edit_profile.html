@@ -1,0 +1,439 @@
+{% extends "users/base.html" %}
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<div class="container my-5">
+    <div class="card shadow-lg rounded-lg p-4 mx-auto parchment-bg" style="max-width: 800px;">
+        <h2 class="text-center mb-4 author-name">
+            <i class="fas fa-scroll mr-2"></i>Edit Manuscript
+        </h2>
+
+        <form method="post" action="{% url 'users-edit-profile' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <!-- Avatar Section -->
+            <div class="form-group text-center mb-5">
+                <div class="avatar-container position-relative d-inline-block">
+                    <img class="avatar-frame mb-3" 
+                         src="{{ user.profile.avatar.url }}" 
+                         alt="Profile Picture"
+                         onerror="this.src='/static/images/default-avatar.png'">
+                    <label class="btn-edit position-absolute bottom-0 end-0">
+                        <i class="fas fa-camera"></i>
+                        {{ profile_form.avatar }}
+                    </label>
+                </div>
+            </div>
+
+            <!-- Personal Details -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-4">
+                        <label class="detail-label">Username</label>
+                        {{ user_form.username }}
+                        {% if user_form.username.errors %}
+                            <div class="text-danger small mt-1">{{ user_form.username.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-4">
+                        <label class="detail-label">Email</label>
+                        {{ user_form.email }}
+                        {% if user_form.email.errors %}
+                            <div class="text-danger small mt-1">{{ user_form.email.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Professional Details -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-4">
+                        <label class="detail-label">Organization</label>
+                        {{ profile_form.organization }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-4">
+                        <label class="detail-label">Position</label>
+                        {{ profile_form.position }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Biography -->
+            <div class="form-group mb-4">
+                <label class="detail-label">Biography</label>
+                {{ profile_form.bio }}
+                <small class="text-muted">Chronicle your academic journey</small>
+            </div>
+
+            <!-- University Selection -->
+            <div class="form-group mb-4">
+                <label class="detail-label">University</label>
+                {{ profile_form.university }}
+            </div>
+
+            <!-- Location -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="detail-label">Country</label>
+                        {{ profile_form.country }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="detail-label">City</label>
+                        {{ profile_form.city }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skills Section -->
+            <div class="form-group mb-4">
+                <label class="detail-label">Skills & Expertise</label>
+                <div class="tag-input-container">
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="text" 
+                               id="skill-input" 
+                               class="form-control" 
+                               placeholder="Add a skill (press Enter or click +)"
+                               onkeypress="handleSkillKeyPress(event)">
+                        <button type="button" 
+                                class="btn-add" 
+                                onclick="addSkillFromInput()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="selected-tags mt-3">
+                    <div id="selected-skills-list" class="tag-list">
+                        {% for skill in user.profile.skills.all %}
+                        <span class="tag skill-tag">
+                            {{ skill.name }}
+                            <i class="fas fa-times ml-2" onclick="removeSkill('{{ skill.name }}')"></i>
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {{ profile_form.skills }}
+            </div>
+
+            <!-- Interests Section -->
+            <div class="form-group mb-4">
+                <label class="detail-label">Research Interests</label>
+                <div class="tag-input-container">
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="text" 
+                               id="interest-input" 
+                               class="form-control" 
+                               placeholder="Add an interest (press Enter or click +)"
+                               onkeypress="handleInterestKeyPress(event)">
+                        <button type="button" 
+                                class="btn-add" 
+                                onclick="addInterestFromInput()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="selected-tags mt-3">
+                    <div id="selected-interests-list" class="tag-list">
+                        {% for interest in user.profile.interests.all %}
+                        <span class="tag interest-tag">
+                            {{ interest.name }}
+                            <i class="fas fa-times ml-2" onclick="removeInterest('{{ interest.name }}')"></i>
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {{ profile_form.interests }}
+            </div>
+
+            <!-- Contact Information -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label class="detail-label">LinkedIn</label>
+                        {{ profile_form.linkedin }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label class="detail-label">GitHub</label>
+                        {{ profile_form.github }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label class="detail-label">Google Scholar</label>
+                        {{ profile_form.google_scholar }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label class="detail-label">Telegram</label>
+                        {{ profile_form.telegram }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="d-flex justify-content-between mt-5">
+                <a href="{% url 'users-profile' %}" class="btn-secondary">
+                    <i class="fas fa-times mr-2"></i>Cancel
+                </a>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-save mr-2"></i>Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    :root {
+        --paper: #f8f6f2;
+        --ink: #2b2a27;
+        --accent: #5a5348;
+        --border: #d4d0c7;
+        --highlight: #e3dac9;
+        --success: #4CAF50;
+        --danger: #f44336;
+    }
+
+    .parchment-bg {
+        background: var(--paper);
+        border: none;
+    }
+
+    .author-name {
+        font-family: 'Cormorant Garamond', serif;
+        color: var(--ink);
+        font-size: 2.2rem;
+    }
+
+    .detail-label {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--accent);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        border: 2px solid var(--border);
+        border-radius: 6px;
+        padding: 0.75rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 0.2rem rgba(90, 83, 72, 0.15);
+    }
+
+    .avatar-frame {
+        width: 180px;
+        height: 180px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid var(--border);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .tag-input-container {
+        background: white;
+        border-radius: 6px;
+        padding: 0.5rem;
+        border: 2px solid var(--border);
+    }
+
+    .btn-add {
+        background: var(--accent);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+
+    .btn-add:hover {
+        background: #4a443b;
+        transform: translateY(-1px);
+    }
+
+    .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+
+    .skill-tag {
+        background: var(--accent);
+        color: white;
+    }
+
+    .interest-tag {
+        background: var(--highlight);
+        color: var(--ink);
+    }
+
+    .tag i {
+        margin-left: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .tag i:hover {
+        transform: scale(1.1);
+    }
+
+    .btn-primary, .btn-secondary {
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-primary {
+        background: var(--accent);
+        color: white;
+        border: none;
+    }
+
+    .btn-secondary {
+        background: var(--paper);
+        color: var(--accent);
+        border: 2px solid var(--accent);
+    }
+
+    .btn-primary:hover, .btn-secondary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .gap-2 {
+        gap: 0.5rem;
+    }
+</style>
+
+<script>
+// Initialize sets for selected items
+let selectedSkills = new Set([{% for skill in user.profile.skills.all %}"{{ skill.name }}"{% if not forloop.last %},{% endif %}{% endfor %}]);
+let selectedInterests = new Set([{% for interest in user.profile.interests.all %}"{{ interest.name }}"{% if not forloop.last %},{% endif %}{% endfor %}]);
+
+// Skills handling
+function handleSkillKeyPress(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        addSkillFromInput();
+    }
+}
+
+function addSkillFromInput() {
+    const input = document.getElementById('skill-input');
+    const skillName = input.value.trim();
+    
+    if (skillName && !selectedSkills.has(skillName)) {
+        selectedSkills.add(skillName);
+        updateSkillsDisplay();
+        input.value = '';
+    }
+}
+
+function removeSkill(name) {
+    selectedSkills.delete(name);
+    updateSkillsDisplay();
+}
+
+function updateSkillsDisplay() {
+    const container = document.getElementById('selected-skills-list');
+    container.innerHTML = '';
+    
+    selectedSkills.forEach(skill => {
+        const span = document.createElement('span');
+        span.className = 'tag skill-tag';
+        span.innerHTML = `
+            ${skill}
+            <i class="fas fa-times ml-2" onclick="removeSkill('${skill}')"></i>
+        `;
+        container.appendChild(span);
+    });
+    
+    document.getElementById('id_skills').value = Array.from(selectedSkills).join(',');
+}
+
+// Interests handling
+function handleInterestKeyPress(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        addInterestFromInput();
+    }
+}
+
+function addInterestFromInput() {
+    const input = document.getElementById('interest-input');
+    const interestName = input.value.trim();
+    
+    if (interestName && !selectedInterests.has(interestName)) {
+        selectedInterests.add(interestName);
+        updateInterestsDisplay();
+        input.value = '';
+    }
+}
+
+function removeInterest(name) {
+    selectedInterests.delete(name);
+    updateInterestsDisplay();
+}
+
+function updateInterestsDisplay() {
+    const container = document.getElementById('selected-interests-list');
+    container.innerHTML = '';
+    
+    selectedInterests.forEach(interest => {
+        const span = document.createElement('span');
+        span.className = 'tag interest-tag';
+        span.innerHTML = `
+            ${interest}
+            <i class="fas fa-times ml-2" onclick="removeInterest('${interest}')"></i>
+        `;
+        container.appendChild(span);
+    });
+    
+    document.getElementById('id_interests').value = Array.from(selectedInterests).join(',');
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Hide the original form fields
+    document.getElementById('id_skills').style.display = 'none';
+    document.getElementById('id_interests').style.display = 'none';
+    
+    // Update displays
+    updateSkillsDisplay();
+    updateInterestsDisplay();
+});
+</script>
+{% endblock %}

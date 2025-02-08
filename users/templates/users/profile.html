@@ -1,0 +1,431 @@
+{% extends "users/base.html" %}
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<div class="container my-5">
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-lg-4 mb-4">
+            <!-- Profile Card -->
+            <div class="profile-card mb-5">
+                <div class="text-center">
+                    <div class="avatar-container mb-4">
+                        <img class="avatar-frame" 
+                             src="{{ user.profile.avatar.url }}" 
+                             alt="Profile Picture"
+                             onerror="this.src='/static/images/default-avatar.png'">
+                    </div>
+                    <h2 class="author-name mb-1">{{ user.get_full_name }}</h2>
+                    <p class="text-meta">@{{ user.username }}</p>
+                    
+                    {% if user.profile.orcid_id %}
+                    <div class="mb-4">
+                        <a href="https://orcid.org/{{ user.profile.orcid_id }}" 
+                           target="_blank" 
+                           class="badge-link">
+                            <i class="fas fa-graduation-cap"></i> ORCID Profile
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-grid">
+                        <a href="{% url 'users-edit-profile' %}" class="btn-edit">
+                            <i class="fas fa-pen-nib mr-2"></i>Edit Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Professional Details -->
+<div class="detail-card mb-4">
+    <h3 class="section-title">
+        <i class="fas fa-university mr-2"></i>Professional Details
+    </h3>
+    <div class="detail-item">
+        <span class="detail-label">Organization</span>
+        <p class="detail-content">{{ user.profile.organization|default:"—" }}</p>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">Position</span>
+        <p class="detail-content">{{ user.profile.position|default:"—" }}</p>
+    </div>
+    <!-- Move University inside Professional Details -->
+    <div class="detail-item">
+        <span class="detail-label">University</span>
+        <div class="d-flex align-items-center">
+            {% if user.profile.university.icon %}
+                <img src="{{ user.profile.university.icon.url }}" 
+                     alt="{{ user.profile.university.name }} logo" 
+                     class="university-icon mr-2">
+            {% endif %}
+            <p class="detail-content mb-0">
+                {{ user.profile.university.name|default:"—" }}
+            </p>
+        </div>
+    </div>
+</div>
+
+            <!-- Location -->
+            {% if user.profile.country or user.profile.city %}
+            <div class="detail-card">
+                <h3 class="section-title">
+                    <i class="fas fa-globe-europe mr-2"></i>Location
+                </h3>
+                <p class="detail-content">
+                    {% if user.profile.city %}{{ user.profile.city.name }}, {% endif %}
+                    {{ user.profile.country.name|default:"—" }}
+                </p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-8">
+            <!-- Bio Section -->
+            <div class="bio-card mb-5">
+                <h3 class="section-title">
+                    <i class="fas fa-scroll mr-2"></i>Biography
+                </h3>
+                {% if user.profile.bio and user.profile.bio != "No bio available." %}
+                    <div class="bio-content">
+                        {{ user.profile.bio|linebreaks }}
+                    </div>
+                {% else %}
+                    <div class="bio-placeholder">
+                        <i class="fas fa-feather-alt"></i>
+                        This space awaits your intellectual narrative...
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Expertise Section -->
+            <div class="row">
+                {% if user.profile.skills.all %}
+                <div class="col-md-6 mb-4">
+                    <div class="expertise-card">
+                        <h3 class="section-title">
+                            <i class="fas fa-toolbox mr-2"></i>Expertise
+                        </h3>
+                        <div class="expertise-list">
+                            {% for skill in user.profile.skills.all %}
+                                <span class="expertise-tag">{{ skill.name }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if user.profile.interests.all %}
+                <div class="col-md-6 mb-4">
+                    <div class="expertise-card">
+                        <h3 class="section-title">
+                            <i class="fas fa-lightbulb mr-2"></i>Interests
+                        </h3>
+                        <div class="expertise-list">
+                            {% for interest in user.profile.interests.all %}
+                                <span class="interest-tag">{{ interest.name }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Contact Section -->
+            <div class="contact-card">
+                <h3 class="section-title">
+                    <i class="fas fa-envelope-open-text mr-2"></i>Contact
+                </h3>
+                <div class="contact-grid">
+                    <div class="contact-item">
+                        <i class="fas fa-at contact-icon"></i>
+                        <span class="contact-label">Email</span>
+                        <p class="contact-info">{{ user.email }}</p>
+                    </div>
+                    
+                    {% if user.profile.linkedin %}
+                    <div class="contact-item">
+                        <i class="fab fa-linkedin contact-icon"></i>
+                        <span class="contact-label">LinkedIn</span>
+                        <a href="{{ user.profile.linkedin }}" class="contact-link">
+                            {{ user.profile.linkedin|truncatechars:20 }}
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    {% if user.profile.github %}
+                    <div class="contact-item">
+                        <i class="fab fa-github contact-icon"></i>
+                        <span class="contact-label">GitHub</span>
+                        <a href="{{ user.profile.github }}" class="contact-link">
+                            {{ user.profile.github|truncatechars:20 }}
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    {% if user.profile.google_scholar %}
+                    <div class="contact-item">
+                        <i class="fas fa-graduation-cap contact-icon"></i>
+                        <span class="contact-label">Scholar</span>
+                        <a href="{{ user.profile.google_scholar }}" class="contact-link">
+                            {{ user.profile.google_scholar|truncatechars:20 }}
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    {% if user.profile.telegram %}
+                    <div class="contact-item">
+                        <i class="fab fa-telegram contact-icon"></i>
+                        <span class="contact-label">Telegram</span>
+                        <p class="contact-info">{{ user.profile.telegram }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --paper: #f8f6f2;
+        --ink: #2b2a27;
+        --accent: #5a5348;
+        --border: #d4d0c7;
+        --highlight: #e3dac9;
+    }
+
+    .author-name {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 2.4rem;
+        color: var(--ink);
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+    }
+
+    .avatar-frame {
+        width: 180px;
+        height: 180px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid var(--border);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        image-rendering: crisp-edges;
+    }
+    .detail-content img {
+        max-height: 24px;
+        width: auto;
+        border-radius: 2px;
+    }
+
+    .profile-card {
+        padding: 2rem;
+        background: var(--paper);
+        border-radius: 8px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+
+    .detail-card {
+        padding: 1.5rem;
+        background: var(--paper);
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    }
+
+    .section-title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 1.6rem;
+        color: var(--ink);
+        border-bottom: 2px solid var(--highlight);
+        padding-bottom: 0.75rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .detail-label {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.25rem;
+    }
+
+    .btn-edit {
+        background: var(--accent);
+        color: var(--paper);
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 6px;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-edit:hover {
+        background: #4a443b;
+        transform: translateY(-1px);
+    }
+
+    .bio-card {
+        padding: 2rem;
+        background: var(--paper);
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+
+    .bio-content {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: var(--ink);
+        font-family: 'Inter', sans-serif;
+    }
+
+    .bio-placeholder {
+        font-style: italic;
+        color: var(--accent);
+        text-align: center;
+        padding: 2rem;
+        background: rgba(232, 228, 218, 0.3);
+        border-radius: 6px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .expertise-card {
+        padding: 1.5rem;
+        background: var(--paper);
+        border-radius: 8px;
+        height: 100%;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    }
+
+    .expertise-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .expertise-tag, .interest-tag {
+        padding: 0.5rem 1.2rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .expertise-tag {
+        background: var(--accent);
+        color: var(--paper);
+        border: 1px solid var(--accent);
+    }
+
+    .interest-tag {
+        background: var(--highlight);
+        color: var(--ink);
+        border: 1px solid var(--border);
+    }
+
+    .contact-card {
+        padding: 2rem;
+        background: var(--paper);
+        border-radius: 8px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+
+    .contact-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .contact-item {
+        padding: 1rem;
+        background: rgba(255,255,255,0.6);
+        border-radius: 8px;
+        position: relative;
+        transition: all 0.2s ease;
+    }
+
+    .contact-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .contact-icon {
+        position: absolute;
+        top: -12px;
+        left: 12px;
+        background: var(--paper);
+        padding: 6px;
+        border-radius: 50%;
+        font-size: 1.2rem;
+        color: var(--accent);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+    .contact-label {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--accent);
+        margin-bottom: 0.25rem;
+        padding-left: 32px;
+    }
+
+    .contact-info {
+        font-size: 1rem;
+        color: var(--ink);
+        margin: 0;
+        padding-left: 32px;
+    }
+
+    .contact-link {
+        color: var(--ink);
+        text-decoration: none;
+        position: relative;
+        transition: all 0.2s ease;
+    }
+
+    .contact-link::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: -2px;
+        width: 100%;
+        height: 1px;
+        background: currentColor;
+        transform: scaleX(0);
+        transform-origin: right;
+        transition: transform 0.3s ease;
+    }
+
+    .contact-link:hover::after {
+        transform: scaleX(1);
+        transform-origin: left;
+    }
+
+    .contact-link:hover {
+        color: var(--accent);
+    }
+
+    .badge-link {
+        color: var(--accent);
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        transition: all 0.2s ease;
+    }
+
+    .badge-link:hover {
+        background: rgba(232, 228, 218, 0.3);
+        color: var(--accent);
+        transform: translateY(-1px);
+    }
+</style>
+{% endblock %}

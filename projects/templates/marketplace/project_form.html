@@ -1,0 +1,18 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Create/Edit Project{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <h1>{% if project %}Edit{% else %}Create{% endif %} Project</h1>
+
+    <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save</button>
+</form>
+
+
+    <a href="{% url 'project-list' %}" class="btn btn-secondary mt-3">Back to Projects</a>
+  </div>
+{% endblock %}

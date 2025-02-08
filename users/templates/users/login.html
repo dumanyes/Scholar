@@ -1,0 +1,291 @@
+{% extends "users/base.html" %}
+{% load socialaccount %}
+{% load widget_tweaks %}
+
+{% block title %}Login Page{% endblock title %}
+
+{% block content %}
+<style>
+    :root {
+        --paper: #f8f6f2;
+        --ink: #2b2a27;
+        --accent: #5a5348;
+        --border: #d4d0c7;
+        --highlight: #e3dac9;
+        --success: #4CAF50;
+        --danger: #f44336;
+    }
+
+    /* Global styles */
+    body {
+        background-color: var(--paper);
+        color: var(--ink);
+        font-family: 'Merriweather', serif;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        max-width: 100%;
+        padding: 0 1rem;
+    }
+
+    /* Hero section */
+    .hero {
+        text-align: center;
+        padding: 3rem 1rem;
+        margin-bottom: 2rem;
+        background-color: var(--paper);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .hero h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        color: var(--ink);
+        margin-bottom: 0.5rem;
+    }
+
+    .hero p {
+        font-size: 1rem;
+        color: var(--ink);
+        margin: 0;
+    }
+
+    /* Card styling */
+    .card {
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        background-color: var(--paper);
+    }
+
+    .card-header {
+        background-color: transparent;
+        border-bottom: 1px solid var(--border);
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .card-header h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        color: var(--ink);
+        margin: 0;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    /* Social login buttons */
+    .social-login a {
+        text-align: center;
+        display: block;
+        width: 100%;
+        margin-bottom: 0.5rem;
+        border: 1px solid var(--border);
+        color: var(--ink);
+        background-color: transparent;
+        padding: 0.75rem;
+        border-radius: 0.25rem;
+        text-decoration: none;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .social-login a:hover {
+        background-color: var(--highlight);
+        color: var(--ink);
+    }
+
+    /* Social icons */
+    .social-login a i {
+        margin-right: 0.5rem;
+        transition: transform 0.3s ease, color 0.3s ease;
+        /* Ensuring default icon color is same as text */
+        color: var(--ink);
+    }
+
+    .social-login a:hover i {
+        transform: scale(1.1);
+        color: var(--accent);
+    }
+
+    /* Divider */
+    .divider {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        margin: 1.5rem 0;
+    }
+
+    .divider::before,
+    .divider::after {
+        content: "";
+        flex: 1;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .divider::before {
+        margin-right: 0.5rem;
+    }
+
+    .divider::after {
+        margin-left: 0.5rem;
+    }
+
+    .divider-text {
+        font-size: 0.9rem;
+        color: var(--ink);
+    }
+
+    /* Form elements */
+    .form-group label {
+        font-size: 0.9rem;
+        color: var(--ink);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        border: 1px solid var(--border);
+        border-radius: 0.25rem;
+        padding: 0.75rem;
+        font-size: 0.9rem;
+        background-color: transparent;
+        color: var(--ink);
+    }
+
+    .form-control:focus {
+        border-color: var(--accent);
+        box-shadow: none;
+    }
+
+    .form-check {
+        display: flex;
+        align-items: center;
+    }
+
+    .form-check-label {
+        margin-left: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    /* Submit button */
+    .btn {
+        font-size: 0.9rem;
+        padding: 0.75rem;
+        border-radius: 0.25rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .btn-primary {
+        background-color: var(--ink);
+        border: none;
+        color: var(--paper);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--accent);
+    }
+
+    /* Card footer */
+    .card-footer {
+        background-color: transparent;
+        border-top: 1px solid var(--border);
+        padding: 1rem;
+        text-align: center;
+    }
+
+    .card-footer .small a {
+        color: var(--accent);
+        text-decoration: none;
+    }
+
+    .card-footer .small a:hover {
+        text-decoration: underline;
+    }
+
+    /* Error messages */
+    .alert-danger {
+        background-color: var(--danger);
+        border-color: var(--danger);
+        color: var(--paper);
+        border-radius: 0.25rem;
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="container">
+    <!-- Hero Section -->
+    <div class="hero">
+        <h1>Welcome Back</h1>
+        <p>Please sign in to continue your journey.</p>
+    </div>
+
+    <!-- Centered Login Card -->
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Sign In</h3>
+                </div>
+                <div class="card-body">
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            {% for key, value in form.errors.items %}
+                                <strong>{{ value }}</strong><br>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Social Login Options -->
+                    <div class="social-login">
+                        <a href="{% url 'social:begin' 'github' %}">
+                            <i class="fab fa-github"></i> Sign in with GitHub
+                        </a>
+                        <a href="{% url 'social:begin' 'google-oauth2' %}">
+                            <i class="fab fa-google"></i> Sign in with Google
+                        </a>
+                        <a href="{% url 'social:begin' 'orcid' %}">
+                            <i class="fas fa-id-card"></i> Sign in with ORCID
+                        </a>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="divider">
+                        <span class="divider-text">OR</span>
+                    </div>
+
+                    <!-- Traditional Login Form -->
+                    <form method="POST" novalidate>
+                        {% csrf_token %}
+                        <div class="form-group mb-3">
+                            <label for="username">Username</label>
+                            {{ form.username|add_class:"form-control" }}
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="password">Password</label>
+                            {{ form.password|add_class:"form-control" }}
+                        </div>
+                        <div class="form-check mb-3">
+                            {{ form.remember_me|add_class:"form-check-input" }}
+                            <label class="form-check-label" for="remember_me">Remember me</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Sign In</button>
+                    </form>
+                </div>
+                <div class="card-footer">
+                    <div class="small">
+                        <a href="{% url 'users-register' %}">Don't have an account yet? Sign up</a><br>
+                        <a href="{% url 'password_reset' %}">Forgot Password?</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
