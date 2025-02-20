@@ -1,0 +1,220 @@
+{% extends "users/base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .my-projects-header {
+        margin: 2rem 0;
+        padding: 1.5rem 0;
+    }
+
+    .project-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.2s ease;
+        border: none;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        position: relative;
+    }
+
+    .project-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .project-status {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 0.85rem;
+        padding: 6px 12px;
+        border-radius: 20px;
+        backdrop-filter: blur(4px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .active-status {
+        background: rgba(72, 199, 116, 0.15);
+        color: #2f9e44;
+    }
+
+    .inactive-status {
+        background: rgba(255, 107, 107, 0.15);
+        color: #ff6b6b;
+    }
+
+    .search-create-wrapper {
+        display: flex;
+        gap: 1rem;
+        margin: 2rem 0;
+        flex-wrap: wrap;
+    }
+
+    .search-form {
+        flex: 1;
+        max-width: 600px;
+        position: relative;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 14px 20px;
+        border-radius: 12px;
+        border: 2px solid #e0e0e0;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+        border-color: #40c057;
+        box-shadow: 0 0 0 3px rgba(64, 192, 87, 0.2);
+    }
+
+    .create-button {
+        background: #2f9e44;
+        color: white;
+        padding: 14px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+
+    .create-button:hover {
+        background: #2b8a3e;
+        color: white;
+        text-decoration: none;
+    }
+
+    .skill-badge {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 6px 12px;
+        margin: 4px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .project-actions {
+        border-top: 2px solid #f8f9fa;
+        padding-top: 1.5rem;
+        margin-top: 1.5rem;
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    .action-button {
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        border-radius: 16px;
+        background: #f8f9fa;
+        margin: 2rem 0;
+    }
+</style>
+
+<main class="container">
+    <div class="my-projects-header">
+        <h1 class="mb-3" style="font-size: 2rem; font-weight: 700;">My Research Projects</h1>
+
+        <div class="search-create-wrapper">
+            <form class="search-form" method="GET">
+                <input type="text"
+                       class="search-input"
+                       name="q"
+                       placeholder="Search my projects..."
+                       value="{{ request.GET.q }}">
+                <button type="submit" class="action-button" style="position: absolute; right: 0; top: 0; height: 100%; background: transparent; color: #868e96;">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+
+            <a href="{% url 'create-project' %}" class="create-button">
+                <i class="fas fa-plus"></i>
+                Create New Project
+            </a>
+        </div>
+    </div>
+
+    <div class="project-list">
+        {% for project in projects %}
+        <div class="project-card">
+            <span class="project-status {% if project.is_active %}active-status{% else %}inactive-status{% endif %}">
+                {% if project.is_active %}Active{% else %}Inactive{% endif %}
+            </span>
+
+            <h2 class="mb-2" style="font-size: 1.25rem; font-weight: 600;">{{ project.title }}</h2>
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="skill-badge">{{ project.get_category_display }}</span>
+                <small class="text-muted">Created: {{ project.created_at|date:"M d, Y" }}</small>
+            </div>
+
+            <p class="text-secondary mb-3">{{ project.description|truncatechars:120 }}</p>
+
+            <div class="mb-3">
+                {% for skill in project.skills_required.split %}
+                <span class="skill-badge">{{ skill }}</span>
+                {% endfor %}
+            </div>
+
+            <div class="project-actions">
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{% url 'project-detail' pk=project.pk %}" class="action-button" style="background: #f8f9fa; color: #495057;">
+                        <i class="fas fa-eye"></i>
+                        View
+                    </a>
+                    <a href="{% url 'edit-project' project.id %}" class="action-button" style="background: #f8f9fa; color: #495057;">
+                        <i class="fas fa-edit"></i>
+                        Edit
+                    </a>
+                </div>
+
+                <form method="POST" action="{% url 'toggle-project' project.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="action-button {% if project.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
+                        {% if project.is_active %}Deactivate{% else %}Activate{% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <i class="fas fa-folder-open fa-2x mb-3" style="color: #ced4da;"></i>
+            <p class="text-muted mb-3">You haven't created any projects yet</p>
+            <a href="{% url 'create-project' %}" class="create-button">
+                Start Your First Project
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</main>
+
+<script>
+    // Confirm before deactivating project
+    document.querySelectorAll('.project-actions button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            if (button.innerText.includes('Deactivate')) {
+                if (!confirm('Are you sure you want to deactivate this project?')) {
+                    e.preventDefault();
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,198 +1,63 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
-    <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
-
-    <title>{% block title %}ScholarHub{% endblock %}</title>
-
-    <!-- Custom CSS for improved design -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>ScholarHub</title>
     <style>
-        {#:root {#}
-        {#    --primary-color: #2D2A32;    /* Charcoal Gray */#}
-        {#    --accent-color: #7A6F5B;     /* Warm Taupe */#}
-        {#    --background-color: #F5F3EF; /* Parchment White */#}
-        {#    --text-primary: #2D2A32;     /* Dark Gray */#}
-        {#    --text-secondary: #5F5B54;   /* Muted Gray */#}
-        {#    --border-color: #DCD8CF;     /* Soft Beige */#}
-        {#}#}
         :root {
-            --primary-color: #2D2A32;    /* Charcoal Gray */
-            --accent-color: #7A6F5B;     /* Warm Taupe */
-            --background-color: #FFFFFF; /* Parchment White */
-            --text-primary: #2D2A32;     /* Dark Gray */
-            --text-secondary: #5F5B54;   /* Muted Gray */
-            --border-color: #DCD8CF;     /* Soft Beige */
-        }
-
-        body {
-            font-family: 'Merriweather', serif;
-            background-color: var(--background-color);
-            color: var(--text-primary);
-            line-height: 1.6;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        .navbar {
-            background: var(--background-color) !important;
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem 0;
-        }
-
-        .navbar-brand {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.75rem;
-            color: var(--primary-color) !important;
-            letter-spacing: 0.5px;
-        }
-
-        .nav-link {
-            color: var(--text-primary) !important;
-            font-size: 1rem;
-            padding: 0.5rem 1rem !important;
-            transition: all 0.3s ease;
-        }
-
-        .nav-link:hover {
-            color: var(--accent-color) !important;
-            transform: translateY(-1px);
-        }
-
-        .content-wrapper {
-            flex: 1 0 auto;
-            padding: 80px 0 3rem; /* Top padding accounts for fixed navbar */
-            width: 100%;
-        }
-
-        footer {
-            flex-shrink: 0;
-            text-align: center;
-            padding: 2rem 0;
-            border-top: 1px solid var(--border-color);
-            background-color: var(--background-color);
-        }
-
-        footer .container {
-            margin: 0 auto;
-        }
-
-        footer p {
-            margin-bottom: 0;
-            color: var(--text-secondary);
-        }
-
-        footer a {
-            color: var(--accent-color);
-            text-decoration: none;
-        }
-
-        footer a:hover {
-            color: var(--primary-color);
-            text-decoration: underline;
-        }
-
-        /* Existing alert styles */
-        .alert-dismissible {
-            margin-bottom: 1rem;
+            --primary-color: #2D2A32;
+            --accent-color: #7A6F5B;
+            --background-color: #FFFFFF;
+            --text-primary: #2D2A32;
+            --text-secondary: #5F5B54;
+            --border-color: #DCD8CF;
         }
     </style>
 </head>
-<body>
-
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg fixed-top">
-        <div class="container">
-            <a class="navbar-brand" href="/">
-    <img src="/media/photo_5274128391500590554_x-removebg-preview.png" alt="ScholarHub " height="40">
-</a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
+<body class="bg-white text-gray-900 flex flex-col min-h-screen">
+    <nav class="bg-white shadow-md border-b border-gray-300 py-4">
+        <div class="container mx-auto flex justify-between items-center px-4">
+            <a class="text-2xl font-semibold text-gray-900" href="/">
+                <img src="/media/photo_5274128391500590554_x-removebg-preview.png" 
+                     alt="ScholarHub" 
+                     class="h-10 w-auto inline-block">
+            </a>
+            <button class="block lg:hidden text-gray-900 focus:outline-none">
+                <span class="text-lg">☰</span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ml-auto">
-                    <!-- In the navbar section of base.html -->
-<li class="nav-item">
-    <a class="nav-link" href="{% url 'users-about' %}">About</a>
-</li>
-<li class="nav-item">
-    <a class="nav-link" href="{% url 'users-services' %}">Services</a>
-</li>
-                <li class="nav-item">
-                        <a class="nav-link" href="{% url 'marketplace' %}">Marketplace</a>
-                    </li>
-<li class="nav-item">
-    <a class="nav-link" href="{% url 'users-contact' %}">Contact</a>
-</li>
-                    
-                    
-                    {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'users-profile' %}">Profile</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">Sign in</a>
-                        </li>
-                    {% endif %}
-                </ul>
+            <div class="hidden lg:flex space-x-6">
+                <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-about' %}">About</a>
+                <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-services' %}">Services</a>
+                <a class="text-gray-900 hover:text-gray-600" href="{% url 'marketplace' %}">Marketplace</a>
+                <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-contact' %}">Contact</a>
+                {% if user.is_authenticated %}
+                    <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-profile' %}">Profile</a>
+                    <a class="text-gray-900 hover:text-gray-600" href="{% url 'logout' %}">Logout</a>
+                {% else %}
+                    <a class="text-gray-900 hover:text-gray-600" href="{% url 'login' %}">Sign in</a>
+                {% endif %}
             </div>
         </div>
     </nav>
-
-    <!-- Main Content -->
-    <div class="content-wrapper">
-        <div class="container">
-            {% if messages %}
-                <div class="alert alert-dismissible">
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-            {% block content %}{% endblock %}
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <p>© 2025 ScholarHub. All rights reserved. | <a href="/privacy-policy">Privacy Policy</a></p>
-        </div>
+    <main class="flex-grow container mx-auto px-4 py-8">
+        {% if messages %}
+            <div class="space-y-2 mb-8">
+                {% for message in messages %}
+                    <div class="p-4 bg-gray-100 border-l-4 border-blue-500 rounded-lg shadow-md">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="bg-white border-t border-gray-300 py-6 mt-auto text-center">
+        <p class="text-gray-600">
+            © 2025 ScholarHub. All rights reserved.<br>
+            <a href="/privacy-policy" class="text-blue-600 hover:text-blue-800 transition-colors">Privacy Policy</a>
+        </p>
     </footer>
-
-    <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-    {% load static %}
-    <script type="text/javascript" src="{% static 'tinymce/tinymce.min.js' %}"></script>
-    <script type="text/javascript">
-        tinymce.init({
-            selector: 'textarea',
-            height: 500,
-            menubar: true,
-            plugins: [
-                'advlist autolink lists link image charmap print preview anchor',
-                'searchreplace visualblocks code fullscreen',
-                'insertdatetime media table contextmenu paste'
-            ],
-            toolbar: 'undo redo | styleselect | bold italic | alignleft aligncenter alignright | bullist numlist outdent indent | link image',
-            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
-        });
-    </script>
-
 </body>
 </html>

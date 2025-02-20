@@ -1,120 +1,166 @@
-from django.core.files.storage import FileSystemStorage
-from django.http import FileResponse, Http404
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
+# views.py
 from django.contrib import messages
 
-from django.conf import settings
-import os
-from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from .models import Project, Comment, Citation, ResearchSection
-from .forms import ProjectForm, CommentForm, CitationForm
+from django.urls import reverse_lazy, reverse
+from django.views import View
+from django.views.generic import ListView, DetailView
+
+from .forms import ProjectForm
+from .models import Project, ProjectApplication, Notification, User, ChatMessage, ChatRoom
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.generic import CreateView, UpdateView, View
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Exists, OuterRef
 
 
-def project_list(request):
-    """List all research projects."""
-    projects = Project.objects.all()
-    context = {'projects': projects}
-    return render(request, 'marketplace/project_list.html', context)
+class MarketplaceView(LoginRequiredMixin, ListView):
+    model = Project
+    template_name = 'marketplace/marketplace.html'
+    context_object_name = 'projects'
+    paginate_by = 10
 
-
-
-
-def project_detail(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-    comments = project.comments.all()
-    citations = project.citations.all()
-    related_projects = project.related_projects.all()
-
-    if request.method == 'POST':
-        # Handling Comment submission
-        if 'comment' in request.POST:
-            comment_form = CommentForm(request.POST)
-            if comment_form.is_valid():
-                comment = comment_form.save(commit=False)
-                comment.project = project
-                comment.user = request.user
-                comment.save()
-                return redirect('project_detail', project_id=project.id)
-
-        # Handling Citation submission
-        elif 'citation' in request.POST:
-            citation_form = CitationForm(request.POST)
-            if citation_form.is_valid():
-                citation = citation_form.save(commit=False)
-                citation.project = project
-                citation.save()
-                return redirect('project_detail', project_id=project.id)
-    else:
-        comment_form = CommentForm()
-        citation_form = CitationForm()
-
-    return render(request, 'marketplace/project_detail.html', {
-        'project': project,
-        'comments': comments,
-        'citations': citations,
-        'related_projects': related_projects,
-        'comment_form': comment_form,
-        'citation_form': citation_form,
-    })
-
-
-
-
-
-
-@login_required
-def project_create(request):
-    if request.method == 'POST':
-        project_form = ProjectForm(request.POST, request.FILES)
-
-        if project_form.is_valid():
-            # Create the project
-            project = project_form.save()
-
-            # Handle dynamic research sections
-            section_titles = request.POST.getlist('section_title[]')
-            section_contents = request.POST.getlist('section_content[]')
-
-            for title, content in zip(section_titles, section_contents):
-                ResearchSection.objects.create(
-                    project=project,
-                    title=title,
-                    content=content
+    def get_queryset(self):
+        queryset = Project.objects.filter(is_active=True).order_by('-created_at')
+        # Add annotation to check if user has applied
+        if self.request.user.is_authenticated:
+            queryset = queryset.annotate(
+                has_applied=Exists(
+                    ProjectApplication.objects.filter(
+                        project=OuterRef('pk'),
+                        applicant=self.request.user
+                    )
                 )
+            )
+        return queryset
 
-            return redirect('project_detail', project.id)
-    else:
-        project_form = ProjectForm()
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user_skills'] = set(s.name.lower() for s in self.request.user.profile.skills.all())
+        return context
 
-    return render(request, 'marketplace/project_create.html', {'form': project_form})
+class ProjectDetailView(LoginRequiredMixin, DetailView):
+    model = Project
+    template_name = 'marketplace/project_detail.html'
+    context_object_name = 'project'
+
+
+class ApplyProjectView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        project = get_object_or_404(Project, id=self.kwargs['project_id'])
+        application, created = ProjectApplication.objects.get_or_create(
+            project=project,
+            applicant=request.user,
+            defaults={'status': 'PENDING'}
+        )
+
+        if created:
+            messages.success(request, 'Application submitted successfully!')
+        else:
+            messages.warning(request, 'You have already applied to this project')
+
+        return redirect('project-detail', pk=project.id)
+
+# views.py
+class MyProjectsView(LoginRequiredMixin, ListView):
+    template_name = 'marketplace/my_projects.html'
+    context_object_name = 'projects'
+
+    def get_queryset(self):
+        return Project.objects.filter(owner=self.request.user)
+
+
+class ProjectCreateView(LoginRequiredMixin, CreateView):
+    model = Project
+    form_class = ProjectForm
+    template_name = 'marketplace/project_form.html'
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+
+class ProjectUpdateView(LoginRequiredMixin, UpdateView):
+    model = Project
+    fields = ['title', 'description', 'category', 'skills_required', 'is_active']
+    template_name = 'marketplace/project_form.html'
+    context_object_name = 'project'
+
+    def get_queryset(self):
+        return Project.objects.filter(owner=self.request.user)
+
+    def get_success_url(self):
+        return reverse_lazy('my-projects')
+
+
+class ProjectToggleView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        project = get_object_or_404(
+            Project,
+            pk=self.kwargs['pk'],
+            owner=self.request.user
+        )
+        project.is_active = not project.is_active
+        project.save()
+        return redirect('my-projects')
+
+
+
+
+
+def user_profile(request, username):
+    user = get_object_or_404(User, username=username)
+    context = {
+        'profile_user': user,
+        'projects_count': Project.objects.filter(owner=user).count(),
+    }
+    return render(request, 'users/profile.html', context)
+
+@login_required
+def update_application(request, pk, status):
+    application = get_object_or_404(ProjectApplication, pk=pk, project__owner=request.user)
+    previous_status = application.status
+    application.status = status
+    application.save()
+
+    if previous_status != status:
+        # Create notification
+        Notification.objects.create(
+            user=application.applicant,
+            message=f"Your application to {application.project.title} has been {status.lower()}",
+            link=reverse('project-detail', kwargs={'pk': application.project.pk})
+        )
+
+    return redirect('project-detail', pk=application.project.pk)
 
 
 @login_required
-def project_edit(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-    if request.user != project.owner:
-        return redirect('project_detail', project_id=project.id)  # Prevent non-owners from editing
+def chat_view(request, user_id):
+    other_user = get_object_or_404(User, id=user_id)
+    current_user = request.user
+
+    # Get or create chat room
+    room = ChatRoom.objects.filter(participants=current_user).filter(participants=other_user).distinct().first()
+
+    if not room:
+        room = ChatRoom.objects.create()
+        room.participants.add(current_user, other_user)
 
     if request.method == 'POST':
-        form = ProjectForm(request.POST, request.FILES, instance=project)
-        if form.is_valid():
-            form.save()
-            form.save_m2m()  # Save many-to-many relationships
-            return redirect('project_detail', project_id=project.id)
-    else:
-        form = ProjectForm(instance=project)
+        content = request.POST.get('content', '').strip()
+        if content:
+            ChatMessage.objects.create(
+                room=room,
+                sender=current_user,
+                content=content
+            )
+            return redirect('chat', user_id=user_id)
 
-    return render(request, 'project_edit.html', {
-        'form': form,
-        'project': project
-    })
+    messages = room.messages.all().order_by('timestamp')
 
-@login_required
-def project_delete(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-    if request.user == project.owner:
-        project.delete()
-        return redirect('project_list')  # Redirect to a list of all projects after deletion
-    return redirect('project_detail', project_id=project.id)
+    context = {
+        'room': room,
+        'other_user': other_user,
+        'messages': messages,
+    }
+    return render(request, 'chat/chat.html', context)

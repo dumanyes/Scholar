@@ -1,18 +1,195 @@
-{% extends 'users/base.html' %}
-
-{% block title %}Create/Edit Project{% endblock %}
+{% extends "users/base.html" %}
+{% load static %}
 
 {% block content %}
-  <div class="container">
-    <h1>{% if project %}Edit{% else %}Create{% endif %} Project</h1>
+<style>
+    .creation-card {
+        max-width: 800px;
+        margin: 2rem auto;
+        border-radius: 24px;
+        padding: 2.5rem;
+        background: white;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    }
 
-    <form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Save</button>
-</form>
+    .form-input {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 16px;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        margin-top: 0.5rem;
+    }
 
+    .form-input:focus {
+        border-color: #40c057;
+        box-shadow: 0 0 0 3px rgba(64, 192, 87, 0.2);
+        outline: none;
+    }
 
-    <a href="{% url 'project-list' %}" class="btn btn-secondary mt-3">Back to Projects</a>
-  </div>
+    .skill-tag {
+        background: #f8f9fa;
+        border-radius: 20px;
+        padding: 0.75rem 1.25rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 0.5rem 0.5rem 0 0;
+        font-size: 0.95rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .add-button {
+        background: #2f9e44;
+        color: white;
+        border: none;
+        border-radius: 16px;
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .add-button:hover {
+        background: #2b8a3e;
+        transform: translateY(-1px);
+    }
+
+    .skill-input-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .submit-button {
+        width: 100%;
+        padding: 1.25rem;
+        border-radius: 16px;
+        background: #2f9e44;
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 700;
+        border: none;
+        transition: all 0.2s ease;
+        margin-top: 2rem;
+    }
+
+    .submit-button:hover {
+        background: #2b8a3e;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(46, 204, 113, 0.25);
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #2D2A32;
+        font-size: 0.95rem;
+    }
+
+    .remove-skill {
+        color: #868e96;
+        cursor: pointer;
+        padding-left: 0.5rem;
+        transition: all 0.2s ease;
+    }
+
+    .remove-skill:hover {
+        color: #ff6b6b;
+    }
+</style>
+
+<div class="creation-card">
+    <h2 class="text-center mb-6" style="font-size: 2rem; font-weight: 800; color: #2D2A32;">
+        {% if object %}Edit Project{% else %}Create New Project{% endif %}
+    </h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- Title -->
+        <div class="mb-5">
+            <label class="form-label">Project Title</label>
+            <input type="text" name="title" class="form-input" required>
+        </div>
+
+        <!-- Description -->
+        <div class="mb-5">
+            <label class="form-label">Project Description</label>
+            <textarea name="description" class="form-input" rows="4" required></textarea>
+        </div>
+
+        <!-- Skills -->
+        <div class="mb-5">
+            <label class="form-label">Required Skills</label>
+            <div class="skill-input-group">
+                <input type="text" id="skill-input" class="form-input" placeholder="Add skills...">
+                <button type="button" onclick="addSkill()" class="add-button">
+                    <i class="fas fa-plus"></i>
+                    Add Skill
+                </button>
+            </div>
+            <div id="skills-container" class="mt-3 flex flex-wrap"></div>
+            <input type="hidden" name="skills_required" id="skills-hidden">
+        </div>
+
+        <!-- Category -->
+        <div class="mb-5">
+            <label class="form-label">Project Category</label>
+            <select name="category" class="form-input" required>
+                {% for value, name in form.category.field.choices %}
+                    <option value="{{ value }}">{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Project Link -->
+        <div class="mb-5">
+            <label class="form-label">Project Link (optional)</label>
+            <input type="url" name="project_link" class="form-input" placeholder="https://">
+        </div>
+
+        <button type="submit" class="submit-button">
+            {% if object %}Update Project{% else %}Create Project{% endif %}
+        </button>
+    </form>
+</div>
+
+<script>
+    function addSkill() {
+        const skillInput = document.getElementById('skill-input');
+        const skillsContainer = document.getElementById('skills-container');
+        const hiddenInput = document.getElementById('skills-hidden');
+
+        if (skillInput.value.trim()) {
+            const tag = document.createElement('div');
+            tag.className = 'skill-tag';
+            tag.innerHTML = `
+                ${skillInput.value.trim()}
+                <span class="remove-skill" onclick="removeSkill(this)">&times;</span>
+            `;
+
+            skillsContainer.appendChild(tag);
+            updateHiddenSkills();
+            skillInput.value = '';
+        }
+    }
+
+    function removeSkill(element) {
+        element.parentElement.remove();
+        updateHiddenSkills();
+    }
+
+    function updateHiddenSkills() {
+        const skillsContainer = document.getElementById('skills-container');
+        const hiddenInput = document.getElementById('skills-hidden');
+        const skills = Array.from(skillsContainer.children)
+            .map(tag => tag.textContent.replace('×', '').trim());
+        hiddenInput.value = skills.join(', ');
+    }
+</script>
 {% endblock %}

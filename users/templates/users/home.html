@@ -1,24 +1,10 @@
 {% extends "users/base.html" %}
 {% block title %}Home Page{% endblock title %}
 {% block content %}
-<!-- In base.html -->
 <style>
-{#:root {#}
-{#    --primary-color: #2D2A32;    /* Charcoal Gray */#}
-{#    --accent-color: #7A6F5B;     /* Warm Taupe */#}
-{#    --background-color: #F5F3EF; /* Parchment White */#}
-{#    --text-primary: #2D2A32;     /* Dark Gray */#}
-{#    --text-secondary: #5F5B54;   /* Muted Gray */#}
-{#    --border-color: #ffffff;     /* Soft Beige */#}
-{#}#}
-:root {
-    --primary-color: #2D2A32;    /* Charcoal Gray */
-    --accent-color: #7A6F5B;     /* Warm Taupe */
-    --background-color: #FFFFFF; /* Parchment White */
-    --text-primary: #2D2A32;     /* Dark Gray */
-    --text-secondary: #5F5B54;   /* Muted Gray */
-    --border-color: #ffffff;     /* Soft Beige */
-}
+/* Add to home.html styles */
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Playfair+Display:wght@400;600&display=swap');
+
 
 body {
     font-family: 'Merriweather', serif;
@@ -26,46 +12,6 @@ body {
     color: var(--text-primary);
     line-height: 1.6;
 }
-
-.navbar {
-    background: var(--background-color) !important;
-    border-bottom: 1px solid var(--border-color);
-    padding: 1rem 0;
-}
-
-.navbar-brand {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.75rem;
-    color: var(--primary-color) !important;
-    letter-spacing: 0.5px;
-}
-
-.nav-link {
-    color: var(--text-primary) !important;
-    font-size: 1rem;
-    padding: 0.5rem 1rem !important;
-    transition: all 0.3s ease;
-}
-
-.nav-link:hover {
-    color: var(--accent-color) !important;
-    transform: translateY(-1px);
-}
-
-.content-wrapper {
-    background-color: var(--background-color);
-    box-shadow: none;
-    padding: 3rem 0;
-}
-</style>
-
-
-
-<!-- In home.html -->
-<style>
-/* Add to home.html styles */
-@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Playfair+Display:wght@400;600&display=swap');
-
 .hero-section {
     background: var(--background-color);
     height: 70vh;

@@ -195,147 +195,7 @@
 </div>
 
 <style>
-    :root {
-        --paper: #f8f6f2;
-        --ink: #2b2a27;
-        --accent: #5a5348;
-        --border: #d4d0c7;
-        --highlight: #e3dac9;
-        --success: #4CAF50;
-        --danger: #f44336;
-    }
-
-    .parchment-bg {
-        background: var(--paper);
-        border: none;
-    }
-
-    .author-name {
-        font-family: 'Cormorant Garamond', serif;
-        color: var(--ink);
-        font-size: 2.2rem;
-    }
-
-    .detail-label {
-        font-family: 'Inter', sans-serif;
-        font-size: 0.9rem;
-        font-weight: 500;
-        color: var(--accent);
-        margin-bottom: 0.5rem;
-    }
-
-    .form-control {
-        border: 2px solid var(--border);
-        border-radius: 6px;
-        padding: 0.75rem;
-        transition: all 0.2s ease;
-    }
-
-    .form-control:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 0.2rem rgba(90, 83, 72, 0.15);
-    }
-
-    .avatar-frame {
-        width: 180px;
-        height: 180px;
-        object-fit: cover;
-        border-radius: 50%;
-        border: 3px solid var(--border);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-
-    .tag-input-container {
-        background: white;
-        border-radius: 6px;
-        padding: 0.5rem;
-        border: 2px solid var(--border);
-    }
-
-    .btn-add {
-        background: var(--accent);
-        color: white;
-        border: none;
-        border-radius: 6px;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s ease;
-    }
-
-    .btn-add:hover {
-        background: #4a443b;
-        transform: translateY(-1px);
-    }
-
-    .tag-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    .tag {
-        display: inline-flex;
-        align-items: center;
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        transition: all 0.2s ease;
-    }
-
-    .skill-tag {
-        background: var(--accent);
-        color: white;
-    }
-
-    .interest-tag {
-        background: var(--highlight);
-        color: var(--ink);
-    }
-
-    .tag i {
-        margin-left: 0.5rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .tag i:hover {
-        transform: scale(1.1);
-    }
-
-    .btn-primary, .btn-secondary {
-        padding: 0.75rem 1.5rem;
-        border-radius: 6px;
-        font-size: 1rem;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .btn-primary {
-        background: var(--accent);
-        color: white;
-        border: none;
-    }
-
-    .btn-secondary {
-        background: var(--paper);
-        color: var(--accent);
-        border: 2px solid var(--accent);
-    }
-
-    .btn-primary:hover, .btn-secondary:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    .gap-2 {
-        gap: 0.5rem;
-    }
+    /* ... (keep existing styles the same) ... */
 </style>
 
 <script>
@@ -381,6 +241,7 @@ function updateSkillsDisplay() {
         container.appendChild(span);
     });
     
+    // Update hidden input with comma-separated values
     document.getElementById('id_skills').value = Array.from(selectedSkills).join(',');
 }
 
@@ -422,6 +283,7 @@ function updateInterestsDisplay() {
         container.appendChild(span);
     });
     
+    // Update hidden input with comma-separated values
     document.getElementById('id_interests').value = Array.from(selectedInterests).join(',');
 }
 

@@ -1,28 +1,234 @@
-{% extends 'users/base.html' %}
+{% extends "users/base.html" %}
+{% load static %}
 
 {% block content %}
+<style>
+    .project-header {
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .project-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .project-status {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+        border-radius: 20px;
+        backdrop-filter: blur(4px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .active-status {
+        background: rgba(72, 199, 116, 0.15);
+        color: #2f9e44;
+    }
+
+    .inactive-status {
+        background: rgba(255, 107, 107, 0.15);
+        color: #ff6b6b;
+    }
+
+    .skill-badge {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 6px 12px;
+        margin: 4px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .applicant-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .application-status {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .action-button {
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #2f9e44;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+    }
+</style>
+
 <div class="container py-5">
-    <div class="card shadow-lg">
-        <div class="card-header bg-primary text-white text-center">
-            <h4>{{ project.title }}</h4>
-        </div>
-        <div class="card-body">
-            <p><strong>Published on:</strong> {{ project.publish_date }}</p>
-            <p><strong>Abstract:</strong> {{ project.abstract }}</p>
-
-            {% if project.pdf_file %}
-                <a href="{{ project.pdf_file.url }}" class="btn btn-success" target="_blank">Download PDF</a>
+    <div class="project-header">
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <div>
+                <h1 class="mb-3" style="font-size: 2rem; font-weight: 700;">{{ project.title }}</h1>
+                <span class="project-status {% if project.is_active %}active-status{% else %}inactive-status{% endif %}">
+                    {% if project.is_active %}Active{% else %}Inactive{% endif %}
+                </span>
+            </div>
+            {% if project.owner == request.user %}
+            <a href="{% url 'edit-project' project.id %}" class="action-button" style="background: #f8f9fa; color: #495057;">
+                <i class="fas fa-edit"></i>
+                Edit
+            </a>
             {% endif %}
-
-            <p><strong>Tags:</strong> {{ project.tags.all|join:", " }}</p>
-            <p><strong>Citation:</strong> {{ project.citation }}</p>
-            <p><strong>Citation Link:</strong> <a href="{{ project.citation_link }}">{{ project.citation_link }}</a></p>
-
-            {% for section in project.sections.all %}
-                <h5>{{ section.title }}</h5>
-                <div>{{ section.content|safe }}</div>
-            {% endfor %}
         </div>
+
+        <div class="d-flex align-items-center gap-3">
+            <div class="avatar">
+                {{ project.owner.username|first|upper }}
+            </div>
+            <div>
+                <p class="mb-0">Created by <strong>@{{ project.owner.username }}</strong></p>
+                <small class="text-muted">Posted on {{ project.created_at|date:"M d, Y" }}</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="project-card">
+                <h3 class="mb-4" style="font-size: 1.25rem; font-weight: 600;">Project Description</h3>
+                <p class="text-secondary">{{ project.description }}</p>
+
+                <h3 class="mb-4 mt-5" style="font-size: 1.25rem; font-weight: 600;">Required Skills</h3>
+                <div class="d-flex flex-wrap">
+                    {% for skill in project.skills_required.split %}
+                    <span class="skill-badge">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="project-card">
+                <h4 class="mb-4" style="font-size: 1.25rem; font-weight: 600;">Project Details</h4>
+
+                <div class="d-flex justify-content-between mb-3">
+                    <span>Category:</span>
+                    <strong>{{ project.get_category_display }}</strong>
+                </div>
+
+                <div class="d-flex justify-content-between mb-3">
+                    <span>Status:</span>
+                    <strong>{{ project.is_active|yesno:"Active,Inactive" }}</strong>
+                </div>
+
+                <div class="d-flex justify-content-between mb-4">
+                    <span>Last Updated:</span>
+                    <strong>{{ project.last_modified|date:"M d, Y" }}</strong>
+                </div>
+
+                {% if user.is_authenticated and user != project.owner %}
+                <form method="POST" action="{% url 'apply-project' project.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="action-button w-100" style="background: #2f9e44; color: white;">
+                        {% if has_applied %}
+                            <i class="fas fa-check"></i> Applied
+                        {% else %}
+                            <i class="fas fa-plus"></i> Apply Now
+                        {% endif %}
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if project.owner == request.user %}
+    <div class="mt-5">
+        <h3 class="mb-4" style="font-size: 1.5rem; font-weight: 700;">Applications ({{ project.applications.count }})</h3>
+    {% for application in project.applications.all %}
+<div class="applicant-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'user-profile' application.applicant.username %}" class="text-decoration-none">
+                <div class="avatar">
+                    {{ application.applicant.username|first|upper }}
+                </div>
+            </a>
+            <div>
+                <a href="{% url 'user-profile' application.applicant.username %}" class="text-decoration-none">
+                    <p class="mb-0"><strong>@{{ application.applicant.username }}</strong></p>
+                </a>
+                <small class="text-muted">Applied {{ application.applied_at|date:"M d" }}</small>
+                <div class="mt-1">
+                    <small class="text-muted">
+                        Projects: {{ application.applicant.owned_projects.count }} |
+                        Member since: {{ application.applicant.date_joined|date:"Y" }}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+            <span class="application-status
+                {% if application.status == 'ACCEPTED' %}bg-success{% elif application.status == 'REJECTED' %}bg-danger{% else %}bg-warning{% endif %}">
+                {{ application.get_status_display }}
+            </span>
+            {% if application.status == 'PENDING' %}
+            <div class="d-flex gap-2">
+                <form method="POST" action="{% url 'update-application' application.id 'ACCEPTED' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="action-button" style="background: #2f9e44; color: white;">
+                        Accept
+                    </button>
+                </form>
+                <form method="POST" action="{% url 'update-application' application.id 'REJECTED' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="action-button" style="background: #ff6b6b; color: white;">
+                        Reject
+                    </button>
+                </form>
+            </div>
+            {% elif application.status == 'ACCEPTED' %}
+            <a href="{% url 'chat' application.applicant.id %}" class="action-button" style="background: #4dabf7; color: white;">
+                <i class="fas fa-comment"></i>
+                Chat
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if application.message %}
+    <div class="mt-3 pt-3 border-top">
+        <p class="text-muted mb-0"><em>"{{ application.message }}"</em></p>
+    </div>
+    {% endif %}
+</div>
+{% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="mt-5">
+        <a href="{% url 'marketplace' %}" class="action-button" style="background: #f8f9fa; color: #495057;">
+            <i class="fas fa-arrow-left"></i>
+            Back to Marketplace
+        </a>
     </div>
 </div>
 {% endblock %}

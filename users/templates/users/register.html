@@ -1,304 +1,1164 @@
 {% extends "users/base.html" %}
-{% block title %} Register Page {% endblock title %}
+{% load static widget_tweaks %}
+
 {% block content %}
-<style>
-    :root {
-        --paper: #f8f6f2;
-        --ink: #2b2a27;
-        --accent: #5a5348;
-        --border: #d4d0c7;
-        --highlight: #e3dac9;
-        --success: #4CAF50;
-        --danger: #f44336;
-    }
+<div class="registration-container">
+    <!-- Progress Bar -->
+    <div class="registration-progress">
+        <div class="progress-bar" style="width: {{ progress }}%"></div>
+        <div class="step-counter">Step {{ step|add:1 }} of 5</div>
+    </div>
 
-    body {
-        background-color: var(--paper);
-        color: var(--ink);
-        font-family: 'Merriweather', serif;
-    }
-
-    .container {
-        max-width: 100%;
-        padding: 0 1rem;
-    }
-
-    /* Card Styles */
-    .card {
-        border: 1px solid var(--border);
-        border-radius: 1rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        background-color: var(--paper);
-    }
-
-    .card-header {
-        background-color: transparent;
-        border-bottom: 1px solid var(--border);
-        padding: 1.5rem;
-        text-align: center;
-    }
-
-    .card-header h3 {
-        font-family: 'Playfair Display', serif;
-        font-size: 2rem;
-        color: var(--ink);
-        margin: 0;
-    }
-
-    .card-body {
-        padding: 1.5rem;
-    }
-
-    /* Fieldset and Legend (Step Navigation) */
-    fieldset {
-        border: none;
-        margin: 0;
-        padding: 0;
-    }
-
-    legend {
-        font-size: 1.2rem;
-        font-weight: bold;
-        margin-bottom: 1rem;
-        color: var(--ink);
-    }
-
-    /* Form Control Styles */
-    .form-group label {
-        font-size: 1.1rem;
-        color: var(--ink);
-        margin-bottom: 0.5rem;
-        display: block;
-    }
-
-    /* You can add the 'form-control' class to your widgets by configuring your form in Python.
-       For this example, the fields are rendered as is. */
-
-    /* Button Styles */
-    .btn {
-        font-size: 1rem;
-        padding: 0.75rem;
-        border-radius: 0.5rem;
-    }
-
-    .btn-primary {
-        background-color: var(--ink);
-        border: none;
-        color: var(--paper);
-    }
-
-    .btn-primary:hover {
-        background-color: var(--accent);
-    }
-
-    .btn-dark {
-        background-color: var(--ink);
-        border: none;
-        color: var(--paper);
-    }
-
-    .btn-dark:hover {
-        background-color: var(--accent);
-    }
-
-    .btn-secondary {
-        background-color: var(--highlight);
-        border: none;
-        color: var(--ink);
-    }
-
-    .btn-secondary:hover {
-        background-color: var(--accent);
-        color: var(--paper);
-    }
-
-    /* Alert Styles */
-    .alert-danger {
-        background-color: var(--danger);
-        border-color: var(--danger);
-        color: var(--paper);
-        border-radius: 0.5rem;
-        padding: 0.75rem;
-        margin-bottom: 1rem;
-    }
-
-    /* Layout for Form Rows */
-    .form-row {
-        display: flex;
-        flex-wrap: wrap;
-        margin: 0 -0.5rem;
-    }
-
-    .form-row > [class*="col-"] {
-        padding: 0 0.5rem;
-        flex: 1;
-    }
-
-    .form-group {
-        margin-bottom: 1.5rem;
-    }
-
-    /* Card Footer */
-    .card-footer {
-        background-color: transparent;
-        border-top: 1px solid var(--border);
-        padding: 1rem;
-        text-align: center;
-    }
-
-    .card-footer .small a {
-        color: var(--accent);
-        text-decoration: none;
-    }
-
-    .card-footer .small a:hover {
-        text-decoration: underline;
-    }
-
-    /* Hide all steps by default */
-    .step {
-        display: none;
-    }
-</style>
-
-<div class="form-content my-3 p-3">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-7">
-                <div class="card shadow-lg mt-0 mb-5">
-                    <div class="card-header">
-                        <h3 class="font-weight-light my-4">Create Account</h3>
-                    </div>
-                    <div class="card-body">
-                        <form method="POST" id="registerForm">
-                            {% csrf_token %}
-                            {% if form.errors %}
-                                <div class="alert alert-danger alert-dismissible" role="alert">
-                                    <div id="form_errors">
-                                        {% for key, value in form.errors.items %}
-                                            <strong>{{ value }}</strong>
-                                        {% endfor %}
-                                    </div>
-                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                            {% endif %}
-
-                            <!-- Step 1: Personal Information -->
-                            <fieldset class="step" id="step-1">
-                                <legend>Personal Information</legend>
-                                <div class="form-row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>First Name</label>
-                                            {{ form.first_name }}
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Last Name</label>
-                                            {{ form.last_name }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <button type="button" class="btn btn-primary btn-block next-step">Next</button>
-                                </div>
-                            </fieldset>
-
-                            <!-- Step 2: Account Details -->
-                            <fieldset class="step" id="step-2">
-                                <legend>Account Details</legend>
-                                <div class="form-row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Username</label>
-                                            {{ form.username }}
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Email</label>
-                                            {{ form.email }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-group d-flex justify-content-between">
-                                    <button type="button" class="btn btn-secondary prev-step">Previous</button>
-                                    <button type="button" class="btn btn-primary next-step">Next</button>
-                                </div>
-                            </fieldset>
-
-                            <!-- Step 3: Password -->
-                            <fieldset class="step" id="step-3">
-                                <legend>Password</legend>
-                                <div class="form-row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Password</label>
-                                            {{ form.password1 }}
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Confirm Password</label>
-                                            {{ form.password2 }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-group d-flex justify-content-between">
-                                    <button type="button" class="btn btn-secondary prev-step">Previous</button>
-                                    <button type="submit" class="btn btn-dark btn-block">Sign Up</button>
-                                </div>
-                            </fieldset>
-                        </form>
-                    </div>
-                    <div class="card-footer">
-                        <div class="small">
-                            <a href="{% url 'login' %}">Have an account? Go to Sign in</a>
-                        </div>
-                    </div>
+    <div class="registration-steps">
+        <!-- Step 1: Personal Information -->
+        {% if step == 0 %}
+        <form method="POST" class="registration-form">
+            {% csrf_token %}
+            <input type="hidden" name="step" value="0">
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    {{ form.first_name|add_class:"form-input"|attr:"placeholder:First Name" }}
                 </div>
+                <div class="form-group">
+                    {{ form.last_name|add_class:"form-input"|attr:"placeholder:Last Name" }}
+                </div>
+                <div class="form-group">
+                    {{ form.username|add_class:"form-input"|attr:"placeholder:Username" }}
+                </div>
+                <div class="form-group">
+                    {{ form.email|add_class:"form-input"|attr:"placeholder:Email" }}
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Next →</button>
+        </form>
+        {% endif %}
+
+        <!-- Step 2: Email Verification -->
+        {% if step == 1 %}
+        <div class="verification-container">
+            <div class="verification-header">
+                <i class="fas fa-envelope verification-icon"></i>
+                <h3>Verify Your Email</h3>
+                <p>We've sent a 6-digit code to <strong>{{ email }}</strong></p>
+            </div>
+            
+            <form method="POST" class="verification-form">
+    {% csrf_token %}
+    <input type="hidden" name="step" value="1">
+    
+    <div class="code-inputs">
+        <input type="text" name="verification_code" maxlength="6" pattern="\d{6}" 
+               required class="verification-code" placeholder="••••••">
+    </div>
+    <button type="submit" class="btn btn-verify">Verify Code</button>
+    <p class="resend-text">
+        Didn't receive code? 
+        <a href="{% url 'resend-code' %}" class="resend-link">Resend Code</a>
+    </p>
+</form>
+        </div>
+        {% endif %}
+
+        <!-- Step 3: Password Setup -->
+        <!-- Step 3: Password Setup -->
+{% if step == 2 %}
+<form method="POST" class="registration-form">
+    {% csrf_token %}
+    <input type="hidden" name="step" value="2">
+    
+    <div class="form-group password-group">
+        <div class="password-input-group">
+            <input type="password" name="password1" id="password1" class="form-input" 
+                   placeholder="Password" required>
+            <button type="button" class="password-toggle-btn">
+                <i class="fas fa-eye"></i>
+            </button>
+        </div>
+        <div class="password-validation">
+            <div class="validation-item" data-validation="length">
+                <i class="validation-icon"></i>
+                At least 9 characters
+            </div>
+            <div class="validation-item" data-validation="uppercase">
+                <i class="validation-icon"></i>
+                At least 1 uppercase letter
+            </div>
+            <div class="validation-item" data-validation="symbol">
+                <i class="validation-icon"></i>
+                At least 1 symbol
             </div>
         </div>
     </div>
+    
+    <div class="form-group password-group">
+        <div class="password-input-group">
+            <input type="password" name="password2" id="password2" class="form-input" 
+                   placeholder="Confirm Password" required>
+            <button type="button" class="password-toggle-btn">
+                <i class="fas fa-eye"></i>
+            </button>
+        </div>
+        <div class="validation-item" data-validation="match">
+            <i class="validation-icon"></i>
+            Passwords match
+        </div>
+    </div>
+    
+    <div class="form-actions">
+        <button type="button" class="btn btn-back" onclick="history.back()">← Back</button>
+        <button type="submit" class="btn btn-primary" id="submit-btn" disabled>Next →</button>
+    </div>
+</form>
+{% endif %}
+
+        <!-- Step 4: Avatar Upload -->
+        {% if step == 3 %}
+        <form method="POST" enctype="multipart/form-data" class="avatar-form">
+            {% csrf_token %}
+            <input type="hidden" name="step" value="3">
+            
+            <div class="avatar-uploader">
+                <label class="avatar-label">
+                    <input type="file" name="avatar" accept="image/*" class="avatar-input">
+                    <div class="avatar-preview">
+                        <div class="avatar-placeholder">
+                            <i class="fas fa-camera"></i>
+                            <span>Upload Profile Picture (Optional)</span>
+                        </div>
+                        <img src="#" alt="Avatar preview" class="avatar-preview-image">
+                    </div>
+                </label>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="btn btn-back" onclick="history.back()">← Back</button>
+                <button type="submit" class="btn btn-primary">Next →</button>
+            </div>
+        </form>
+        {% endif %}
+
+<!-- Step 5: Skills Selection -->
+{% if step == 4 %}
+<div class="selection-container">
+    <h3>Select Your Skills (At least 5)</h3>
+    <div class="selector-wrapper">
+        <!-- Search Bar -->
+        <div class="search-container">
+            <div class="search-icon-wrapper">
+                <i class="fas fa-search"></i>
+            </div>
+            <input type="text" class="search-input" placeholder="Search or type to add new..." data-type="skill">
+        </div>
+        
+        <!-- Suggestions Dropdown -->
+        <div class="suggestions-dropdown" id="skill-suggestions"></div>
+
+        <!-- Selected Items -->
+        <div class="selected-items-container">
+            <h4>Selected Skills (<span class="selected-count">0</span>)</h4>
+            <div class="selected-items" id="selected-skills"></div>
+            <p class="error-message" id="skills-error"></p>
+        </div>
+
+        <!-- Popular Skills -->
+        <div class="popular-items-container">
+            <h4>Popular Skills</h4>
+            <div class="popular-items" id="popular-skills"></div>
+        </div>
+
+        <!-- Add Custom Item -->
+        <div class="custom-item-container">
+            <input type="text" class="custom-input" placeholder="Add custom skill..." id="custom-skill-input">
+            <button type="button" class="btn-add-custom" data-type="skill">
+                <i class="fas fa-plus"></i> Add New
+            </button>
+        </div>
+    </div>
+
+    <form method="POST" class="selection-form" id="skills-form">
+        {% csrf_token %}
+        <input type="hidden" name="step" value="4">
+        <input type="hidden" name="selected_skills" id="selected-skills-input">
+        
+        <div class="form-actions">
+            <button type="button" class="btn btn-back" onclick="history.back()">← Back</button>
+            <button type="submit" class="btn btn-primary">Next →</button>
+        </div>
+    </form>
+</div>
+{% endif %}
+
+<!-- Step 6: Interests Selection -->
+{% if step == 5 %}
+<div class="selection-container">
+    <h3>Select Your Interests (At least 5)</h3>
+    <div class="selector-wrapper">
+        <!-- Search Bar -->
+        <div class="search-container">
+            <div class="search-icon-wrapper">
+                <i class="fas fa-search"></i>
+            </div>
+            <input type="text" class="search-input" placeholder="Search or type to add new..." data-type="interest">
+        </div>
+        
+        <!-- Suggestions Dropdown -->
+        <div class="suggestions-dropdown" id="interest-suggestions"></div>
+
+        <!-- Selected Items -->
+        <div class="selected-items-container">
+            <h4>Selected Interests (<span class="selected-count">0</span>)</h4>
+            <div class="selected-items" id="selected-interests"></div>
+            <p class="error-message" id="interests-error"></p>
+        </div>
+
+        <!-- Popular Interests -->
+        <div class="popular-items-container">
+            <h4>Popular Interests</h4>
+            <div class="popular-items" id="popular-interests"></div>
+        </div>
+
+        <!-- Add Custom Item -->
+        <div class="custom-item-container">
+            <input type="text" class="custom-input" placeholder="Add custom interest..." id="custom-interest-input">
+            <button type="button" class="btn-add-custom" data-type="interest">
+                <i class="fas fa-plus"></i> Add New
+            </button>
+        </div>
+    </div>
+
+    <form method="POST" class="selection-form" id="interests-form">
+        {% csrf_token %}
+        <input type="hidden" name="step" value="5">
+        <input type="hidden" name="selected_interests" id="selected-interests-input">
+        
+        <div class="form-actions">
+            <button type="button" class="btn btn-back" onclick="history.back()">← Back</button>
+            <button type="submit" class="btn btn-success">Complete Registration</button>
+        </div>
+    </form>
+</div>
+{% endif %}
+    </div>
 </div>
 
-<script>
-    // JavaScript to handle multi-step form navigation
-    document.addEventListener('DOMContentLoaded', function () {
-        const steps = document.querySelectorAll('.step');
-        const nextButtons = document.querySelectorAll('.next-step');
-        const prevButtons = document.querySelectorAll('.prev-step');
-        let currentStep = 0;
+<style>
+/* Base Styles */
+.registration-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.password-input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
 
-        function showStep(stepIndex) {
-            steps.forEach((step, index) => {
-                step.style.display = (index === stepIndex) ? 'block' : 'none';
-            });
+.password-input-group .form-input {
+    padding-right: 45px; /* Make room for the button */
+}
+
+.password-toggle-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+}
+
+.password-toggle-btn:hover {
+    color: #3b82f6;
+}
+
+.password-toggle-btn:focus {
+    outline: none;
+}
+
+/* Validation Styles */
+.password-validation {
+    margin-top: 0.5rem;
+}
+
+.validation-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin: 0.25rem 0;
+    transition: all 0.3s ease;
+}
+
+.validation-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    position: relative;
+}
+
+.validation-item.valid {
+    color: #059669;
+}
+
+.validation-item.invalid {
+    color: #dc2626;
+}
+
+.validation-item.valid .validation-icon {
+    background: #059669;
+}
+
+.validation-item.invalid .validation-icon {
+    background: #dc2626;
+}
+
+.validation-icon::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    font-size: 0.65rem;
+    color: white;
+}
+
+.validation-item.valid .validation-icon::before {
+    content: '\f00c';
+}
+
+.validation-item.invalid .validation-icon::before {
+    content: '\f00d';
+}
+/* 
+Add to existing styles */
+.password-validation {
+    margin-top: 0.5rem;
+}
+
+.validation-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin: 0.25rem 0;
+    transition: all 0.3s ease;
+}
+
+.validation-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    position: relative;
+}
+
+.validation-icon::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-family: "Font Awesome 5 Free";
+    font-size: 0.65rem;
+    display: none;
+}
+
+.validation-item.valid .validation-icon {
+    background: #10b981;
+}
+
+.validation-item.valid .validation-icon::before {
+    content: '\f00c';
+    color: white;
+    display: block;
+}
+
+.validation-item.invalid .validation-icon {
+    background: #ef4444;
+}
+
+.validation-item.invalid .validation-icon::before {
+    content: '\f00d';
+    color: white;
+    display: block;
+}
+
+#submit-btn:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+}
+.selector-wrapper {
+    background-color: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.search-container {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.search-icon-wrapper {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
+
+.suggestions-dropdown {
+    display: none;
+    position: absolute;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+.suggestion-item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+}
+
+.suggestion-item:hover {
+    background-color: #f3f4f6;
+}
+
+.selected-items-container {
+    margin: 1.5rem 0;
+}
+
+.selected-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.selected-tag {
+    display: inline-flex;
+    align-items: center;
+    background-color: #e1effe;
+    color: #1e40af;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+}
+
+.remove-tag {
+    margin-left: 0.5rem;
+    cursor: pointer;
+    color: #3b82f6;
+}
+
+.remove-tag:hover {
+    color: #1e40af;
+}
+
+.popular-items-container {
+    margin: 1.5rem 0;
+}
+
+.popular-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.popular-tag {
+    background-color: #f3f4f6;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.popular-tag:hover {
+    background-color: #e5e7eb;
+}
+
+.custom-item-container {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.custom-input {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+}
+
+.btn-add-custom {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #3b82f6;
+    color: white;
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
+
+.btn-add-custom:hover {
+    background-color: #2563eb;
+}
+
+.error-message {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+/* Add to existing styles */
+.selection-container h3 {
+    color: #1e3a8a;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.checkbox-grid {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 2rem;
+}
+
+.selection-form {
+    padding: 20px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.error-message {
+    color: #dc2626;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+/* Add to existing styles */
+.professional-form-container {
+    padding: 20px;
+}
+
+.form-section-title {
+    color: #1e3a8a;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #3b82f6;
+    padding-bottom: 0.5rem;
+}
+
+.section-divider {
+    height: 1px;
+    background: #cbd5e1;
+    margin: 2rem 0;
+}
+
+.checkbox-label.skill-item .checkmark {
+    border-color: #3b82f6;
+}
+
+.checkbox-label.interest-item .checkmark {
+    border-color: #10b981;
+}
+
+input[type="checkbox"]:checked + .checkmark.skill-item {
+    background: #3b82f6;
+}
+
+input[type="checkbox"]:checked + .checkmark.interest-item {
+    background: #10b981;
+}
+
+/* Progress Bar */
+.registration-progress {
+    margin-bottom: 2rem;
+    position: relative;
+    height: 8px;
+    background: #f0f0f0;
+    border-radius: 4px;
+}
+
+.progress-bar {
+    height: 100%;
+    background: #3b82f6;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.step-counter {
+    position: absolute;
+    right: 0;
+    top: -25px;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+/* Form Styles */
+.registration-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.form-input:focus {
+    border-color: #3b82f6;
+    outline: none;
+}
+
+/* Password Toggle */
+.password-group {
+    position: relative;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #64748b;
+}
+
+/* Avatar Upload */
+.avatar-uploader {
+    margin: 2rem 0;
+}
+
+.avatar-label {
+    display: block;
+    cursor: pointer;
+}
+
+.avatar-preview {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;
+    border: 2px dashed #cbd5e1;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative;
+}
+
+.avatar-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #64748b;
+}
+
+.avatar-preview-image {
+    display: none;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Checkbox Grid */
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.checkbox-label:hover {
+    background: #f8fafc;
+}
+
+.checkmark {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #cbd5e1;
+    border-radius: 4px;
+    position: relative;
+}
+
+input[type="checkbox"]:checked + .checkmark {
+    background: #3b82f6;
+    border-color: #3b82f6;
+}
+
+input[type="checkbox"]:checked + .checkmark::after {
+    content: "✓";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 0.8rem;
+}
+
+/* Buttons */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+}
+
+.btn-back {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.btn-back:hover {
+    background: #e2e8f0;
+}
+
+.btn-success {
+    background: #10b981;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #059669;
+}
+
+/* Verification Styles */
+.verification-container {
+    text-align: center;
+    padding: 2rem;
+}
+
+.verification-icon {
+    font-size: 2.5rem;
+    color: #3b82f6;
+    margin-bottom: 1rem;
+}
+
+.verification-code {
+    width: 200px;
+    padding: 1rem;
+    font-size: 1.2rem;
+    letter-spacing: 0.5rem;
+    text-align: center;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+
+.resend-link {
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.resend-link:hover {
+    text-decoration: underline;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Password Toggle
+document.querySelectorAll('.toggle-password').forEach(icon => {
+    icon.addEventListener('click', function() {
+        const input = this.previousElementSibling;
+        const type = input.type === 'password' ? 'text' : 'password';
+        input.type = type;
+        this.classList.toggle('fa-eye-slash');
+        // Force repaint for smooth transition
+        void input.offsetWidth;
+    });
+});
+
+    // Avatar Preview
+    const avatarInput = document.querySelector('.avatar-input');
+    if(avatarInput) {
+        avatarInput.addEventListener('change', function(e) {
+            const preview = document.querySelector('.avatar-preview-image');
+            const placeholder = document.querySelector('.avatar-placeholder');
+            
+            if(this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+
+    // Verification Code Auto Advance
+    const codeInput = document.querySelector('.verification-code');
+    if(codeInput) {
+        codeInput.addEventListener('input', function(e) {
+            if(this.value.length === 6) {
+                this.form.submit();
+            }
+        });
+    }
+});
+</script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const popularItems = {
+        skills: [
+            'Machine Learning', 'Data Science', 'Artificial Intelligence', 
+            'Web Development', 'Python', 'JavaScript', 'Research', 
+            'Deep Learning', 'Natural Language Processing', 'Computer Vision',
+            'Statistics', 'Mathematics', 'Blockchain', 'Cloud Computing',
+            'Database Systems', 'Software Engineering', 'Algorithms',
+            'Data Analysis', 'Big Data', 'Neural Networks',
+            'Robotics', 'Cybersecurity', 'Mobile Development',
+            'DevOps', 'UI/UX Design', 'Network Security',
+            'Data Mining', 'System Design', 'Microservices',
+            'API Development'
+        ],
+        interests: [
+            'Research', 'Technology', 'Innovation', 'Education',
+            'Science', 'Data Analysis', 'Software Development',
+            'Machine Learning', 'Artificial Intelligence', 'Robotics',
+            'Sustainability', 'Healthcare', 'Biotechnology',
+            'Computer Science', 'Mathematics', 'Physics',
+            'Engineering', 'Chemistry', 'Biology', 'Economics',
+            'Business', 'Finance', 'Marketing', 'Psychology',
+            'Neuroscience', 'Environmental Science', 'Space',
+            'Quantum Computing', 'Cybersecurity', 'Blockchain'
+        ]
+    };
+
+    function initializeSelector(type) {
+        const selectedItems = new Set();
+        const container = document.querySelector(`#selected-${type}s`);
+        const input = document.querySelector(`#selected-${type}s-input`);
+        const searchInput = document.querySelector(`.search-input[data-type="${type}"]`);
+        const suggestionsContainer = document.querySelector(`#${type}-suggestions`);
+        const errorMessage = document.querySelector(`#${type}s-error`);
+        const countDisplay = container.parentElement.querySelector('.selected-count');
+        
+        // Initialize popular items
+        const popularContainer = document.querySelector(`#popular-${type}s`);
+        popularItems[type + 's'].forEach(item => {
+            const tag = document.createElement('div');
+            tag.className = 'popular-tag';
+            tag.textContent = item;
+            tag.onclick = () => addItem(item);
+            popularContainer.appendChild(tag);
+        });
+
+        function updateCount() {
+            countDisplay.textContent = selectedItems.size;
+            if (selectedItems.size < 5) {
+                errorMessage.textContent = `Please select at least 5 ${type}s`;
+            } else {
+                errorMessage.textContent = '';
+            }
         }
 
-        nextButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                if (currentStep < steps.length - 1) {
-                    currentStep++;
-                    showStep(currentStep);
-                }
-            });
+        function addItem(item) {
+            if (!selectedItems.has(item)) {
+                selectedItems.add(item);
+                const tag = document.createElement('div');
+                tag.className = 'selected-tag';
+                tag.innerHTML = `
+                    ${item}
+                    <span class="remove-tag" onclick="removeItem('${item}')">&times;</span>
+                `;
+                container.appendChild(tag);
+                updateCount();
+                input.value = JSON.stringify([...selectedItems]);
+            }
+        }
+
+        window[`removeItem${type.charAt(0).toUpperCase() + type.slice(1)}`] = function(item) {
+            selectedItems.delete(item);
+            container.innerHTML = '';
+            selectedItems.forEach(item => addItem(item));
+            updateCount();
+            input.value = JSON.stringify([...selectedItems]);
+        };
+
+        searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            const matches = popularItems[type + 's'].filter(item => 
+                item.toLowerCase().includes(query) && !selectedItems.has(item)
+            );
+
+            suggestionsContainer.innerHTML = '';
+            if (query && matches.length > 0) {
+                matches.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item';
+                    div.textContent = item;
+                    div.onclick = () => {
+                        addItem(item);
+                        searchInput.value = '';
+                        suggestionsContainer.style.display = 'none';
+                    };
+                    suggestionsContainer.appendChild(div);
+                });
+                suggestionsContainer.style.display = 'block';
+            } else {
+                suggestionsContainer.style.display = 'none';
+            }
         });
 
-        prevButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                if (currentStep > 0) {
-                    currentStep--;
-                    showStep(currentStep);
-                }
-            });
-        });
+        // Add custom item
+        const customInput = document.querySelector(`#custom-${type}-input`);
+        const addCustomBtn = document.querySelector(`.btn-add-custom[data-type="${type}"]`);
+        
+        addCustomBtn.onclick = () => {
+            const newItem = customInput.value.trim();
+            if (newItem && !selectedItems.has(newItem)) {
+                addItem(newItem);
+                customInput.value = '';
+            }
+        };
 
-        // Show the first step on page load
-        showStep(currentStep);
-    });
+        // Close suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.search-container')) {
+                suggestionsContainer.style.display = 'none';
+            }
+        });
+    }
+
+    // Initialize selectors if they exist on the page
+    if (document.querySelector('#selected-skills')) {
+        initializeSelector('skill');
+    }
+    if (document.querySelector('#selected-interests')) {
+        initializeSelector('interest');
+    }
+});
 </script>
-{% endblock content %}
+    <script>
+    // Password Validation Logic
+document.addEventListener('DOMContentLoaded', function() {
+    const password1 = document.getElementById('password1');
+    const password2 = document.getElementById('password2');
+    const submitBtn = document.getElementById('submit-btn');
+    
+    // Initialize validation state
+    const validations = {
+        length: false,
+        uppercase: false,
+        symbol: false,
+        match: false
+    };
+
+    // Update validation UI and state
+    function updateValidationUI(selector, isValid) {
+        const element = document.querySelector(`[data-validation="${selector}"]`);
+        if (element) {
+            element.classList.remove('valid', 'invalid');
+            element.classList.add(isValid ? 'valid' : 'invalid');
+            validations[selector] = isValid;
+        }
+    }
+
+    // Check if all validations pass
+    function updateSubmitButton() {
+        const allValid = Object.values(validations).every(v => v);
+        if (submitBtn) {
+            submitBtn.disabled = !allValid;
+        }
+    }
+
+    // Main password validation function
+    function validatePassword() {
+        const pass1 = password1.value;
+        const pass2 = password2.value;
+
+        // Length validation (at least 9 characters)
+        updateValidationUI('length', pass1.length >= 9);
+
+        // Uppercase validation
+        updateValidationUI('uppercase', /[A-Z]/.test(pass1));
+
+        // Symbol validation
+        updateValidationUI('symbol', /[!@#$%^&*(),.?":{}|<>]/.test(pass1));
+
+        // Match validation
+        updateValidationUI('match', pass1 === pass2 && pass1 !== '');
+
+        updateSubmitButton();
+    }
+
+    // Enhanced password toggle functionality
+    function setupPasswordToggle(inputElement) {
+        const toggleButton = inputElement.nextElementSibling;
+        if (toggleButton) {
+            toggleButton.addEventListener('click', function() {
+                const type = inputElement.type === 'password' ? 'text' : 'password';
+                inputElement.type = type;
+                
+                // Update icon
+                this.classList.toggle('fa-eye');
+                this.classList.toggle('fa-eye-slash');
+                
+                // Add visual feedback
+                this.style.color = type === 'text' ? '#3b82f6' : '#64748b';
+            });
+
+            // Initialize with eye icon
+            toggleButton.classList.add('fa-eye');
+        }
+    }
+
+    // Set up event listeners if elements exist
+    if (password1 && password2) {
+        // Setup validation events
+        password1.addEventListener('input', validatePassword);
+        password2.addEventListener('input', validatePassword);
+
+        // Setup password toggles
+        setupPasswordToggle(password1);
+        setupPasswordToggle(password2);
+
+        // Initial validation check
+        validatePassword();
+    }
+});
+    </script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const password1 = document.getElementById('password1');
+    const password2 = document.getElementById('password2');
+    const submitBtn = document.getElementById('submit-btn');
+    
+    // Initialize validation state
+    const validations = {
+        length: false,
+        uppercase: false,
+        symbol: false,
+        match: false
+    };
+
+    // Update validation UI and state
+    function updateValidationUI(selector, isValid) {
+        const element = document.querySelector(`[data-validation="${selector}"]`);
+        if (element) {
+            element.classList.remove('valid', 'invalid');
+            element.classList.add(isValid ? 'valid' : 'invalid');
+            validations[selector] = isValid;
+        }
+    }
+
+    // Check if all validations pass
+    function updateSubmitButton() {
+        const allValid = Object.values(validations).every(v => v);
+        if (submitBtn) {
+            submitBtn.disabled = !allValid;
+        }
+    }
+
+    // Main password validation function
+    function validatePassword() {
+        const pass1 = password1.value;
+        const pass2 = password2.value;
+
+        // Length validation (at least 9 characters)
+        updateValidationUI('length', pass1.length >= 9);
+
+        // Uppercase validation
+        updateValidationUI('uppercase', /[A-Z]/.test(pass1));
+
+        // Symbol validation
+        updateValidationUI('symbol', /[!@#$%^&*(),.?":{}|<>]/.test(pass1));
+
+        // Match validation
+        updateValidationUI('match', pass1 === pass2 && pass1 !== '');
+
+        updateSubmitButton();
+    }
+
+    // Password toggle functionality
+    document.querySelectorAll('.password-toggle-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const input = this.parentElement.querySelector('input');
+            const icon = this.querySelector('i');
+            
+            // Toggle password visibility
+            input.type = input.type === 'password' ? 'text' : 'password';
+            
+            // Toggle icon
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+            
+            // Add visual feedback
+            this.style.color = input.type === 'text' ? '#3b82f6' : '#64748b';
+        });
+    });
+
+    // Set up validation events if elements exist
+    if (password1 && password2) {
+        password1.addEventListener('input', validatePassword);
+        password2.addEventListener('input', validatePassword);
+        
+        // Initial validation check
+        validatePassword();
+    }
+});
+</script>
+{% endblock %}

@@ -1,45 +1,88 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.password_validation import validate_password
+
 from .models import Profile, Interest, Skill, University
 from cities_light.models import Country, City
 
+import re
+from django.core.exceptions import ValidationError
 
+def validate_password_strength(value):
+    """
+    Validate that the password is at least 9 characters long,
+    contains at least one uppercase letter and one symbol.
+    """
+    if len(value) < 9:
+        raise ValidationError("Password must be at least 9 characters long.")
+    if not re.search(r'[A-Z]', value):
+        raise ValidationError("Password must contain at least one uppercase letter.")
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', value):
+        raise ValidationError("Password must contain at least one special character.")
+
+
+# In forms.py
 class RegisterForm(UserCreationForm):
     first_name = forms.CharField(
-        max_length=100,
         required=True,
-        widget=forms.TextInput(attrs={'placeholder': 'First Name', 'class': 'form-control'})
+        widget=forms.TextInput(attrs={'class': 'form-control'})
     )
     last_name = forms.CharField(
-        max_length=100,
         required=True,
-        widget=forms.TextInput(attrs={'placeholder': 'Last Name', 'class': 'form-control'})
+        widget=forms.TextInput(attrs={'class': 'form-control'})
     )
     username = forms.CharField(
-        max_length=100,
         required=True,
-        widget=forms.TextInput(attrs={'placeholder': 'Username', 'class': 'form-control'})
+        widget=forms.TextInput(attrs={'class': 'form-control'})
     )
     email = forms.EmailField(
         required=True,
-        widget=forms.EmailInput(attrs={'placeholder': 'Email', 'class': 'form-control'})
+        widget=forms.EmailInput(attrs={'class': 'form-control'})
     )
     password1 = forms.CharField(
-        max_length=50,
-        required=True,
-        widget=forms.PasswordInput(attrs={'placeholder': 'Password', 'class': 'form-control'})
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        validators=[validate_password, validate_password_strength]  # Add custom validator
     )
     password2 = forms.CharField(
-        max_length=50,
-        required=True,
-        widget=forms.PasswordInput(attrs={'placeholder': 'Confirm Password', 'class': 'form-control'})
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
     )
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'username', 'email', 'password1', 'password2']
+        fields = ('first_name', 'last_name', 'username', 'email', 'password1', 'password2')
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Explicitly remove password fields
+        if 'password1' in self.fields:
+            del self.fields['password1']
+        if 'password2' in self.fields:
+            del self.fields['password2']
+
+    def clean_skills(self):
+        skills = self.cleaned_data.get('skills')
+        if len(skills) < 5:
+            raise forms.ValidationError("Please select at least 5 skills.")
+        return skills
+
+    def clean_interests(self):
+        interests = self.cleaned_data.get('interests')
+        if len(interests) < 5:
+            raise forms.ValidationError("Please select at least 5 interests.")
+        return interests
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError('This username is already taken. Please choose another one.')
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError('This email is already registered. Please use another email or login.')
+        return email
 
 class LoginForm(AuthenticationForm):
     username = forms.CharField(
@@ -112,15 +155,13 @@ class UpdateProfileForm(forms.ModelForm):
         required=False,
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 5})
     )
-    skills = forms.ModelMultipleChoiceField(
-        queryset=Skill.objects.all(),
+    skills = forms.CharField(
         required=False,
-        widget=forms.SelectMultiple(attrs={'class': 'd-none'})  # Hide default widget
+        widget=forms.HiddenInput(attrs={'class': 'form-control'})
     )
-    interests = forms.ModelMultipleChoiceField(
-        queryset=Interest.objects.all(),
+    interests = forms.CharField(
         required=False,
-        widget=forms.CheckboxSelectMultiple
+        widget=forms.HiddenInput(attrs={'class': 'form-control'})
     )
     organization = forms.CharField(
         required=False,
@@ -159,8 +200,40 @@ class UpdateProfileForm(forms.ModelForm):
 
     class Meta:
         model = Profile
-        fields = ['avatar', 'bio', 'organization', 'position', 'university', 'country', 'city', 'linkedin', 'github', 'google_scholar', 'telegram']
+        fields = ['avatar', 'bio', 'organization', 'position', 'university', 'country', 'city', 'linkedin', 'github', 'google_scholar', 'telegram', 'skills', 'interests']
 
+    def clean_skills(self):
+        skill_names = self.cleaned_data.get('skills', '').split(',')
+        skills = []
+        for name in skill_names:
+            name = name.strip()
+            if name:
+                skill, created = Skill.objects.get_or_create(
+                    name=name,
+                    defaults={'created_by': self.instance.user, 'approved': False}
+                )
+                skills.append(skill)
+        return skills
+
+    def clean_interests(self):
+        interest_names = self.cleaned_data.get('interests', '').split(',')
+        interests = []
+        for name in interest_names:
+            name = name.strip()
+            if name:
+                interest, created = Interest.objects.get_or_create(
+                    name=name,
+                    defaults={'created_by': self.instance.user, 'approved': False}
+                )
+                interests.append(interest)
+        return interests
+
+    def save(self, commit=True):
+        profile = super().save(commit=commit)
+        if commit:
+            profile.skills.set(self.cleaned_data['skills'])
+            profile.interests.set(self.cleaned_data['interests'])
+        return profile
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.country:
