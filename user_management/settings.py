@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 # To keep secret keys in environment variables
+import dj_database_url
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -91,6 +92,8 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+DATABASES['default'] = dj_database_url.parse("postgresql://scholar_t_db_01_user:gLhki25VqEsUl4icyP1E25xsneJTxqS8@dpg-cus2gg23esus73fi6ns0-a.oregon-postgres.render.com/scholar_t_db_01")
+#postgresql://scholar_t_db_01_user:gLhki25VqEsUl4icyP1E25xsneJTxqS8@dpg-cus2gg23esus73fi6ns0-a.oregon-postgres.render.com/scholar_t_db_01
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [

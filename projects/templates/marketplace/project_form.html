@@ -2,6 +2,13 @@
 {% load static %}
 
 {% block content %}
+<!-- Include jQuery (required for jQuery UI) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Include jQuery UI CSS and JS for autocomplete functionality -->
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+
 <style>
     .creation-card {
         max-width: 800px;
@@ -11,7 +18,6 @@
         background: white;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
     }
-
     .form-input {
         width: 100%;
         padding: 1rem 1.5rem;
@@ -21,13 +27,11 @@
         transition: all 0.2s ease;
         margin-top: 0.5rem;
     }
-
     .form-input:focus {
         border-color: #40c057;
         box-shadow: 0 0 0 3px rgba(64, 192, 87, 0.2);
         outline: none;
     }
-
     .skill-tag {
         background: #f8f9fa;
         border-radius: 20px;
@@ -39,7 +43,6 @@
         font-size: 0.95rem;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
-
     .add-button {
         background: #2f9e44;
         color: white;
@@ -52,18 +55,15 @@
         font-weight: 600;
         transition: all 0.2s ease;
     }
-
     .add-button:hover {
         background: #2b8a3e;
         transform: translateY(-1px);
     }
-
     .skill-input-group {
         display: flex;
         gap: 1rem;
         margin-top: 1rem;
     }
-
     .submit-button {
         width: 100%;
         padding: 1.25rem;
@@ -76,13 +76,11 @@
         transition: all 0.2s ease;
         margin-top: 2rem;
     }
-
     .submit-button:hover {
         background: #2b8a3e;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(46, 204, 113, 0.25);
     }
-
     .form-label {
         display: block;
         font-weight: 600;
@@ -90,14 +88,12 @@
         color: #2D2A32;
         font-size: 0.95rem;
     }
-
     .remove-skill {
         color: #868e96;
         cursor: pointer;
         padding-left: 0.5rem;
         transition: all 0.2s ease;
     }
-
     .remove-skill:hover {
         color: #ff6b6b;
     }
@@ -123,28 +119,32 @@
             <textarea name="description" class="form-input" rows="4" required></textarea>
         </div>
 
-        <!-- Skills -->
+        <!-- Skills with Autocomplete -->
         <div class="mb-5">
             <label class="form-label">Required Skills</label>
             <div class="skill-input-group">
-                <input type="text" id="skill-input" class="form-input" placeholder="Add skills...">
+                <input type="text" id="skill-input" class="form-input" placeholder="Start typing a skill...">
                 <button type="button" onclick="addSkill()" class="add-button">
                     <i class="fas fa-plus"></i>
                     Add Skill
                 </button>
             </div>
-            <div id="skills-container" class="mt-3 flex flex-wrap"></div>
+            <div id="skills-container" class="mt-3"></div>
             <input type="hidden" name="skills_required" id="skills-hidden">
         </div>
 
-        <!-- Category -->
+        <!-- Categories with Autocomplete (max 5) -->
         <div class="mb-5">
-            <label class="form-label">Project Category</label>
-            <select name="category" class="form-input" required>
-                {% for value, name in form.category.field.choices %}
-                    <option value="{{ value }}">{{ name }}</option>
-                {% endfor %}
-            </select>
+            <label class="form-label">Project Categories</label>
+            <div class="skill-input-group">
+                <input type="text" id="category-input" class="form-input" placeholder="Start typing a category...">
+                <button type="button" onclick="addCategory()" class="add-button">
+                    <i class="fas fa-plus"></i>
+                    Add Category
+                </button>
+            </div>
+            <div id="categories-container" class="mt-3"></div>
+            <input type="hidden" name="categories" id="categories-hidden">
         </div>
 
         <!-- Project Link -->
@@ -159,37 +159,97 @@
     </form>
 </div>
 
+<!-- Output available skills and categories as JSON from context -->
+<script id="available-skills" type="application/json">
+    {{ available_skills_json|safe }}
+</script>
+<script id="available-categories" type="application/json">
+    {{ available_categories_json|safe }}
+</script>
+
 <script>
+    // Parse the JSON data passed from the view
+    var availableSkills = JSON.parse(document.getElementById('available-skills').textContent);
+    var availableCategories = JSON.parse(document.getElementById('available-categories').textContent);
+
+    // Initialize jQuery UI autocomplete for skills and categories
+    $("#skill-input").autocomplete({
+        source: availableSkills,
+        minLength: 1,
+        autoFocus: true
+    });
+    $("#category-input").autocomplete({
+        source: availableCategories,
+        minLength: 1,
+        autoFocus: true
+    });
+
+    // Function to add a skill tag
     function addSkill() {
         const skillInput = document.getElementById('skill-input');
         const skillsContainer = document.getElementById('skills-container');
         const hiddenInput = document.getElementById('skills-hidden');
+        const skillValue = skillInput.value.trim();
 
-        if (skillInput.value.trim()) {
+        if (skillValue && !isTagAdded(skillValue, skillsContainer)) {
             const tag = document.createElement('div');
             tag.className = 'skill-tag';
-            tag.innerHTML = `
-                ${skillInput.value.trim()}
-                <span class="remove-skill" onclick="removeSkill(this)">&times;</span>
-            `;
-
+            tag.innerHTML = `${skillValue} <span class="remove-skill" onclick="removeTag(this, 'skills')">&times;</span>`;
             skillsContainer.appendChild(tag);
-            updateHiddenSkills();
+            updateHiddenInput(skillsContainer, hiddenInput);
             skillInput.value = '';
         }
     }
 
-    function removeSkill(element) {
-        element.parentElement.remove();
-        updateHiddenSkills();
+    // Function to add a category tag (max 5)
+    function addCategory() {
+        const categoryInput = document.getElementById('category-input');
+        const categoriesContainer = document.getElementById('categories-container');
+        const hiddenInput = document.getElementById('categories-hidden');
+        const categoryValue = categoryInput.value.trim();
+
+        if (categoryValue && !isTagAdded(categoryValue, categoriesContainer)) {
+            if (categoriesContainer.children.length >= 5) {
+                alert("You can select a maximum of 5 categories.");
+                return;
+            }
+            const tag = document.createElement('div');
+            tag.className = 'skill-tag';
+            tag.innerHTML = `${categoryValue} <span class="remove-skill" onclick="removeTag(this, 'categories')">&times;</span>`;
+            categoriesContainer.appendChild(tag);
+            updateHiddenInput(categoriesContainer, hiddenInput);
+            categoryInput.value = '';
+        }
     }
 
-    function updateHiddenSkills() {
-        const skillsContainer = document.getElementById('skills-container');
-        const hiddenInput = document.getElementById('skills-hidden');
-        const skills = Array.from(skillsContainer.children)
+    // Check if a tag is already added in a container
+    function isTagAdded(value, container) {
+        const tags = container.getElementsByClassName('skill-tag');
+        for (let i = 0; i < tags.length; i++) {
+            if (tags[i].textContent.replace('×', '').trim().toLowerCase() === value.toLowerCase()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Remove a tag from skills or categories container
+    function removeTag(element, type) {
+        element.parentElement.remove();
+        const container = (type === 'skills')
+            ? document.getElementById('skills-container')
+            : document.getElementById('categories-container');
+        const hiddenInput = (type === 'skills')
+            ? document.getElementById('skills-hidden')
+            : document.getElementById('categories-hidden');
+        updateHiddenInput(container, hiddenInput);
+    }
+
+    // Update hidden input with comma-separated values from the tags
+    function updateHiddenInput(container, hiddenInput) {
+        const values = Array.from(container.children)
             .map(tag => tag.textContent.replace('×', '').trim());
-        hiddenInput.value = skills.join(', ');
+        hiddenInput.value = values.join(', ');
     }
 </script>
 {% endblock %}

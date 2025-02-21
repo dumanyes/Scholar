@@ -3,6 +3,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from PIL import Image
 from cities_light.models import Country, City
+from datetime import date
+
 
 class University(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -10,6 +12,7 @@ class University(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Skill(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -38,6 +41,7 @@ class Profile(models.Model):
     orcid_id = models.CharField(max_length=19, blank=True, null=True, unique=True)
     avatar = models.ImageField(default='default.jpg', upload_to='profile_images')
     bio = models.TextField(blank=True, default="No bio available.")
+    birthdate = models.DateField(blank=True, null=True)  # Added birthdate field
 
     university = models.ForeignKey(University, blank=True, null=True, on_delete=models.SET_NULL)
 
@@ -68,8 +72,6 @@ class Profile(models.Model):
     def __str__(self):
         return f"{self.user.username}'s Profile"
 
-    from PIL import Image
-
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
@@ -85,3 +87,10 @@ class Profile(models.Model):
         if self.city and self.country:
             return f"{self.city.name}, {self.country.name}"
         return "Location not specified"
+
+    @property
+    def age(self):
+        if self.birthdate:
+            today = date.today()
+            return today.year - self.birthdate.year - ((today.month, today.day) < (self.birthdate.month, self.birthdate.day))
+        return None  # Return None if birthdate is not provided

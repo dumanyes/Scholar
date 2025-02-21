@@ -1,116 +1,100 @@
-<!-- chat/chat.html -->
 {% extends "users/base.html" %}
 {% load static %}
 
 {% block content %}
 <style>
-    .chat-container {
-        max-width: 800px;
-        margin: 2rem auto;
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        padding: 2rem;
-    }
-
-    .message-list {
-        height: 60vh;
-        overflow-y: auto;
-        padding: 1rem;
-        border: 2px solid #f8f9fa;
-        border-radius: 12px;
-        margin-bottom: 1.5rem;
-    }
-
-    .message {
-        margin-bottom: 1.5rem;
-        padding: 1rem;
-        border-radius: 12px;
-        background: #f8f9fa;
-    }
-
-    .message.sent {
-        background: #2f9e44;
-        color: white;
-        margin-left: 20%;
-    }
-
-    .message.received {
-        background: #f8f9fa;
-        margin-right: 20%;
-    }
-
-    .message-info {
-        font-size: 0.85rem;
-        opacity: 0.8;
-        margin-bottom: 0.5rem;
-    }
-
-    .chat-input {
-        display: flex;
-        gap: 1rem;
-    }
-
-    .chat-input textarea {
-        flex: 1;
-        padding: 1rem;
-        border: 2px solid #e0e0e0;
-        border-radius: 12px;
-        resize: none;
-    }
-
-    .chat-input button {
-        padding: 1rem 2rem;
-        border-radius: 12px;
-        background: #2f9e44;
-        color: white;
-        border: none;
-        cursor: pointer;
-    }
+  /* Optional body background override */
+  body {
+    background-color: #0f172a; /* dark navy */
+  }
 </style>
 
-<div class="chat-container">
-    <div class="d-flex align-items-center gap-3 mb-4">
-        <div class="avatar">
-            {{ other_user.username|first|upper }}
-        </div>
-        <h2>Chat with @{{ other_user.username }}</h2>
+<div class="w-full h-screen flex flex-col text-gray-100">
+  <!-- Header -->
+  <div class="flex items-center justify-between px-6 py-4 bg-gray-900 shadow">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center text-white font-medium text-lg shadow-sm">
+        {{ other_user.username|first|upper }}
+      </div>
+      <div>
+        <h2 class="font-semibold text-gray-100">@{{ other_user.username }}</h2>
+        <p class="text-xs text-gray-400">
+          {% if other_user.is_online %}
+            <span class="inline-block w-2 h-2 mr-1 bg-green-500 rounded-full"></span> Online
+          {% else %}
+            Last seen {% now "jS F" %}
+          {% endif %}
+        </p>
+      </div>
     </div>
+    <div>
+      <a href="{% url 'marketplace' %}" class="text-sm text-gray-300 hover:text-gray-100 transition">
+        Back to Marketplace
+      </a>
+    </div>
+  </div>
 
-    <div class="message-list">
-        {% for message in messages %}
-        <div class="message {% if message.sender == request.user %}sent{% else %}received{% endif %}">
-            <div class="message-info">
-                {% if message.sender == request.user %}
-                You - {{ message.timestamp|date:"H:i" }}
-                {% else %}
-                {{ message.sender.username }} - {{ message.timestamp|date:"H:i" }}
-                {% endif %}
+  <!-- Messages Container -->
+  <div id="message-list" class="flex-1 overflow-y-auto bg-gray-800 px-6 py-4">
+    {% for message in messages %}
+      <div class="{% if message.sender == request.user %}ml-auto max-w-[75%] flex flex-col items-end{% else %}mr-auto max-w-[75%]{% endif %} mb-4">
+        <div class="flex items-end gap-2">
+          {% if message.sender != request.user %}
+            <div class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-xs">
+              {{ message.sender.username|first|upper }}
             </div>
-            <p class="mb-0">{{ message.content }}</p>
+          {% endif %}
+          <!-- Chat bubble -->
+          <div class="{% if message.sender == request.user %}bg-blue-600 text-white rounded-2xl rounded-tr-none{% else %}bg-gray-700 text-gray-100 rounded-2xl rounded-tl-none{% endif %} px-4 py-3 shadow-sm">
+            <p class="text-sm">{{ message.content }}</p>
+          </div>
         </div>
-        {% empty %}
-        <p class="text-center text-muted">No messages yet. Start the conversation!</p>
-        {% endfor %}
-    </div>
+        <span class="text-xs text-gray-400 mt-1">
+          {{ message.timestamp|date:"H:i" }}
+        </span>
+      </div>
+    {% empty %}
+      <div class="flex flex-col items-center justify-center h-full text-center text-gray-300">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+        <h3 class="text-lg font-medium">No messages yet</h3>
+        <p class="mt-1">Start the conversation with {{ other_user.username }}</p>
+      </div>
+    {% endfor %}
+  </div>
 
-    <form method="POST" class="chat-input">
-        {% csrf_token %}
-        <textarea name="content" placeholder="Type your message..." rows="2" required></textarea>
-        <button type="submit">
-            <i class="fas fa-paper-plane"></i>
-        </button>
-    </form>
+  <!-- Message Input -->
+  <form method="POST" class="border-t border-gray-700 bg-gray-900 p-4" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="flex items-center gap-3">
+      <textarea name="content" rows="1"
+        class="block w-full px-4 py-2 text-sm bg-gray-700 border-0 rounded-full focus:ring-2 focus:ring-blue-500 resize-none text-gray-100"
+        placeholder="Type your message..."></textarea>
+      <button type="submit"
+        class="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 shadow-md transition duration-200">
+        <!-- Send Icon -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+        </svg>
+      </button>
+    </div>
+  </form>
 </div>
 
 <script>
-    // Auto-scroll to bottom
-    const messageList = document.querySelector('.message-list');
-    messageList.scrollTop = messageList.scrollHeight;
+  // Auto-scroll to bottom of messages
+  const messageList = document.getElementById('message-list');
+  messageList.scrollTop = messageList.scrollHeight;
 
-    // Real-time updates (basic implementation)
-    setTimeout(function refresh() {
-        window.location.reload();
-    }, 30000); // Refresh every 30 seconds
+  // Auto-expand textarea
+  const textarea = document.querySelector('textarea[name="content"]');
+  textarea.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = (this.scrollHeight) + 'px';
+    if (this.scrollHeight > 200) {
+      this.style.height = '200px';
+    }
+  });
 </script>
 {% endblock %}

@@ -8,81 +8,106 @@ from cities_light.models import Country, City
 
 import re
 from django.core.exceptions import ValidationError
+from django import forms
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
+from django.core.exceptions import ValidationError
+import re
+
+from .models import Profile
+
+
+def validate_username(value):
+    if len(value) < 3:
+        raise ValidationError("Username must be at least 3 characters long.")
+    if not re.match(r'^\w+$', value):  # Letters, numbers, underscores
+        raise ValidationError("Username can only contain letters, numbers, and underscores.")
+    if User.objects.filter(username=value).exists():
+        raise ValidationError("This username is already taken.")
+
 
 def validate_password_strength(value):
-    """
-    Validate that the password is at least 9 characters long,
-    contains at least one uppercase letter and one symbol.
-    """
-    if len(value) < 9:
-        raise ValidationError("Password must be at least 9 characters long.")
+    if len(value) < 8:
+        raise ValidationError("Password must be at least 8 characters long.")
     if not re.search(r'[A-Z]', value):
         raise ValidationError("Password must contain at least one uppercase letter.")
+    if not re.search(r'[a-z]', value):
+        raise ValidationError("Password must contain at least one lowercase letter.")
+    if not re.search(r'\d', value):
+        raise ValidationError("Password must contain at least one number.")
     if not re.search(r'[!@#$%^&*(),.?":{}|<>]', value):
         raise ValidationError("Password must contain at least one special character.")
 
 
-# In forms.py
+# def validate_phone_number(value):
+#     if not re.match(r'^\+?\d{10,15}$', value):  # Basic international format
+#         raise ValidationError("Phone number must be in the correct format.")
+
+
 class RegisterForm(UserCreationForm):
     first_name = forms.CharField(
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control'})
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        error_messages={'required': "This field is required."}
     )
     last_name = forms.CharField(
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control'})
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        error_messages={'required': "This field is required."}
     )
     username = forms.CharField(
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control'})
+        validators=[validate_username],
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        error_messages={'required': "Username is required."}
     )
     email = forms.EmailField(
         required=True,
-        widget=forms.EmailInput(attrs={'class': 'form-control'})
+        widget=forms.EmailInput(attrs={'class': 'form-control'}),
+        error_messages={'required': "Email is required.", 'invalid': "Please enter a valid email address."}
     )
     password1 = forms.CharField(
         widget=forms.PasswordInput(attrs={'class': 'form-control'}),
-        validators=[validate_password, validate_password_strength]  # Add custom validator
+        validators=[validate_password_strength],
+        error_messages={'required': "Password is required."}
     )
     password2 = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        error_messages={'required': "Password confirmation is required."}
+    )
+    # phone_number = forms.CharField(
+    #     required=False,
+    #     widget=forms.TextInput(attrs={'class': 'form-control'}),
+    #     validators=[validate_phone_number],
+    #     error_messages={'invalid': "Please enter a valid phone number."}
+    # )
+    birthdate = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        error_messages={'invalid': "Please enter a valid date."}
+    )
+    terms_and_conditions = forms.BooleanField(
+        required=True,
+        error_messages={'required': "You must agree to the terms and conditions to continue."}
     )
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'username', 'email', 'password1', 'password2')
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Explicitly remove password fields
-        if 'password1' in self.fields:
-            del self.fields['password1']
-        if 'password2' in self.fields:
-            del self.fields['password2']
-
-    def clean_skills(self):
-        skills = self.cleaned_data.get('skills')
-        if len(skills) < 5:
-            raise forms.ValidationError("Please select at least 5 skills.")
-        return skills
-
-    def clean_interests(self):
-        interests = self.cleaned_data.get('interests')
-        if len(interests) < 5:
-            raise forms.ValidationError("Please select at least 5 interests.")
-        return interests
-
-    def clean_username(self):
-        username = self.cleaned_data.get('username')
-        if User.objects.filter(username=username).exists():
-            raise forms.ValidationError('This username is already taken. Please choose another one.')
-        return username
+        fields = ('first_name', 'last_name', 'username', 'email', 'password1', 'password2', 'birthdate', 'terms_and_conditions')
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if User.objects.filter(email=email).exists():
-            raise forms.ValidationError('This email is already registered. Please use another email or login.')
+            raise ValidationError("This email is already registered.")
         return email
+
+    def clean_password2(self):
+        password1 = self.cleaned_data.get("password1")
+        password2 = self.cleaned_data.get("password2")
+        if password1 and password2 and password1 != password2:
+            raise ValidationError("Passwords do not match.")
+        return password2
+
 
 class LoginForm(AuthenticationForm):
     username = forms.CharField(

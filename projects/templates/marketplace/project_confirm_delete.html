@@ -1,0 +1,14 @@
+{% extends "users/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container" style="max-width:600px; margin: 2rem auto;">
+    <h2>Confirm Delete</h2>
+    <p>Are you sure you want to delete the project "{{ object.title }}"?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="delete-button" style="background: #ff6b6b; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 8px;">Yes, Delete</button>
+        <a href="{% url 'project-update' object.pk %}" class="cancel-button" style="margin-left: 1rem;">Cancel</a>
+    </form>
+</div>
+{% endblock %}

@@ -16,6 +16,7 @@ from django.views import View
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
+from requests import request
 
 from projects.models import User
 from .forms import RegisterForm, LoginForm, UpdateUserForm, UpdateProfileForm
@@ -107,11 +108,27 @@ class EditProfileView(View):
         return render(request, self.template_name, context)
 
 
-# views.py
+from django.shortcuts import render, redirect
+from django.views import View
+from django.contrib import messages
+from django.core.mail import send_mail
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.urls import reverse
+from random import randint
+import json
+import logging
+
+from .forms import RegisterForm
+from .models import Skill, Interest
+
+logger = logging.getLogger(__name__)
+
 class RegisterView(View):
     form_class = RegisterForm
     template_name = 'users/register.html'
-    steps = ['personal', 'verify', 'password', 'avatar', 'professional']
+    # We only want 5 steps total
+    steps = ['personal', 'verify', 'password', 'skills', 'interests']
     min_selections = 5
 
     def dispatch(self, request, *args, **kwargs):
@@ -126,19 +143,33 @@ class RegisterView(View):
 
     def post(self, request):
         step = int(request.POST.get('step', 0))
-        session_data = request.session.get('registration_data', {})
+        registration_data = request.session.get('registration_data', {})
 
-        if step == 0:  # Personal Info
+        # Step 0: Personal Info
+        if step == 0:
             form = self.form_class(request.POST)
+            # Only keep personal-info fields
+            personal_fields = ['first_name', 'last_name', 'username', 'email', 'birthdate', 'terms_and_conditions']
+            for field in list(form.fields.keys()):
+                if field not in personal_fields:
+                    form.fields.pop(field)
+
             if form.is_valid():
-                # Initialize session data as dictionary
-                request.session['registration_data'] = {
+                # Save personal info to session
+                registration_data.update({
                     'first_name': form.cleaned_data['first_name'],
                     'last_name': form.cleaned_data['last_name'],
                     'username': form.cleaned_data['username'],
-                    'email': form.cleaned_data['email']
-                }
-                # Generate and send verification code
+                    'email': form.cleaned_data['email'],
+                    'birthdate': (
+                        form.cleaned_data['birthdate'].strftime('%Y-%m-%d')
+                        if form.cleaned_data['birthdate']
+                        else None
+                    ),
+                })
+                request.session['registration_data'] = registration_data
+
+                # Generate & email a verification code
                 code = str(randint(100000, 999999))
                 request.session['verification_code'] = code
                 send_mail(
@@ -149,149 +180,145 @@ class RegisterView(View):
                     fail_silently=False,
                 )
                 return redirect(f"{reverse('users-register')}?step=1")
+            else:
+                messages.error(request, "Please fix the errors below.")
+                context = {
+                    'form': form,
+                    'step': step,
+                    'progress': ((step + 1) / len(self.steps)) * 100
+                }
+                return render(request, self.template_name, context)
 
-
-        elif step == 1:  # Verification
-
+        # Step 1: Email Verification
+        elif step == 1:
             entered_code = request.POST.get('verification_code')
-
             stored_code = request.session.get('verification_code')
-
             if str(entered_code) == str(stored_code):
                 return redirect(f"{reverse('users-register')}?step=2")
-
             messages.error(request, 'Invalid verification code')
+            context = {
+                'step': step,
+                'email': registration_data.get('email', ''),
+                'progress': ((step + 1) / len(self.steps)) * 100
+            }
+            return render(request, self.template_name, context)
 
-            return redirect(f"{reverse('users-register')}?step=1")
+        # Step 2: Password Setup
+        elif step == 2:
+            form = self.form_class(request.POST)
+            # Keep only password1 & password2 fields
+            password_fields = ['password1', 'password2']
+            for field in list(form.fields.keys()):
+                if field not in password_fields:
+                    form.fields.pop(field)
 
-        if step == 2:  # Password Step
-
-            password1 = request.POST.get('password1')
-
-            password2 = request.POST.get('password2')
-
-            if password1 and password1 == password2:
-                # Create a copy of session data to modify
-
-                updated_data = session_data.copy()
-
-                updated_data['password'] = password1
-
-                # Update session data atomically
-
-                request.session['registration_data'] = updated_data
-
-                request.session.modified = True
-
+            if form.is_valid():
+                registration_data['password'] = form.cleaned_data['password1']
+                request.session['registration_data'] = registration_data
                 return redirect(f"{reverse('users-register')}?step=3")
+            else:
+                messages.error(request, "Please fix the errors below.")
+                context = {
+                    'form': form,
+                    'step': step,
+                    'password_form': True,
+                    'progress': ((step + 1) / len(self.steps)) * 100
+                }
+                return render(request, self.template_name, context)
 
-            messages.error(request, 'Passwords do not match')
+        # Step 3: Skills
+        elif step == 3:
+            skills_data = json.loads(request.POST.get('selected_skills', '[]'))
+            if len(skills_data) < self.min_selections:
+                messages.error(request, f'Please select at least {self.min_selections} skills')
+                context = {
+                    'step': step,
+                    'skills': Skill.objects.filter(approved=True),
+                    'min_selections': self.min_selections,
+                    'progress': ((step + 1) / len(self.steps)) * 100
+                }
+                return render(request, self.template_name, context)
 
-            return redirect(f"{reverse('users-register')}?step=2")
-
-        elif step == 3:  # Avatar
-            avatar = request.FILES.get('avatar')
-            if avatar:
-                request.session['registration_data']['avatar'] = avatar
+            registration_data['skills'] = [
+                Skill.objects.get_or_create(name=s, defaults={'created_by': None})[0].id
+                for s in skills_data
+            ]
+            request.session['registration_data'] = registration_data
             return redirect(f"{reverse('users-register')}?step=4")
 
-
-
-        elif step == 4:  # Skills selection
-
-            skills_data = json.loads(request.POST.get('selected_skills', '[]'))
-
-            if len(skills_data) < 5:
-                messages.error(request, 'Please select at least 5 skills')
-
-                return redirect(f"{reverse('users-register')}?step=4")
-
-            # Process skills
-
-            skills = []
-
-            for skill_name in skills_data:
-                skill, created = Skill.objects.get_or_create(
-
-                    name=skill_name,
-
-                    defaults={'created_by': request.user if request.user.is_authenticated else None}
-
-                )
-
-                skills.append(skill.id)
-
-            request.session['registration_data']['skills'] = skills
-
-            return redirect(f"{reverse('users-register')}?step=5")
-
-
-        elif step == 5:  # Interests selection
-
+        # Step 4: Interests
+        elif step == 4:
             interests_data = json.loads(request.POST.get('selected_interests', '[]'))
+            if len(interests_data) < self.min_selections:
+                messages.error(request, f'Please select at least {self.min_selections} interests')
+                context = {
+                    'step': step,
+                    'interests': Interest.objects.filter(approved=True),
+                    'min_selections': self.min_selections,
+                    'progress': ((step + 1) / len(self.steps)) * 100
+                }
+                return render(request, self.template_name, context)
 
-            if len(interests_data) < 5:
-                messages.error(request, 'Please select at least 5 interests')
+            registration_data['interests'] = [
+                Interest.objects.get_or_create(name=i, defaults={'created_by': None})[0].id
+                for i in interests_data
+            ]
+            request.session['registration_data'] = registration_data
 
-                return redirect(f"{reverse('users-register')}?step=5")
-
-            # Process interests
-
-            interests = []
-
-            for interest_name in interests_data:
-                interest, created = Interest.objects.get_or_create(
-
-                    name=interest_name,
-
-                    defaults={'created_by': request.user if request.user.is_authenticated else None}
-
-                )
-
-                interests.append(interest.id)
-
-            request.session['registration_data']['interests'] = interests
-
+            # Done. Finalize
             return self.finalize_registration(request)
+
+        # If none of the above matched, fallback to GET logic
         return self.get(request)
 
     def get_step_context(self, request, step):
+        """
+        Prepare template context depending on the step.
+        """
         context = {
             'step': step,
-            'progress': ((step + 1) / len(self.steps)) * 100,
-            'form': self.form_class()
+            'progress': ((step + 1) / len(self.steps)) * 100
         }
 
-        if step == 1:  # Verification
+        if step == 0:
+            # Full form for personal info
+            context['form'] = self.form_class()
+
+        elif step == 1:
+            # Show email address for verification
             context['email'] = request.session.get('registration_data', {}).get('email', '')
 
-        elif step == 2:  # Password
+        elif step == 2:
+            # Provide a form only with password fields
+            password_form = self.form_class()
+            for field in list(password_form.fields.keys()):
+                if field not in ['password1', 'password2']:
+                    password_form.fields.pop(field)
+            context['form'] = password_form
             context['password_form'] = True
 
-        elif step == 3:  # Avatar
-            context['avatar_form'] = True
-
-        elif step == 4:  # Skills
+        elif step == 3:
+            # Skills selection
             context['skills'] = Skill.objects.filter(approved=True)
             context['min_selections'] = self.min_selections
 
-
-        elif step == 5:  # Interests
+        elif step == 4:
+            # Interests selection
             context['interests'] = Interest.objects.filter(approved=True)
             context['min_selections'] = self.min_selections
 
         return context
 
     def finalize_registration(self, request):
+        """
+        Create the user and finalize the registration.
+        """
         data = request.session.get('registration_data', {})
-
         if 'password' not in data:
-            logger.error('Password missing during final registration')
             messages.error(request, 'Registration failed: Password not found')
             return redirect(f"{reverse('users-register')}?step=2")
 
         try:
-            # Create user
             user = User.objects.create_user(
                 username=data['username'],
                 email=data['email'],
@@ -299,26 +326,22 @@ class RegisterView(View):
                 first_name=data['first_name'],
                 last_name=data['last_name']
             )
-
-            # Get the existing profile (created by signal) and update it
+            # For demonstration, attach skills & interests to user.profile
             profile = user.profile
-            if 'avatar' in data:
-                profile.avatar.save(data['avatar'].name, data['avatar'])
-
-            # Add skills and interests from session data
             profile.skills.set(data.get('skills', []))
             profile.interests.set(data.get('interests', []))
 
-            # Cleanup session
-            del request.session['registration_data']
-            del request.session['verification_code']
+            # Clean up session
+            if 'registration_data' in request.session:
+                del request.session['registration_data']
+            if 'verification_code' in request.session:
+                del request.session['verification_code']
 
             messages.success(request, 'Registration completed successfully!')
             return redirect('login')
 
-        except KeyError as e:
-            logger.error(f'Missing registration data: {str(e)}')
-            messages.error(request, f'Missing information: {str(e)}')
+        except Exception as e:
+            messages.error(request, f'Registration failed: {str(e)}')
             return redirect(reverse('users-register'))
 
 
@@ -452,8 +475,14 @@ def search_skills(request):
 def about(request):
     return render(request, 'users/about.html')
 
+def terms(request):
+    return render(request, 'users/terms.html')
+
 def services(request):
     return render(request, 'users/services.html')
 
 def contact(request):
     return render(request, 'users/contact.html')
+
+def privacyPolicy(request):
+    return render(request, 'users/privacy_policy.html')

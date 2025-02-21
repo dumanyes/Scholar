@@ -1,301 +1,372 @@
 {% extends "users/base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
 {% block title %}Edit Profile{% endblock %}
 
 {% block content %}
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<!-- Include desired fonts -->
+<link
+  href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500&display=swap"
+  rel="stylesheet"
+/>
+
 <div class="container my-5">
-    <div class="card shadow-lg rounded-lg p-4 mx-auto parchment-bg" style="max-width: 800px;">
-        <h2 class="text-center mb-4 author-name">
-            <i class="fas fa-scroll mr-2"></i>Edit Manuscript
-        </h2>
+  <div
+    class="card shadow-lg rounded-lg p-4 mx-auto parchment-bg"
+    style="max-width: 800px;"
+  >
+    <h2 class="text-center mb-4 author-name">
+      <i class="fas fa-scroll mr-2"></i>Edit Manuscript
+    </h2>
 
-        <form method="post" action="{% url 'users-edit-profile' %}" enctype="multipart/form-data">
-            {% csrf_token %}
-            
-            <!-- Avatar Section -->
-            <div class="form-group text-center mb-5">
-                <div class="avatar-container position-relative d-inline-block">
-                    <img class="avatar-frame mb-3" 
-                         src="{{ user.profile.avatar.url }}" 
-                         alt="Profile Picture"
-                         onerror="this.src='/static/images/default-avatar.png'">
-                    <label class="btn-edit position-absolute bottom-0 end-0">
-                        <i class="fas fa-camera"></i>
-                        {{ profile_form.avatar }}
-                    </label>
-                </div>
-            </div>
+    <form method="post" action="{% url 'users-edit-profile' %}" enctype="multipart/form-data">
+      {% csrf_token %}
 
-            <!-- Personal Details -->
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group mb-4">
-                        <label class="detail-label">Username</label>
-                        {{ user_form.username }}
-                        {% if user_form.username.errors %}
-                            <div class="text-danger small mt-1">{{ user_form.username.errors|join:", " }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group mb-4">
-                        <label class="detail-label">Email</label>
-                        {{ user_form.email }}
-                        {% if user_form.email.errors %}
-                            <div class="text-danger small mt-1">{{ user_form.email.errors|join:", " }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+      <!-- Avatar Section -->
+      <div class="form-group text-center mb-5">
+        <div class="avatar-container relative inline-block">
+          <!-- The preview image -->
+          <img
+            class="avatar-frame mb-3 w-24 h-24 object-cover rounded-full border border-gray-300"
+            src="{{ user.profile.avatar.url }}"
+            alt="Profile Picture"
+            onerror="this.src='/static/images/default-avatar.png'"
+          />
+          <!-- Label with camera icon to trigger file input -->
+          <label
+            class="btn-edit absolute bottom-0 right-0 bg-gray-800 text-white rounded-full p-1 hover:bg-gray-700 transition cursor-pointer"
+            title="Upload new photo"
+          >
+            <i class="fas fa-camera"></i>
+            <!-- Hide the file input visually, but it still triggers on click -->
+            {{ profile_form.avatar|add_class:"hidden" }}
+          </label>
+        </div>
+      </div>
 
-            <!-- Professional Details -->
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group mb-4">
-                        <label class="detail-label">Organization</label>
-                        {{ profile_form.organization }}
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group mb-4">
-                        <label class="detail-label">Position</label>
-                        {{ profile_form.position }}
-                    </div>
-                </div>
-            </div>
+      <!-- Personal Details -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="detail-label block text-gray-700">Username</label>
+          {{ user_form.username|add_class:"w-full px-3 py-2 border rounded" }}
+          {% if user_form.username.errors %}
+          <div class="text-red-600 text-sm mt-1">
+            {{ user_form.username.errors|join:", " }}
+          </div>
+          {% endif %}
+        </div>
+        <div>
+          <label class="detail-label block text-gray-700">Email</label>
+          {{ user_form.email|add_class:"w-full px-3 py-2 border rounded" }}
+          {% if user_form.email.errors %}
+          <div class="text-red-600 text-sm mt-1">
+            {{ user_form.email.errors|join:", " }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
 
-            <!-- Biography -->
-            <div class="form-group mb-4">
-                <label class="detail-label">Biography</label>
-                {{ profile_form.bio }}
-                <small class="text-muted">Chronicle your academic journey</small>
-            </div>
+      <!-- Professional Details -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="detail-label block text-gray-700">Organization</label>
+          {{ profile_form.organization|add_class:"w-full px-3 py-2 border rounded" }}
+        </div>
+        <div>
+          <label class="detail-label block text-gray-700">Position</label>
+          {{ profile_form.position|add_class:"w-full px-3 py-2 border rounded" }}
+        </div>
+      </div>
 
-            <!-- University Selection -->
-            <div class="form-group mb-4">
-                <label class="detail-label">University</label>
-                {{ profile_form.university }}
-            </div>
+      <!-- Biography -->
+      <div class="mb-4">
+        <label class="detail-label block text-gray-700">Biography</label>
+        {{ profile_form.bio|add_class:"w-full px-3 py-2 border rounded" }}
+        <small class="text-gray-500">Chronicle your academic journey</small>
+      </div>
 
-            <!-- Location -->
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="detail-label">Country</label>
-                        {{ profile_form.country }}
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="detail-label">City</label>
-                        {{ profile_form.city }}
-                    </div>
-                </div>
-            </div>
+      <!-- University -->
+      <div class="mb-4">
+        <label class="detail-label block text-gray-700">University</label>
+        {{ profile_form.university|add_class:"w-full px-3 py-2 border rounded" }}
+      </div>
 
-            <!-- Skills Section -->
-            <div class="form-group mb-4">
-                <label class="detail-label">Skills & Expertise</label>
-                <div class="tag-input-container">
-                    <div class="d-flex align-items-center gap-2">
-                        <input type="text" 
-                               id="skill-input" 
-                               class="form-control" 
-                               placeholder="Add a skill (press Enter or click +)"
-                               onkeypress="handleSkillKeyPress(event)">
-                        <button type="button" 
-                                class="btn-add" 
-                                onclick="addSkillFromInput()">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="selected-tags mt-3">
-                    <div id="selected-skills-list" class="tag-list">
-                        {% for skill in user.profile.skills.all %}
-                        <span class="tag skill-tag">
-                            {{ skill.name }}
-                            <i class="fas fa-times ml-2" onclick="removeSkill('{{ skill.name }}')"></i>
-                        </span>
-                        {% endfor %}
-                    </div>
-                </div>
-                {{ profile_form.skills }}
-            </div>
+      <!-- Location: Country and City -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="detail-label block text-gray-700">Country</label>
+          {{ profile_form.country|add_class:"w-full px-3 py-2 border rounded" }}
+        </div>
+        <div>
+          <label class="detail-label block text-gray-700">City</label>
+          {{ profile_form.city|add_class:"w-full px-3 py-2 border rounded" }}
+        </div>
+      </div>
 
-            <!-- Interests Section -->
-            <div class="form-group mb-4">
-                <label class="detail-label">Research Interests</label>
-                <div class="tag-input-container">
-                    <div class="d-flex align-items-center gap-2">
-                        <input type="text" 
-                               id="interest-input" 
-                               class="form-control" 
-                               placeholder="Add an interest (press Enter or click +)"
-                               onkeypress="handleInterestKeyPress(event)">
-                        <button type="button" 
-                                class="btn-add" 
-                                onclick="addInterestFromInput()">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="selected-tags mt-3">
-                    <div id="selected-interests-list" class="tag-list">
-                        {% for interest in user.profile.interests.all %}
-                        <span class="tag interest-tag">
-                            {{ interest.name }}
-                            <i class="fas fa-times ml-2" onclick="removeInterest('{{ interest.name }}')"></i>
-                        </span>
-                        {% endfor %}
-                    </div>
-                </div>
-                {{ profile_form.interests }}
-            </div>
+      <!-- Skills & Expertise -->
+      <div class="mb-4">
+        <label class="detail-label block text-gray-700 mb-1">Skills & Expertise</label>
+        <div class="flex items-center gap-2">
+          <input
+            type="text"
+            id="skill-input"
+            class="form-control w-full px-3 py-2 border rounded"
+            placeholder="Search or add a skill"
+            onkeypress="handleSkillKeyPress(event)"
+            list="popular-skills"
+          />
+          <button
+            type="button"
+            class="btn-add bg-blue-600 text-white px-3 py-2 rounded"
+            onclick="addSkillFromInput()"
+          >
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+        <!-- Datalist with up to 20 popular skills -->
+        <datalist id="popular-skills">
+          {% for skill in popular_skills %}
+          <option value="{{ skill.name }}"></option>
+          {% endfor %}
+        </datalist>
+        <!-- Selected Skills Tags -->
+        <div class="selected-tags mt-2 flex flex-wrap" id="selected-skills-list">
+          {% for skill in user.profile.skills.all %}
+          <span
+            class="tag inline-flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm mr-2 mb-2"
+          >
+            {{ skill.name }}
+            <i
+              class="fas fa-times ml-1 cursor-pointer"
+              onclick="removeSkill('{{ skill.name }}')"
+            ></i>
+          </span>
+          {% endfor %}
+        </div>
+        {{ profile_form.skills }}
+      </div>
 
-            <!-- Contact Information -->
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="form-group mb-3">
-                        <label class="detail-label">LinkedIn</label>
-                        {{ profile_form.linkedin }}
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group mb-3">
-                        <label class="detail-label">GitHub</label>
-                        {{ profile_form.github }}
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group mb-3">
-                        <label class="detail-label">Google Scholar</label>
-                        {{ profile_form.google_scholar }}
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group mb-3">
-                        <label class="detail-label">Telegram</label>
-                        {{ profile_form.telegram }}
-                    </div>
-                </div>
-            </div>
+      <!-- Research Interests -->
+      <div class="mb-4">
+        <label class="detail-label block text-gray-700 mb-1">Research Interests</label>
+        <div class="flex items-center gap-2">
+          <input
+            type="text"
+            id="interest-input"
+            class="form-control w-full px-3 py-2 border rounded"
+            placeholder="Search or add an interest"
+            onkeypress="handleInterestKeyPress(event)"
+            list="popular-interests"
+          />
+          <button
+            type="button"
+            class="btn-add bg-blue-600 text-white px-3 py-2 rounded"
+            onclick="addInterestFromInput()"
+          >
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+        <!-- Datalist with up to 20 popular interests -->
+        <datalist id="popular-interests">
+          {% for interest in popular_interests %}
+          <option value="{{ interest.name }}"></option>
+          {% endfor %}
+        </datalist>
+        <!-- Selected Interests Tags -->
+        <div class="selected-tags mt-2 flex flex-wrap" id="selected-interests-list">
+          {% for interest in user.profile.interests.all %}
+          <span
+            class="tag inline-flex items-center bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm mr-2 mb-2"
+          >
+            {{ interest.name }}
+            <i
+              class="fas fa-times ml-1 cursor-pointer"
+              onclick="removeInterest('{{ interest.name }}')"
+            ></i>
+          </span>
+          {% endfor %}
+        </div>
+        {{ profile_form.interests }}
+      </div>
 
-            <!-- Form Actions -->
-            <div class="d-flex justify-content-between mt-5">
-                <a href="{% url 'users-profile' %}" class="btn-secondary">
-                    <i class="fas fa-times mr-2"></i>Cancel
-                </a>
-                <button type="submit" class="btn-primary">
-                    <i class="fas fa-save mr-2"></i>Save Changes
-                </button>
-            </div>
-        </form>
-    </div>
+      <!-- Contact Information -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="detail-label block text-gray-700">LinkedIn</label>
+          {{ profile_form.linkedin|add_class:"w-full px-3 py-2 border rounded" }}
+        </div>
+        <div>
+          <label class="detail-label block text-gray-700">GitHub</label>
+          {{ profile_form.github|add_class:"w-full px-3 py-2 border rounded" }}
+        </div>
+        <div>
+          <label class="detail-label block text-gray-700">Google Scholar</label>
+          {{ profile_form.google_scholar|add_class:"w-full px-3 py-2 border rounded" }}
+        </div>
+        <div>
+          <label class="detail-label block text-gray-700">Telegram</label>
+          {{ profile_form.telegram|add_class:"w-full px-3 py-2 border rounded" }}
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex justify-between mt-6">
+        <a
+          href="{% url 'users-profile' %}"
+          class="btn-secondary inline-flex items-center bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition"
+        >
+          <i class="fas fa-times mr-2"></i>Cancel
+        </a>
+        <button
+          type="submit"
+          class="btn-primary inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+        >
+          <i class="fas fa-save mr-2"></i>Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
 
-<style>
-    /* ... (keep existing styles the same) ... */
-</style>
-
+<!-- JavaScript Section -->
 <script>
-// Initialize sets for selected items
-let selectedSkills = new Set([{% for skill in user.profile.skills.all %}"{{ skill.name }}"{% if not forloop.last %},{% endif %}{% endfor %}]);
-let selectedInterests = new Set([{% for interest in user.profile.interests.all %}"{{ interest.name }}"{% if not forloop.last %},{% endif %}{% endfor %}]);
+/* ========================
+   Live Avatar Preview
+   ======================== */
+document.addEventListener('DOMContentLoaded', function() {
+  const avatarInput = document.querySelector('input[name="avatar"]');
+  const avatarFrame = document.querySelector('.avatar-frame');
 
-// Skills handling
+  if (avatarInput) {
+    avatarInput.addEventListener('change', function() {
+      if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          avatarFrame.src = e.target.result; // update the img src
+        };
+        reader.readAsDataURL(this.files[0]);
+      }
+    });
+  }
+});
+
+/* ========================
+   Dynamic City Loading
+   ======================== */
+document.getElementById('{{ profile_form.country.auto_id }}').addEventListener('change', function() {
+  let countryId = this.value;
+  fetch(`/ajax/load-cities/?country_id=${countryId}`)
+    .then(response => response.json())
+    .then(data => {
+      let citySelect = document.getElementById('{{ profile_form.city.auto_id }}');
+      citySelect.innerHTML = '<option value="">---------</option>';
+      data.forEach(city => {
+        let option = document.createElement('option');
+        option.value = city.id;
+        option.textContent = city.name;
+        citySelect.appendChild(option);
+      });
+    });
+});
+
+/* ========================
+   Skills Autocomplete
+   ======================== */
+let selectedSkills = new Set([
+  {% for skill in user.profile.skills.all %}
+    "{{ skill.name }}"{% if not forloop.last %}, {% endif %}
+  {% endfor %}
+]);
+
 function handleSkillKeyPress(event) {
-    if (event.key === 'Enter') {
-        event.preventDefault();
-        addSkillFromInput();
-    }
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    addSkillFromInput();
+  }
 }
 
 function addSkillFromInput() {
-    const input = document.getElementById('skill-input');
-    const skillName = input.value.trim();
-    
-    if (skillName && !selectedSkills.has(skillName)) {
-        selectedSkills.add(skillName);
-        updateSkillsDisplay();
-        input.value = '';
-    }
+  const input = document.getElementById('skill-input');
+  const skillName = input.value.trim();
+  if (skillName && !selectedSkills.has(skillName)) {
+    selectedSkills.add(skillName);
+    updateSkillsDisplay();
+    input.value = '';
+  }
 }
 
 function removeSkill(name) {
-    selectedSkills.delete(name);
-    updateSkillsDisplay();
+  selectedSkills.delete(name);
+  updateSkillsDisplay();
 }
 
 function updateSkillsDisplay() {
-    const container = document.getElementById('selected-skills-list');
-    container.innerHTML = '';
-    
-    selectedSkills.forEach(skill => {
-        const span = document.createElement('span');
-        span.className = 'tag skill-tag';
-        span.innerHTML = `
-            ${skill}
-            <i class="fas fa-times ml-2" onclick="removeSkill('${skill}')"></i>
-        `;
-        container.appendChild(span);
-    });
-    
-    // Update hidden input with comma-separated values
-    document.getElementById('id_skills').value = Array.from(selectedSkills).join(',');
+  const container = document.getElementById('selected-skills-list');
+  container.innerHTML = '';
+  selectedSkills.forEach(skill => {
+    const span = document.createElement('span');
+    span.className = "inline-flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm mr-2 mb-2";
+    span.innerHTML = `${skill} <i class="fas fa-times ml-1 cursor-pointer" onclick="removeSkill('${skill}')"></i>`;
+    container.appendChild(span);
+  });
+  document.getElementById('id_skills').value = Array.from(selectedSkills).join(',');
 }
 
-// Interests handling
+/* ========================
+   Interests Autocomplete
+   ======================== */
+let selectedInterests = new Set([
+  {% for interest in user.profile.interests.all %}
+    "{{ interest.name }}"{% if not forloop.last %}, {% endif %}
+  {% endfor %}
+]);
+
 function handleInterestKeyPress(event) {
-    if (event.key === 'Enter') {
-        event.preventDefault();
-        addInterestFromInput();
-    }
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    addInterestFromInput();
+  }
 }
 
 function addInterestFromInput() {
-    const input = document.getElementById('interest-input');
-    const interestName = input.value.trim();
-    
-    if (interestName && !selectedInterests.has(interestName)) {
-        selectedInterests.add(interestName);
-        updateInterestsDisplay();
-        input.value = '';
-    }
+  const input = document.getElementById('interest-input');
+  const interestName = input.value.trim();
+  if (interestName && !selectedInterests.has(interestName)) {
+    selectedInterests.add(interestName);
+    updateInterestsDisplay();
+    input.value = '';
+  }
 }
 
 function removeInterest(name) {
-    selectedInterests.delete(name);
-    updateInterestsDisplay();
+  selectedInterests.delete(name);
+  updateInterestsDisplay();
 }
 
 function updateInterestsDisplay() {
-    const container = document.getElementById('selected-interests-list');
-    container.innerHTML = '';
-    
-    selectedInterests.forEach(interest => {
-        const span = document.createElement('span');
-        span.className = 'tag interest-tag';
-        span.innerHTML = `
-            ${interest}
-            <i class="fas fa-times ml-2" onclick="removeInterest('${interest}')"></i>
-        `;
-        container.appendChild(span);
-    });
-    
-    // Update hidden input with comma-separated values
-    document.getElementById('id_interests').value = Array.from(selectedInterests).join(',');
+  const container = document.getElementById('selected-interests-list');
+  container.innerHTML = '';
+  selectedInterests.forEach(interest => {
+    const span = document.createElement('span');
+    span.className = "inline-flex items-center bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm mr-2 mb-2";
+    span.innerHTML = `${interest} <i class="fas fa-times ml-1 cursor-pointer" onclick="removeInterest('${interest}')"></i>`;
+    container.appendChild(span);
+  });
+  document.getElementById('id_interests').value = Array.from(selectedInterests).join(',');
 }
 
-// Initialize on page load
+/* ========================
+   Initialization on DOM Load
+   ======================== */
 document.addEventListener('DOMContentLoaded', function() {
-    // Hide the original form fields
-    document.getElementById('id_skills').style.display = 'none';
-    document.getElementById('id_interests').style.display = 'none';
-    
-    // Update displays
-    updateSkillsDisplay();
-    updateInterestsDisplay();
+  // Hide the original form fields for skills & interests
+  document.getElementById('id_skills').style.display = 'none';
+  document.getElementById('id_interests').style.display = 'none';
+
+  // Initialize displays
+  updateSkillsDisplay();
+  updateInterestsDisplay();
 });
 </script>
 {% endblock %}

@@ -17,21 +17,20 @@ def get_default_owner():
     )
     return user.id
 
+# models.py
+class Category(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Project(models.Model):
-    CATEGORY_CHOICES = [
-        ('AI', 'Artificial Intelligence'),
-        ('EDU', 'Education'),
-        ('BIO', 'Biology'),
-        ('CS', 'Computer Science'),
-    ]
+    category = models.ManyToManyField(Category, blank=True)
 
     title = models.CharField(max_length=200, default='Untitled Project')
     description = models.TextField(default='No description provided')
-    category = models.CharField(
-        max_length=50,
-        choices=CATEGORY_CHOICES,
-        default='AI'
-    )
+
     owner = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -48,6 +47,11 @@ class Project(models.Model):
     last_modified = models.DateTimeField(auto_now=True)
     project_link = models.URLField(blank=True, null=True)
 
+    project_mission = models.TextField(blank=True, null=True)
+    project_objectives = models.TextField(blank=True, null=True)
+    languages = models.CharField(max_length=100, blank=True, null=True)  # You could store comma-separated values
+    required_roles = models.CharField(max_length=200, blank=True, null=True)  # Also as comma-separated values
+
     class Meta:
         ordering = ['-created_at']
         verbose_name = 'Research Project'
@@ -55,6 +59,12 @@ class Project(models.Model):
 
     def __str__(self):
         return self.title
+
+    def clean(self):
+        super().clean()
+        if self.pk is not None and self.category.count() > 5:
+            from django.core.exceptions import ValidationError
+            raise ValidationError("You can select at most 5 categories.")
 
     def get_absolute_url(self):
         return reverse('project-detail', kwargs={'pk': self.pk})

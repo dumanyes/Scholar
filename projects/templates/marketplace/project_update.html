@@ -1,0 +1,499 @@
+{% extends "users/base.html" %}
+{% load static %}
+
+{% block content %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+
+<style>
+    .creation-card {
+        max-width: 800px;
+        margin: 2rem auto;
+        border-radius: 24px;
+        padding: 2.5rem;
+        background: white;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        font-family: 'Inter', sans-serif;
+    }
+    .creation-card h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 2rem;
+        text-align: center;
+        letter-spacing: -0.5px;
+    }
+    .form-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: #404040;
+        font-size: 0.95rem;
+    }
+    .form-input {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        background: #f8fafc;
+    }
+    .form-input:focus {
+        background: white;
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+    .skill-input-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    .skill-tag {
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 0.5rem 0.5rem 0 0;
+        font-size: 0.9rem;
+        color: #065f46;
+    }
+    .remove-skill {
+        color: #6b7280;
+        cursor: pointer;
+        margin-left: 0.5rem;
+        transition: all 0.2s ease;
+    }
+    .remove-skill:hover {
+        color: #ef4444;
+    }
+    .add-button {
+        background: #10b981;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .add-button:hover {
+        background: #059669;
+        transform: translateY(-1px);
+    }
+    .submit-button {
+        width: 100%;
+        padding: 1rem;
+        border-radius: 12px;
+        background: #10b981;
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
+        transition: all 0.2s ease;
+        margin-top: 2rem;
+        letter-spacing: -0.25px;
+    }
+    .submit-button:hover {
+        background: #059669;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    }
+    .categories-grid, .roles-grid, .languages-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+    }
+    .category-option, .role-option, .language-option {
+        padding: 0.75rem 1rem;
+        background: #f8fafc;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        color: #374151;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        text-align: center;
+    }
+    .category-option:hover, .role-option:hover, .language-option:hover {
+        border-color: #10b981;
+        background: #ecfdf5;
+    }
+    .category-option.selected, .role-option.selected, .language-option.selected {
+        background: #10b981;
+        color: white;
+        border-color: #10b981;
+    }
+    .selected-categories, .selected-roles, .selected-languages {
+        margin-top: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .max-categories, .max-roles, .max-languages {
+        color: #ef4444;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        display: none;
+    }
+    .form-errors {
+        background: #ffe5e5;
+        border: 1px solid #ff4d4d;
+        color: #a10000;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+    }
+    .form-errors ul {
+        list-style-type: disc;
+        margin-left: 1.5rem;
+    }
+    /* Buttons container for Cancel and Delete */
+    .action-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2rem;
+    }
+    .cancel-button, .delete-button {
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .cancel-button {
+        background: #e5e7eb;
+        color: #374151;
+    }
+    .cancel-button:hover {
+        background: #d1d5db;
+    }
+    .delete-button {
+        background: #ef4444;
+        color: white;
+    }
+    .delete-button:hover {
+        background: #dc2626;
+    }
+</style>
+
+<div class="creation-card">
+    <h2>
+        {% if object %}Edit Project{% else %}Create New Project{% endif %}
+    </h2>
+
+    {% if form.errors %}
+    <div class="form-errors">
+        <ul>
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <li><strong>{{ field.label }}:</strong> {{ error|striptags }}</li>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <li>{{ error|striptags }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- Title -->
+        <div class="mb-6">
+            <label class="form-label">Project Title</label>
+            <input type="text" name="title" class="form-input" required placeholder="Enter project title" value="{{ form.title.value|default_if_none:'' }}">
+        </div>
+
+        <!-- Description -->
+        <div class="mb-6">
+            <label class="form-label">Project Description</label>
+            <textarea name="description" class="form-input" rows="4" required placeholder="Describe your project in detail">{{ form.description.value|default_if_none:'' }}</textarea>
+        </div>
+
+        <!-- Project Mission -->
+        <div class="mb-6">
+            <label class="form-label">Project Mission</label>
+            <textarea name="project_mission" class="form-input" rows="3" placeholder="Describe the mission of your project">{{ form.project_mission.value|default_if_none:'' }}</textarea>
+        </div>
+
+        <!-- Project Objectives -->
+        <div class="mb-6">
+            <label class="form-label">Project Objectives</label>
+            <textarea name="project_objectives" class="form-input" rows="3" placeholder="Outline the objectives and scope">{{ form.project_objectives.value|default_if_none:'' }}</textarea>
+        </div>
+
+        <!-- Languages (Clickable Addable) -->
+        <div class="mb-6">
+            <label class="form-label">Languages</label>
+            <div id="available-languages" class="languages-grid"></div>
+            <div class="max-languages">Maximum 3 languages selected</div>
+            <div id="languages-container" class="selected-languages mt-3"></div>
+            <input type="hidden" name="languages" id="languages-hidden" value="{{ form.languages.value|default_if_none:'' }}">
+        </div>
+
+        <!-- Required Collaborator Roles (Clickable Addable) -->
+        <div class="mb-6">
+            <label class="form-label">Required Collaborator Roles</label>
+            <div id="available-roles" class="roles-grid"></div>
+            <div class="max-roles">Maximum 4 roles selected</div>
+            <div id="roles-container" class="selected-roles mt-3"></div>
+            <input type="hidden" name="required_roles" id="roles-hidden" value="{{ form.required_roles.value|default_if_none:'' }}">
+        </div>
+
+        <!-- Skills with Autocomplete -->
+        <div class="mb-6">
+            <label class="form-label">Required Skills</label>
+            <div class="skill-input-group">
+                <input type="text" id="skill-input" class="form-input" placeholder="Search for skills...">
+                <button type="button" onclick="addSkill()" class="add-button">
+                    <i class="fas fa-plus"></i> Add
+                </button>
+            </div>
+            <div id="skills-container" class="mt-3"></div>
+            <input type="hidden" name="skills_required" id="skills-hidden" value="{{ form.skills_required.value|default_if_none:'' }}">
+        </div>
+
+        <!-- Categories Selection -->
+        <div class="mb-6">
+            <label class="form-label">Project Categories (max 5)</label>
+            <div id="available-categories" class="categories-grid"></div>
+            <div class="max-categories">Maximum 5 categories selected</div>
+            <div id="categories-container" class="selected-categories mt-3"></div>
+            <input type="hidden" name="categories" id="categories-hidden" value="{{ form.categories.value|default_if_none:'' }}">
+        </div>
+
+        <!-- Project Link -->
+        <div class="mb-6">
+            <label class="form-label">Project Link (optional)</label>
+            <input type="url" name="project_link" class="form-input" placeholder="https://example.com" value="{{ form.project_link.value|default_if_none:'' }}">
+        </div>
+
+        <div class="action-buttons">
+            <a href="{% url 'project-detail' object.pk %}" class="cancel-button">Cancel</a>
+            <button type="submit" class="submit-button">
+                {% if object %}Update Project{% else %}Create Project{% endif %}
+            </button>
+            <form method="post" action="{% url 'project-delete' object.pk %}" onsubmit="return confirm('Are you sure you want to delete this project?');">
+                {% csrf_token %}
+                <button type="submit" class="delete-button">Delete Project</button>
+            </form>
+        </div>
+    </form>
+</div>
+
+<script id="available-skills-data" type="application/json">
+    {{ available_skills_json|safe }}
+</script>
+<script id="available-categories-data" type="application/json">
+    {{ available_categories_json|safe }}
+</script>
+<script>
+    // Hardcoded languages options (or pass via context if desired)
+    const availableLanguages = ["English", "Русский", "Қазақша"];
+    const availableSkills = JSON.parse(document.getElementById('available-skills-data').textContent);
+    const availableCategories = JSON.parse(document.getElementById('available-categories-data').textContent);
+
+    // Initialize skills autocomplete
+    $("#skill-input").autocomplete({
+        source: availableSkills,
+        minLength: 1,
+        autoFocus: true
+    });
+
+    // Render category buttons
+    const categoriesGrid = document.getElementById('available-categories');
+    availableCategories.forEach(category => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'category-option';
+        button.textContent = category;
+        button.onclick = () => toggleCategory(category, button);
+        categoriesGrid.appendChild(button);
+    });
+
+    // Render roles buttons
+    const availableRoles = ["ML Engineer", "Backend Developer", "Frontend Developer", "Project Manager"];
+    const rolesGrid = document.getElementById('available-roles');
+    availableRoles.forEach(role => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'role-option';
+        button.textContent = role;
+        button.onclick = () => toggleRole(role, button);
+        rolesGrid.appendChild(button);
+    });
+
+    // Render languages buttons
+    const languagesGrid = document.getElementById('available-languages');
+    availableLanguages.forEach(language => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'language-option';
+        button.textContent = language;
+        button.onclick = () => toggleLanguage(language, button);
+        languagesGrid.appendChild(button);
+    });
+
+    // Categories functions (same as before)
+    function toggleCategory(category, button) {
+        const container = document.getElementById('categories-container');
+        const hiddenInput = document.getElementById('categories-hidden');
+        const maxAlert = document.querySelector('.max-categories');
+
+        if (isTagAdded(category, container)) {
+            removeCategory(category);
+            button.classList.remove('selected');
+        } else {
+            if (container.children.length >= 5) {
+                maxAlert.style.display = 'block';
+                setTimeout(() => maxAlert.style.display = 'none', 3000);
+                return;
+            }
+            addCategoryTag(category);
+            button.classList.add('selected');
+        }
+        updateHiddenInput(container, hiddenInput);
+    }
+    function addCategoryTag(category) {
+        const container = document.getElementById('categories-container');
+        const tag = document.createElement('div');
+        tag.className = 'skill-tag';
+        tag.innerHTML = `${category} <span class="remove-skill" onclick="removeCategory('${category}')">&times;</span>`;
+        container.appendChild(tag);
+    }
+    function removeCategory(category) {
+        const container = document.getElementById('categories-container');
+        const tag = Array.from(container.children).find(child =>
+            child.textContent.replace('×', '').trim() === category
+        );
+        if (tag) tag.remove();
+        document.querySelectorAll('.category-option').forEach(btn => {
+            if (btn.textContent === category) btn.classList.remove('selected');
+        });
+        updateHiddenInput(container, document.getElementById('categories-hidden'));
+    }
+
+    // Roles functions (similar to categories)
+    function toggleRole(role, button) {
+        const container = document.getElementById('roles-container');
+        const hiddenInput = document.getElementById('roles-hidden');
+        const maxAlert = document.querySelector('.max-roles');
+
+        if (isTagAdded(role, container)) {
+            removeRole(role);
+            button.classList.remove('selected');
+        } else {
+            if (container.children.length >= 4) {
+                maxAlert.style.display = 'block';
+                setTimeout(() => maxAlert.style.display = 'none', 3000);
+                return;
+            }
+            addRoleTag(role);
+            button.classList.add('selected');
+        }
+        updateHiddenInput(container, hiddenInput);
+    }
+    function addRoleTag(role) {
+        const container = document.getElementById('roles-container');
+        const tag = document.createElement('div');
+        tag.className = 'skill-tag';
+        tag.innerHTML = `${role} <span class="remove-skill" onclick="removeRole('${role}')">&times;</span>`;
+        container.appendChild(tag);
+    }
+    function removeRole(role) {
+        const container = document.getElementById('roles-container');
+        const tag = Array.from(container.children).find(child =>
+            child.textContent.replace('×', '').trim() === role
+        );
+        if (tag) tag.remove();
+        document.querySelectorAll('.role-option').forEach(btn => {
+            if (btn.textContent === role) btn.classList.remove('selected');
+        });
+        updateHiddenInput(container, document.getElementById('roles-hidden'));
+    }
+
+    // Languages functions (similar to roles)
+    function toggleLanguage(language, button) {
+        const container = document.getElementById('languages-container');
+        const hiddenInput = document.getElementById('languages-hidden');
+        const maxAlert = document.querySelector('.max-languages');
+
+        if (isTagAdded(language, container)) {
+            removeLanguage(language);
+            button.classList.remove('selected');
+        } else {
+            if (container.children.length >= 3) {
+                maxAlert.style.display = 'block';
+                setTimeout(() => maxAlert.style.display = 'none', 3000);
+                return;
+            }
+            addLanguageTag(language);
+            button.classList.add('selected');
+        }
+        updateHiddenInput(container, hiddenInput);
+    }
+    function addLanguageTag(language) {
+        const container = document.getElementById('languages-container');
+        const tag = document.createElement('div');
+        tag.className = 'skill-tag';
+        tag.innerHTML = `${language} <span class="remove-skill" onclick="removeLanguage('${language}')">&times;</span>`;
+        container.appendChild(tag);
+    }
+    function removeLanguage(language) {
+        const container = document.getElementById('languages-container');
+        const tag = Array.from(container.children).find(child =>
+            child.textContent.replace('×', '').trim() === language
+        );
+        if (tag) tag.remove();
+        document.querySelectorAll('.language-option').forEach(btn => {
+            if (btn.textContent === language) btn.classList.remove('selected');
+        });
+        updateHiddenInput(container, document.getElementById('languages-hidden'));
+    }
+
+    // Skills functions (same as before)
+    function addSkill() {
+        const input = document.getElementById('skill-input');
+        const value = input.value.trim();
+        if (!value) return;
+        const container = document.getElementById('skills-container');
+        if (isTagAdded(value, container)) {
+            input.value = '';
+            return;
+        }
+        const tag = document.createElement('div');
+        tag.className = 'skill-tag';
+        tag.innerHTML = `${value} <span class="remove-skill" onclick="removeTag(this, 'skills')">&times;</span>`;
+        container.appendChild(tag);
+        updateHiddenInput(container, document.getElementById('skills-hidden'));
+        input.value = '';
+    }
+    function removeTag(element, type) {
+        const container = document.getElementById(`${type}-container`);
+        const hiddenInput = document.getElementById(`${type}-hidden`);
+        element.parentElement.remove();
+        updateHiddenInput(container, hiddenInput);
+    }
+    function isTagAdded(value, container) {
+        return Array.from(container.children).some(child =>
+            child.textContent.replace('×', '').trim().toLowerCase() === value.toLowerCase()
+        );
+    }
+    function updateHiddenInput(container, hiddenInput) {
+        hiddenInput.value = Array.from(container.children)
+            .map(tag => tag.textContent.replace('×', '').trim())
+            .join(', ');
+    }
+</script>
+{% endblock %}

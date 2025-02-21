@@ -1,13 +1,23 @@
 {% extends "users/base.html" %}
 {% load static %}
 {% load project_tags %}
+
 {% block content %}
 <head>
-<script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Fallback for line-clamp if Tailwind line-clamp classes are not available */
+        .line-clamp-6 {
+            display: -webkit-box;
+            -webkit-line-clamp: 6;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
 </head>
+
 <div class="container mx-auto px-4 py-8">
     <!-- Header -->
-
     <div class="text-center mb-12">
         <h1 class="text-4xl font-bold mb-6">Explore Research Projects</h1>
         <div class="flex justify-center gap-4">
@@ -15,6 +25,11 @@
                class="inline-flex items-center px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-xl font-semibold transition-all">
                 <i class="fas fa-folder-open mr-2"></i>
                 My Projects
+            </a>
+            <a href="{% url 'my-requests' %}"
+               class="inline-flex items-center px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-xl font-semibold transition-all">
+                <i class="fas fa-paper-plane mr-2"></i>
+                My Requests
             </a>
             <button onclick="toggleFilterDialog()"
                     class="inline-flex items-center px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-xl font-semibold transition-all">
@@ -24,72 +39,161 @@
         </div>
     </div>
 
-    <!-- Search -->
+    <!-- Clickable Category Badges for Multi-Select -->
+    <div class="flex flex-wrap gap-2 justify-center mb-6">
+        <!-- "All" badge: When clicked, clears any other category selection -->
+        <a href="javascript:void(0);" onclick="selectAll()" id="cat-all"
+           class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-full text-sm font-medium transition">
+            All
+        </a>
+        {% for cat in all_categories %}
+        <a href="javascript:void(0);" onclick="toggleCategory('{{ cat.id }}')" id="cat-{{ cat.id }}"
+           class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-full text-sm font-medium transition">
+            {{ cat.name }}
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Sort Filters -->
+    <div class="flex flex-col md:flex-row items-center justify-center gap-4 mb-6">
+        <!-- Time Sorting: mutually exclusive -->
+        <div class="flex flex-wrap gap-2">
+            <span class="font-medium">Time Sort:</span>
+            <a href="javascript:void(0);" onclick="toggleTimeSort('recent')" id="sort-time-recent"
+               class="px-4 py-2 bg-green-100 hover:bg-green-200 text-green-800 rounded-full text-sm font-medium transition">
+                firstly new added
+            </a>
+            <a href="javascript:void(0);" onclick="toggleTimeSort('old')" id="sort-time-old"
+               class="px-4 py-2 bg-green-100 hover:bg-green-200 text-green-800 rounded-full text-sm font-medium transition">
+                firstly old added
+            </a>
+        </div>
+        <!-- Match Sorting: mutually exclusive -->
+        <div class="flex flex-wrap gap-2">
+            <span class="font-medium">Match Sort:</span>
+            <a href="javascript:void(0);" onclick="toggleMatchSort('mostmatcher')" id="sort-match-mostmatcher"
+               class="px-4 py-2 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-full text-sm font-medium transition">
+                firstly most matched
+            </a>
+            <a href="javascript:void(0);" onclick="toggleMatchSort('mostunmatched')" id="sort-match-mostunmatched"
+               class="px-4 py-2 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-full text-sm font-medium transition">
+                firstly most unmatched
+            </a>
+        </div>
+    </div>
+
+    <!-- Search Form with Autocomplete -->
     <div class="relative max-w-2xl mx-auto mb-8">
-        <input type="text"
-               placeholder="Search research projects..."
-               class="w-full px-6 py-4 rounded-2xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
-        <i class="fas fa-search absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+        <form id="searchForm" method="GET">
+            <!-- Hidden inputs for category and sort filters -->
+            <input type="hidden" id="selectedCategories" name="categories" value="{{ request.GET.categories }}">
+            <input type="hidden" id="timeSort" name="time_sort" value="{{ request.GET.time_sort }}">
+            <input type="hidden" id="matchSort" name="match_sort" value="{{ request.GET.match_sort }}">
+            <input type="text"
+                   id="searchInput"
+                   name="q"
+                   value="{{ request.GET.q }}"
+                   placeholder="Search research projects..."
+                   class="w-full px-6 py-4 rounded-2xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+            <button type="submit"
+                    class="absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
     </div>
 
     <!-- Project Cards -->
     <div class="space-y-6">
         {% for project in projects %}
-        <div class="bg-white rounded-xl shadow-sm transition-all duration-200 hover:-translate-y-1">
-            <div class="p-6">
-                <div class="flex items-center gap-3 mb-4">
-                    <span class="px-4 py-1 bg-gray-100 rounded-full text-sm font-medium">
-                        {{ project.get_category_display }}
-                    </span>
-                    <span class="px-4 py-1 bg-green-500 text-white rounded-full text-sm font-medium flex items-center">
-                        <i class="fas fa-check mr-1"></i>
-                        {{ project|skill_match:request.user }}% Match
-                    </span>
-                    <span class="text-gray-500 text-sm">
-                        by @{{ project.owner.username }}
-                    </span>
-                </div>
+        <div class="bg-white rounded-xl shadow-sm transition-all duration-200 hover:-translate-y-1 p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <!-- Display project categories -->
+                <span class="px-4 py-1 bg-gray-100 rounded-full text-sm font-medium">
+                    {% for category in project.category.all %}
+                        {{ category.name }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                        No category assigned
+                    {% endfor %}
+                </span>
+                <!-- Match Percentage Badge with color logic -->
+                {% with match=project|skill_match:user %}
+                <span class="px-4 py-1 rounded-full text-sm font-medium flex items-center
+                    {% if match > 71 %}
+                        bg-green-500 text-white
+                    {% elif match > 41 %}
+                        bg-yellow-500 text-white
+                    {% else %}
+                        bg-pink-500 text-white
+                    {% endif %}
+                ">
+                    <i class="fas fa-check mr-1"></i>
+                    {{ match }}% Match
+                </span>
+                {% endwith %}
+            </div>
 
-                <p class="text-gray-600 mb-4 line-clamp-2">
-                    {{ project.description|truncatechars:160 }}
-                </p>
+            <!-- Avatar and Username -->
+            <div class="flex items-center gap-3 mb-4">
+                {% if project.owner.profile.avatar %}
+                <a href="{% url 'user-profile' project.owner.username %}">
+                    <img src="{{ project.owner.profile.avatar.url }}" alt="{{ project.owner.username }}"
+                         class="w-10 h-10 rounded-full object-cover border border-gray-200">
+                </a>
+                {% else %}
+                <a href="{% url 'user-profile' project.owner.username %}"
+                   class="w-10 h-10 rounded-full flex items-center justify-center bg-green-500 text-white font-bold">
+                    {{ project.owner.username|first|upper }}
+                </a>
+                {% endif %}
+                <a href="{% url 'user-profile' project.owner.username %}" class="text-gray-700 font-medium hover:text-blue-600">
+                    @{{ project.owner.username }}
+                </a>
+            </div>
 
-                <div class="mb-6">
-                    {% for skill in project.skills_required.split %}
-                    <span class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium mr-2 mb-2
-                          {% if skill in user.profile.skills_list %}
-                              bg-green-100 text-green-800 border border-green-300
-                          {% else %}
-                              bg-gray-100 text-gray-800 border border-gray-200
-                          {% endif %}">
-                        {% if skill in user.profile.skills_list %}
+            <!-- Project Title -->
+            <h2 class="text-2xl font-semibold mb-4 mt-4">{{ project.title }}</h2>
+
+            <!-- Description with 6-line clamp -->
+            <p class="text-gray-600 mb-4 line-clamp-6">
+                {{ project.description }}
+            </p>
+
+            <!-- Skills Tags -->
+            <div class="mb-6">
+                {% for skill in project.skills_required.split %}
+                    {% if skill|skill_in_profile:user %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium mr-2 mb-2 bg-green-100 text-green-800 border border-green-300">
                         <i class="fas fa-check mr-1"></i>
-                        {% endif %}
                         {{ skill }}
                     </span>
-                    {% endfor %}
-                </div>
+                    {% else %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium mr-2 mb-2 bg-gray-100 text-gray-800 border border-gray-200">
+                        {{ skill }}
+                    </span>
+                    {% endif %}
+                {% endfor %}
+            </div>
 
-                <div class="flex justify-between items-center">
-                    <a href="{% url 'project-detail' pk=project.pk %}"
-                       class="text-gray-900 font-semibold hover:text-blue-600 inline-flex items-center gap-2 transition-colors">
-                        View Details
-                        <i class="fas fa-arrow-right"></i>
-                    </a>
-                    <form action="{% url 'apply-project' project_id=project.id %}" method="POST">
-                        {% csrf_token %}
-                        <button type="submit"
-                                class="px-6 py-2 rounded-xl font-semibold transition-all
-                                      {% if project.has_applied %}
-                                          bg-gray-400 text-white cursor-not-allowed
-                                      {% else %}
-                                          bg-blue-600 text-white hover:bg-blue-700
-                                      {% endif %}"
-                                {% if project.has_applied %}disabled{% endif %}>
-                            {% if project.has_applied %}Request sent{% else %}Apply Now{% endif %}
-                        </button>
-                    </form>
-                </div>
+            <!-- Action Buttons -->
+            <div class="flex justify-between items-center">
+                <a href="{% url 'project-detail' pk=project.pk %}"
+                   class="text-gray-900 font-semibold hover:text-blue-600 inline-flex items-center gap-2 transition-colors">
+                    View Details
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                <form action="{% url 'apply-project' project_id=project.id %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="px-6 py-2 rounded-xl font-semibold transition-all
+                                {% if project.has_applied %}
+                                    bg-gray-400 text-white cursor-not-allowed
+                                {% else %}
+                                    bg-blue-600 text-white hover:bg-blue-700
+                                {% endif %}"
+                            {% if project.has_applied %}disabled{% endif %}>
+                        {% if project.has_applied %}Request sent{% else %}Apply Now{% endif %}
+                    </button>
+                </form>
             </div>
         </div>
         {% empty %}
@@ -109,26 +213,36 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-
-            <form id="filterForm" class="space-y-6">
+            <!-- The filter form (with categories, skills, and text search) -->
+            <form id="filterForm" method="GET" class="space-y-6">
                 <div>
                     <label class="block text-sm font-medium mb-2">Category</label>
-                    <select class="w-full px-4 py-3 rounded-xl border border-gray-200" name="category">
+                    <select class="w-full px-4 py-3 rounded-xl border border-gray-200" name="categories">
                         <option value="">All Categories</option>
-                        {% for value, name in Project.CATEGORY_CHOICES %}
-                        <option value="{{ value }}">{{ name }}</option>
+                        {% for cat in all_categories %}
+                        <option value="{{ cat.id }}"
+                            {% if request.GET.categories and cat.id|stringformat:"s" in request.GET.categories %}selected{% endif %}>
+                            {{ cat.name }}
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
-
                 <div>
                     <label class="block text-sm font-medium mb-2">Skills Required</label>
                     <input type="text"
                            placeholder="Enter skills..."
                            class="w-full px-4 py-3 rounded-xl border border-gray-200"
-                           name="skills">
+                           name="skills"
+                           value="{{ request.GET.skills }}">
                 </div>
-
+                <div>
+                    <label class="block text-sm font-medium mb-2">Search Title / Description</label>
+                    <input type="text"
+                           placeholder="Search text..."
+                           class="w-full px-4 py-3 rounded-xl border border-gray-200"
+                           name="q"
+                           value="{{ request.GET.q }}">
+                </div>
                 <div class="flex gap-4">
                     <button type="button"
                             onclick="toggleFilterDialog()"
@@ -145,35 +259,125 @@
     </div>
 </div>
 
+<!-- JSON data for autocomplete -->
+<script id="autocomplete-data" type="application/json">
+    {{ autocomplete_data_json|safe }}
+</script>
+
 <script>
+    // Autocomplete for search bar using jQuery UI
+    const autocompleteData = JSON.parse(document.getElementById('autocomplete-data').textContent);
+    $("#searchInput").autocomplete({
+        source: autocompleteData,
+        minLength: 2,
+        autoFocus: true
+    });
+
+    // Array to store selected category IDs for filters
+    let selectedCategories = [];
+
+    // When the page loads, set preselected categories and sort filters
+    document.addEventListener("DOMContentLoaded", function() {
+        const catInput = document.getElementById('selectedCategories');
+        if (catInput.value) {
+            selectedCategories = catInput.value.split(',');
+            selectedCategories.forEach(catId => {
+                const badge = document.getElementById('cat-' + catId);
+                if (badge) {
+                    badge.classList.add('bg-blue-300', 'text-white');
+                }
+            });
+            if(selectedCategories.length > 0) {
+                document.getElementById('cat-all').classList.remove('bg-blue-300', 'text-white');
+            }
+        } else {
+            document.getElementById('cat-all').classList.add('bg-blue-300', 'text-white');
+        }
+
+        // Preselect time sort badge if provided
+        const timeSort = document.getElementById('timeSort').value;
+        if(timeSort) {
+            document.getElementById('sort-time-' + timeSort).classList.add('bg-green-300', 'text-white');
+        }
+        // Preselect match sort badge if provided
+        const matchSort = document.getElementById('matchSort').value;
+        if(matchSort) {
+            document.getElementById('sort-match-' + matchSort).classList.add('bg-purple-300', 'text-white');
+        }
+    });
+
+    // Toggle the selection state of a category badge and auto-submit the form
+    function toggleCategory(catId) {
+        document.getElementById('cat-all').classList.remove('bg-blue-300', 'text-white');
+        const index = selectedCategories.indexOf(catId);
+        const badge = document.getElementById('cat-' + catId);
+        if (index > -1) {
+            selectedCategories.splice(index, 1);
+            badge.classList.remove('bg-blue-300', 'text-white');
+        } else {
+            selectedCategories.push(catId);
+            badge.classList.add('bg-blue-300', 'text-white');
+        }
+        document.getElementById('selectedCategories').value = selectedCategories.join(',');
+        if(selectedCategories.length === 0) {
+            document.getElementById('cat-all').classList.add('bg-blue-300', 'text-white');
+        }
+        document.getElementById('searchForm').submit();
+    }
+
+    // When "All" is clicked, clear any other selections, mark "All" as active, and auto-submit the form
+    function selectAll() {
+        selectedCategories = [];
+        document.getElementById('selectedCategories').value = "";
+        {% for cat in all_categories %}
+        document.getElementById('cat-{{ cat.id }}').classList.remove('bg-blue-300', 'text-white');
+        {% endfor %}
+        document.getElementById('cat-all').classList.add('bg-blue-300', 'text-white');
+        document.getElementById('searchForm').submit();
+    }
+
+    // Toggle time sort filters; mutually exclusive within the group.
+    function toggleTimeSort(value) {
+        const timeSortInput = document.getElementById('timeSort');
+        if (timeSortInput.value === value) {
+            timeSortInput.value = "";
+            document.getElementById('sort-time-' + value).classList.remove('bg-green-300', 'text-white');
+        } else {
+            timeSortInput.value = value;
+            document.getElementById('sort-time-recent').classList.remove('bg-green-300', 'text-white');
+            document.getElementById('sort-time-old').classList.remove('bg-green-300', 'text-white');
+            document.getElementById('sort-time-' + value).classList.add('bg-green-300', 'text-white');
+        }
+        document.getElementById('searchForm').submit();
+    }
+
+    // Toggle match sort filters; mutually exclusive within the group.
+    function toggleMatchSort(value) {
+        const matchSortInput = document.getElementById('matchSort');
+        if (matchSortInput.value === value) {
+            matchSortInput.value = "";
+            document.getElementById('sort-match-' + value).classList.remove('bg-purple-300', 'text-white');
+        } else {
+            matchSortInput.value = value;
+            document.getElementById('sort-match-mostmatcher').classList.remove('bg-purple-300', 'text-white');
+            document.getElementById('sort-match-mostunmatched').classList.remove('bg-purple-300', 'text-white');
+            document.getElementById('sort-match-' + value).classList.add('bg-purple-300', 'text-white');
+        }
+        document.getElementById('searchForm').submit();
+    }
+
+    // Toggle the filter dialog visibility
     function toggleFilterDialog() {
         const dialog = document.getElementById('filterDialog');
         dialog.classList.toggle('hidden');
         dialog.classList.toggle('flex');
     }
 
-    // Close dialog when clicking outside
+    // Close the dialog when clicking outside of it
     document.getElementById('filterDialog').addEventListener('click', (e) => {
         if(e.target === document.getElementById('filterDialog')) {
             toggleFilterDialog();
         }
     });
-
-    // Handle form submission
-    document.getElementById('filterForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        // Add your filter logic here
-        toggleFilterDialog();
-    });
 </script>
-
-<style>
-    .line-clamp-2 {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-</style>
-
 {% endblock %}

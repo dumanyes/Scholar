@@ -1,0 +1,332 @@
+{% extends "users/base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .terms-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        font-family: 'Inter', sans-serif;
+        line-height: 1.6;
+    }
+    .terms-container h1 {
+        text-align: center;
+        font-size: 2.5rem;
+        margin-bottom: 1.5rem;
+        color: #333;
+    }
+    .section {
+        margin-bottom: 2rem;
+    }
+    .section h2 {
+        font-size: 1.8rem;
+        margin-bottom: 0.75rem;
+        color: #10b981;
+    }
+    .section p, .section li {
+        font-size: 1rem;
+        color: #555;
+    }
+    .section ul {
+        margin-left: 1.5rem;
+    }
+    .language-tabs {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .language-tab {
+        padding: 0.5rem 1rem;
+        border: 2px solid #10b981;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+    }
+    .language-tab.active {
+        background: #10b981;
+        color: #fff;
+    }
+    .back-link {
+        text-align: center;
+        margin-top: 2rem;
+    }
+    .back-link a, .footer-link a {
+        color: #10b981;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    .back-link a:hover, .footer-link a:hover {
+        text-decoration: underline;
+    }
+    .footer-link {
+        text-align: center;
+        margin-top: 1rem;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="terms-container">
+    <h1>ScholarHub - Terms &amp; Privacy Policy</h1>
+
+    <div class="language-tabs">
+        <div class="language-tab active" data-lang="en">English</div>
+        <div class="language-tab" data-lang="ru">Русский</div>
+        <div class="language-tab" data-lang="kz">Қазақша</div>
+    </div>
+
+    <!-- English Content -->
+    <div id="content-en">
+        <!-- Terms and Conditions -->
+        <div class="section">
+            <h2>Terms and Conditions</h2>
+            <p><strong>Last Updated:</strong> 08.02.2025</p>
+            <p>Welcome to ScholarHub! Before you proceed, please read and agree to our Terms and Conditions.</p>
+            <ol>
+                <li>
+                    <strong>Acceptance of Terms:</strong>
+                    By signing up for ScholarHub, you agree to abide by these terms. If you do not agree, please do not use our platform.
+                </li>
+                <li>
+                    <strong>User Responsibilities:</strong>
+                    You must provide accurate information during registration and maintain the confidentiality of your account credentials. Misuse of the platform—including spam, harassment, or providing false information—may result in suspension of your account.
+                </li>
+                <li>
+                    <strong>Intellectual Property:</strong>
+                    All content shared on ScholarHub (including research projects, documents, and discussions) remains the property of its original author. By uploading content, you grant ScholarHub a non-exclusive license to display and share it within the platform.
+                </li>
+                <li>
+                    <strong>Privacy and Data Protection:</strong>
+                    We value your privacy and handle your data in accordance with our Privacy Policy, which explains how we collect and use your information.
+                </li>
+                <li>
+                    <strong>Limitations of Liability:</strong>
+                    ScholarHub does not guarantee the accuracy of the research content or user interactions and is not responsible for any disputes between users.
+                </li>
+                <li>
+                    <strong>Changes to Terms:</strong>
+                    We may update these terms periodically. Significant changes will be communicated to you. By clicking “Agree &amp; Sign Up” (or using our platform), you confirm that you have read and accepted these terms.
+                </li>
+            </ol>
+        </div>
+
+        <!-- Privacy Policy -->
+        <div class="section">
+            <h2>Privacy Policy</h2>
+            <p><strong>Last Updated:</strong> 08.02.2025</p>
+            <p>
+                Welcome to ScholarHub! Your privacy is important to us. This Privacy Policy explains how we collect, use, and protect your data when you use our platform.
+            </p>
+            <ol>
+                <li>
+                    <strong>Information We Collect:</strong>
+                    We may collect personal information such as your name, email address, and profile details, along with your research interests, skills, and user activity.
+                </li>
+                <li>
+                    <strong>How We Use Your Information:</strong>
+                    We use your data to provide and personalize your experience on ScholarHub, connect you with researchers and relevant projects, and to ensure the security of our platform.
+                </li>
+                <li>
+                    <strong>Sharing Your Information:</strong>
+                    Your personal data is not sold to third parties. We may share information with other users (for collaboration), service providers (for platform maintenance), or legal authorities if required by law.
+                </li>
+                <li>
+                    <strong>Data Security:</strong>
+                    We employ industry-standard security measures to protect your information, though no online platform is completely secure.
+                </li>
+                <li>
+                    <strong>Your Rights &amp; Choices:</strong>
+                    You may update your profile, request deletion of your account, and manage your communication preferences at any time.
+                </li>
+                <li>
+                    <strong>Cookies &amp; Tracking:</strong>
+                    We use cookies to enhance your experience and analyze usage. You can adjust your browser settings to manage cookie preferences.
+                </li>
+                <li>
+                    <strong>Changes to This Policy:</strong>
+                    We may update this Privacy Policy occasionally. Significant changes will be communicated, and by continuing to use ScholarHub, you agree to the updated terms.
+                </li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Russian Content -->
+    <div id="content-ru" style="display:none;">
+        <div class="section">
+            <h2>Пользовательское соглашение</h2>
+            <p><strong>Последнее обновление:</strong> 08.02.2025</p>
+            <p>Добро пожаловать на ScholarHub! Прежде чем продолжить, пожалуйста, прочитайте и согласитесь с нашими условиями использования.</p>
+            <ol>
+                <li>
+                    <strong>Принятие условий:</strong>
+                    Регистрируясь на ScholarHub, вы соглашаетесь соблюдать данные условия. Если вы не согласны, пожалуйста, не используйте нашу платформу.
+                </li>
+                <li>
+                    <strong>Обязанности пользователя:</strong>
+                    Вы обязаны предоставлять достоверную информацию при регистрации и хранить в тайне данные своего аккаунта. Злоупотребление платформой (спам, преследование или предоставление ложной информации) может привести к блокировке аккаунта.
+                </li>
+                <li>
+                    <strong>Интеллектуальная собственность:</strong>
+                    Весь контент, размещаемый на ScholarHub (исследовательские проекты, документы, обсуждения), остается собственностью его автора. Загружая контент, вы предоставляете ScholarHub лицензию на его отображение и распространение на платформе.
+                </li>
+                <li>
+                    <strong>Конфиденциальность и защита данных:</strong>
+                    Мы уважаем вашу конфиденциальность и обрабатываем ваши данные в соответствии с нашей Политикой конфиденциальности.
+                </li>
+                <li>
+                    <strong>Ограничение ответственности:</strong>
+                    ScholarHub не гарантирует точность представленной информации и не несет ответственности за споры между пользователями.
+                </li>
+                <li>
+                    <strong>Изменения в условиях:</strong>
+                    ScholarHub может периодически обновлять условия. О значительных изменениях будет сообщено. Используя платформу, вы подтверждаете, что ознакомились и согласны с условиями.
+                </li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>Политика конфиденциальности</h2>
+            <p><strong>Последнее обновление:</strong> 08.02.2025</p>
+            <p>
+                Добро пожаловать на ScholarHub! Ваше право на конфиденциальность очень важно для нас. Настоящая Политика конфиденциальности объясняет, как мы собираем, используем и защищаем ваши данные при использовании нашей платформы.
+            </p>
+            <ol>
+                <li>
+                    <strong>Собираемая информация:</strong>
+                    Мы можем собирать личные данные, такие как имя, адрес электронной почты, а также сведения о ваших интересах и активности.
+                </li>
+                <li>
+                    <strong>Использование информации:</strong>
+                    Собранные данные используются для персонализации вашего опыта, установления контактов между исследователями и обеспечения безопасности платформы.
+                </li>
+                <li>
+                    <strong>Передача данных:</strong>
+                    Ваши личные данные не продаются третьим лицам. Информация может быть передана другим пользователям, поставщикам услуг или органам власти по необходимости.
+                </li>
+                <li>
+                    <strong>Безопасность данных:</strong>
+                    Мы применяем современные меры безопасности, однако ни одна система не гарантирует 100% защиту.
+                </li>
+                <li>
+                    <strong>Права пользователя:</strong>
+                    Вы можете редактировать свой профиль, удалять аккаунт и управлять настройками уведомлений.
+                </li>
+                <li>
+                    <strong>Cookies и технологии отслеживания:</strong>
+                    Мы используем cookies для улучшения работы платформы, а настройки браузера позволяют управлять их использованием.
+                </li>
+                <li>
+                    <strong>Изменения в политике:</strong>
+                    Политика конфиденциальности может обновляться, и вы будете уведомлены о существенных изменениях.
+                </li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Kazakh Content -->
+    <div id="content-kz" style="display:none;">
+        <div class="section">
+            <h2>Пайдаланушы келісімі</h2>
+            <p><strong>Соңғы жаңарту:</strong> 08.02.2025</p>
+            <p>ScholarHub-қа қош келдіңіз! Алға жылжытпас бұрын, біздің қолдану шарттарымен толық танысып, келісіміңізді білдіріңіз.</p>
+            <ol>
+                <li>
+                    <strong>Шарттарды қабылдау:</strong>
+                    ScholarHub-қа тіркелу арқылы сіз осы шарттарды орындауға келісесіз. Егер келісмесеңіз, платформаны пайдаланбаңыз.
+                </li>
+                <li>
+                    <strong>Пайдаланушы міндеттері:</strong>
+                    Тіркелу кезінде нақты ақпарат беруіңіз қажет және аккаунт деректеріңіздің құпиялығын сақтау жауапкершілігі сізде болады. Спам, қорлау немесе жалған ақпарат тарату аккаунтыңыздың жабылуына әкелуі мүмкін.
+                </li>
+                <li>
+                    <strong>Интеллектуалдық меншік:</strong>
+                    ScholarHub-тағы барлық контент (зерттеу жобалары, құжаттар, талқылаулар) оның авторына тиесілі. Контентті жүктеу арқылы сіз ScholarHub-қа оны көрсету және бөлісуге лицензия бересіз.
+                </li>
+                <li>
+                    <strong>Құпиялылық және деректерді қорғау:</strong>
+                    Біз сіздің жеке ақпаратыңызды қорғауға ұмтыламыз және оны біздің Құпиялылық саясатына сәйкес өңдейміз.
+                </li>
+                <li>
+                    <strong>Жауапкершіліктің шектеулері:</strong>
+                    ScholarHub зерттеу мазмұнының дұрыстығын кепілдік бермейді және пайдаланушылар арасындағы дауларға жауапты емес.
+                </li>
+                <li>
+                    <strong>Шарттарды өзгерту:</strong>
+                    ScholarHub осы шарттарды уақыт өте жаңарта алады. Маңызды өзгерістер туралы хабардар боласыз, және платформаны пайдалану арқылы сіз жаңартылған шарттарға келісесіз.
+                </li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>Құпиялылық саясаты</h2>
+            <p><strong>Соңғы жаңарту:</strong> 08.02.2025</p>
+            <p>
+                ScholarHub-қа қош келдіңіз! Сіздің жеке өміріңіз біз үшін маңызды. Осы Құпиялылық саясаты платформаны пайдалану кезінде сіздің деректеріңізді қалай жинайтынымыз, пайдаланатынымыз және қорғайтынымызды түсіндіреді.
+            </p>
+            <ol>
+                <li>
+                    <strong>Жинайтын ақпарат:</strong>
+                    Тіркелу және платформа қызметтерін пайдалану кезінде біз сіздің атыңыз, электронды поштаңыз, профиль мәліметтері және зерттеу салаларыңыз туралы ақпарат жинаймыз.
+                </li>
+                <li>
+                    <strong>Ақпаратты пайдалану:</strong>
+                    Біз деректеріңізді ScholarHub тәжірибесін жеке бейімдеу, зерттеушілер мен жобалармен байланыс орнату және платформаның қауіпсіздігін қамтамасыз ету мақсатында пайдаланамыз.
+                </li>
+                <li>
+                    <strong>Ақпаратпен бөлісу:</strong>
+                    Сіздің жеке деректеріңіз сатылмайды. Алайда, біз оларды басқа пайдаланушылар, қызмет көрсетушілер немесе заңнамалық органдармен бөлісуіміз мүмкін.
+                </li>
+                <li>
+                    <strong>Деректердің қауіпсіздігі:</strong>
+                    Біз деректеріңізді қорғау үшін заманауи қауіпсіздік шараларын қолданамыз, дегенмен онлайн платформа 100% қауіпсіз деп кепілдік бере алмайды.
+                </li>
+                <li>
+                    <strong>Пайдаланушы құқықтары:</strong>
+                    Сіз өз профиліңізді өзгерте аласыз, аккаунтты өшіре аласыз және хабарландыру параметрлерін реттей аласыз.
+                </li>
+                <li>
+                    <strong>Cookies және бақылау технологиялары:</strong>
+                    Біз cookies арқылы платформа тәжірибесін жақсартамыз және оның пайдалану статистикасын талдаймыз. Cookies параметрлерін браузер арқылы өзгерте аласыз.
+                </li>
+                <li>
+                    <strong>Саясаттағы өзгерістер:</strong>
+                    ScholarHub осы Құпиялылық саясатын уақыт өте жаңарта алады. Маңызды өзгерістер сізге хабарланады.
+                </li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="back-link">
+        <a href="{% url 'users-home' %}">&larr; Back to Home</a>
+    </div>
+    <div class="footer-link">
+        <a href="{% url 'users-terms' %}">Terms and Conditions</a> | 
+        <a href="{% url 'privacy-policy' %}">Privacy Policy</a>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+        var tabs = document.querySelectorAll('.language-tab');
+        tabs.forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                // Remove active class from all tabs
+                tabs.forEach(function(t) { t.classList.remove('active'); });
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                var lang = tab.getAttribute('data-lang');
+                // Hide all language content
+                document.getElementById('content-en').style.display = 'none';
+                document.getElementById('content-ru').style.display = 'none';
+                document.getElementById('content-kz').style.display = 'none';
+                // Show selected language content
+                document.getElementById('content-' + lang).style.display = 'block';
+            });
+        });
+    });
+</script>
+{% endblock %}

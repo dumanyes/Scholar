@@ -3,232 +3,364 @@
 
 {% block content %}
 <style>
+    :root {
+        --primary: #10b981;
+        --primary-hover: #059669;
+        --secondary: #64748b;
+        --success: #22c55e;
+        --danger: #ef4444;
+        --warning: #eab308;
+        --background: #f8fafc;
+        --text: #1e293b;
+        --border: #e2e8f0;
+    }
+
+    .project-detail-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        font-family: 'Inter', sans-serif;
+    }
+
     .project-header {
-        padding: 2rem 0;
-        margin-bottom: 2rem;
-    }
-
-    .project-card {
         background: white;
-        border-radius: 16px;
+        border-radius: 1.5rem;
         padding: 2rem;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
         margin-bottom: 2rem;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 
-    .project-status {
-        font-size: 0.85rem;
-        padding: 6px 12px;
-        border-radius: 20px;
-        backdrop-filter: blur(4px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-    }
-
-    .active-status {
-        background: rgba(72, 199, 116, 0.15);
-        color: #2f9e44;
-    }
-
-    .inactive-status {
-        background: rgba(255, 107, 107, 0.15);
-        color: #ff6b6b;
-    }
-
-    .skill-badge {
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 6px 12px;
-        margin: 4px;
-        font-size: 0.85rem;
-        font-weight: 500;
-    }
-
-    .applicant-card {
-        background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
-        margin-bottom: 1rem;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    }
-
-    .application-status {
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 500;
-    }
-
-    .action-button {
-        padding: 10px 20px;
-        border-radius: 12px;
-        font-weight: 600;
-        transition: all 0.2s ease;
+    .status-pill {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        padding: 0.375rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--primary);
+        gap: 0.5rem;
     }
 
-    .avatar {
-        width: 40px;
-        height: 40px;
+    .status-pill.inactive {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+    }
+
+    .user-avatar {
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
-        background: #2f9e44;
+        background: var(--primary);
         color: white;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 600;
+        font-size: 1.25rem;
+    }
+
+    .skill-tag {
+        display: inline-flex;
+        padding: 0.5rem 1rem;
+        background: var(--background);
+        border-radius: 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text);
+        margin: 0.25rem;
+        border: 1px solid var(--border);
+    }
+
+    .detail-card {
+        background: white;
+        border-radius: 1.5rem;
+        padding: 2rem;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+        margin-bottom: 2rem;
+    }
+
+    .application-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        transition: transform 0.2s ease;
+    }
+
+    .application-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .status-badge {
+        padding: 0.375rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        background: var(--background);
+    }
+
+    .status-badge.accepted {
+        background: rgba(34, 197, 94, 0.1);
+        color: var(--success);
+    }
+
+    .status-badge.rejected {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+    }
+
+    .action-btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: none;
+    }
+
+    .action-btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .action-btn-primary:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+    }
+
+    .action-btn-secondary {
+        background: var(--background);
+        color: var(--text);
+        border: 1px solid var(--border);
+    }
+
+    .category-tag {
+        display: inline-flex;
+        padding: 0.5rem 1rem;
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--primary);
+        border-radius: 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin: 0.25rem;
     }
 </style>
 
-<div class="container py-5">
+<div class="project-detail-container">
+    <!-- Project Header -->
     <div class="project-header">
-        <div class="d-flex justify-content-between align-items-start mb-4">
+        <div class="flex justify-between items-start mb-6">
             <div>
-                <h1 class="mb-3" style="font-size: 2rem; font-weight: 700;">{{ project.title }}</h1>
-                <span class="project-status {% if project.is_active %}active-status{% else %}inactive-status{% endif %}">
-                    {% if project.is_active %}Active{% else %}Inactive{% endif %}
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ project.title }}</h1>
+                <span class="status-pill {% if not project.is_active %}inactive{% endif %}">
+                    {% if project.is_active %}
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/></svg>
+                        Active
+                    {% else %}
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
+                        Inactive
+                    {% endif %}
                 </span>
             </div>
             {% if project.owner == request.user %}
-            <a href="{% url 'edit-project' project.id %}" class="action-button" style="background: #f8f9fa; color: #495057;">
-                <i class="fas fa-edit"></i>
+            <a href="{% url 'project-update' project.pk %}" class="action-btn action-btn-secondary">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                 Edit
             </a>
             {% endif %}
         </div>
 
-        <div class="d-flex align-items-center gap-3">
-            <div class="avatar">
+        <div class="flex items-center gap-4">
+            <div class="user-avatar">
                 {{ project.owner.username|first|upper }}
             </div>
             <div>
-                <p class="mb-0">Created by <strong>@{{ project.owner.username }}</strong></p>
-                <small class="text-muted">Posted on {{ project.created_at|date:"M d, Y" }}</small>
+                <p class="text-lg font-medium text-gray-900">@{{ project.owner.username }}</p>
+                <p class="text-sm text-gray-500">Posted {{ project.created_at|timesince }} ago</p>
             </div>
         </div>
     </div>
 
-    <div class="row g-4">
-        <div class="col-lg-8">
-            <div class="project-card">
-                <h3 class="mb-4" style="font-size: 1.25rem; font-weight: 600;">Project Description</h3>
-                <p class="text-secondary">{{ project.description }}</p>
+    <!-- Main Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column -->
+        <div class="lg:col-span-2">
+            <div class="detail-card">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">Project Description</h2>
+                <p class="text-gray-600 leading-relaxed">{{ project.description }}</p>
+            </div>
 
-                <h3 class="mb-4 mt-5" style="font-size: 1.25rem; font-weight: 600;">Required Skills</h3>
-                <div class="d-flex flex-wrap">
+            {% if project.project_mission %}
+            <div class="detail-card">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">Project Mission</h2>
+                <p class="text-gray-600 leading-relaxed">{{ project.project_mission }}</p>
+            </div>
+            {% endif %}
+
+            {% if project.project_objectives %}
+            <div class="detail-card">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">Project Objectives</h2>
+                <p class="text-gray-600 leading-relaxed">{{ project.project_objectives }}</p>
+            </div>
+            {% endif %}
+
+            {% if project.languages %}
+            <div class="detail-card">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">Languages</h2>
+                <p class="text-gray-600 leading-relaxed">{{ project.languages }}</p>
+            </div>
+            {% endif %}
+
+            {% if project.required_roles %}
+            <div class="detail-card">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">Required Collaborator Roles</h2>
+                <p class="text-gray-600 leading-relaxed">{{ project.required_roles }}</p>
+            </div>
+            {% endif %}
+
+            <div class="detail-card">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">Required Skills</h2>
+                <div class="flex flex-wrap">
                     {% for skill in project.skills_required.split %}
-                    <span class="skill-badge">{{ skill }}</span>
+                    <span class="skill-tag">{{ skill }}</span>
                     {% endfor %}
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-4">
-            <div class="project-card">
-                <h4 class="mb-4" style="font-size: 1.25rem; font-weight: 600;">Project Details</h4>
+        <!-- Right Column -->
+        <div class="lg:col-span-1">
+            <div class="detail-card">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">Project Details</h2>
 
-                <div class="d-flex justify-content-between mb-3">
-                    <span>Category:</span>
-                    <strong>{{ project.get_category_display }}</strong>
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Categories</p>
+                        <div class="flex flex-wrap">
+                            {% for category in project.category.all %}
+                            <span class="category-tag">{{ category.name }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm text-gray-500">Status</p>
+                        <span class="font-medium {% if project.is_active %}text-green-600{% else %}text-red-600{% endif %}">
+                            {{ project.is_active|yesno:"Active,Inactive" }}
+                        </span>
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm text-gray-500">Last Updated</p>
+                        <span class="font-medium">{{ project.last_modified|date:"M d, Y" }}</span>
+                    </div>
+
+                    {% if user.is_authenticated and user != project.owner %}
+                    <form method="POST" action="{% url 'apply-project' project.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="action-btn action-btn-primary w-full mt-4">
+                            {% if has_applied %}
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+                                Applied
+                            {% else %}
+                                Apply Now
+                            {% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    {% if project.owner == request.user %}
+                    <form method="POST" action="{% url 'project-toggle' project.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="action-btn action-btn-secondary w-full mt-4">
+                            {% if project.is_active %}Deactivate Project{% else %}Activate Project{% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
                 </div>
-
-                <div class="d-flex justify-content-between mb-3">
-                    <span>Status:</span>
-                    <strong>{{ project.is_active|yesno:"Active,Inactive" }}</strong>
-                </div>
-
-                <div class="d-flex justify-content-between mb-4">
-                    <span>Last Updated:</span>
-                    <strong>{{ project.last_modified|date:"M d, Y" }}</strong>
-                </div>
-
-                {% if user.is_authenticated and user != project.owner %}
-                <form method="POST" action="{% url 'apply-project' project.id %}">
-                    {% csrf_token %}
-                    <button type="submit" class="action-button w-100" style="background: #2f9e44; color: white;">
-                        {% if has_applied %}
-                            <i class="fas fa-check"></i> Applied
-                        {% else %}
-                            <i class="fas fa-plus"></i> Apply Now
-                        {% endif %}
-                    </button>
-                </form>
-                {% endif %}
             </div>
         </div>
     </div>
 
     {% if project.owner == request.user %}
-    <div class="mt-5">
-        <h3 class="mb-4" style="font-size: 1.5rem; font-weight: 700;">Applications ({{ project.applications.count }})</h3>
-    {% for application in project.applications.all %}
-<div class="applicant-card">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div class="d-flex align-items-center gap-3">
-            <a href="{% url 'user-profile' application.applicant.username %}" class="text-decoration-none">
-                <div class="avatar">
-                    {{ application.applicant.username|first|upper }}
+    <!-- Applications Section -->
+    <div class="mt-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Applications ({{ project.applications.count }})</h2>
+        {% for application in project.applications.all %}
+        <div class="application-card">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <a href="{% url 'user-profile' application.applicant.username %}" class="user-avatar">
+                        {{ application.applicant.username|first|upper }}
+                    </a>
+                    <div>
+                        <a href="{% url 'user-profile' application.applicant.username %}" class="text-lg font-medium text-gray-900 hover:text-primary">
+                            @{{ application.applicant.username }}
+                        </a>
+                        <p class="text-sm text-gray-500 mt-1">
+                            Applied {{ application.applied_at|timesince }} ago
+                        </p>
+                    </div>
                 </div>
-            </a>
-            <div>
-                <a href="{% url 'user-profile' application.applicant.username %}" class="text-decoration-none">
-                    <p class="mb-0"><strong>@{{ application.applicant.username }}</strong></p>
-                </a>
-                <small class="text-muted">Applied {{ application.applied_at|date:"M d" }}</small>
-                <div class="mt-1">
-                    <small class="text-muted">
-                        Projects: {{ application.applicant.owned_projects.count }} |
-                        Member since: {{ application.applicant.date_joined|date:"Y" }}
-                    </small>
+                <div class="flex items-center gap-4">
+                    <span class="status-badge {% if application.status == 'ACCEPTED' %}accepted{% elif application.status == 'REJECTED' %}rejected{% endif %}">
+                        {{ application.get_status_display }}
+                    </span>
+                    {% if application.status == 'PENDING' %}
+                    <div class="flex gap-2">
+                        <form method="POST" action="{% url 'update-application' application.id 'ACCEPTED' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="action-btn action-btn-primary">
+                                Accept
+                            </button>
+                        </form>
+                        <form method="POST" action="{% url 'update-application' application.id 'REJECTED' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="action-btn action-btn-secondary">
+                                Reject
+                            </button>
+                        </form>
+                    </div>
+                    {% elif application.status == 'ACCEPTED' %}
+                    <a href="{% url 'chat' application.applicant.id %}" class="action-btn action-btn-primary">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                        Chat
+                    </a>
+                    {% endif %}
                 </div>
             </div>
-        </div>
-
-        <div class="d-flex align-items-center gap-3">
-            <span class="application-status
-                {% if application.status == 'ACCEPTED' %}bg-success{% elif application.status == 'REJECTED' %}bg-danger{% else %}bg-warning{% endif %}">
-                {{ application.get_status_display }}
-            </span>
-            {% if application.status == 'PENDING' %}
-            <div class="d-flex gap-2">
-                <form method="POST" action="{% url 'update-application' application.id 'ACCEPTED' %}">
-                    {% csrf_token %}
-                    <button type="submit" class="action-button" style="background: #2f9e44; color: white;">
-                        Accept
-                    </button>
-                </form>
-                <form method="POST" action="{% url 'update-application' application.id 'REJECTED' %}">
-                    {% csrf_token %}
-                    <button type="submit" class="action-button" style="background: #ff6b6b; color: white;">
-                        Reject
-                    </button>
-                </form>
+            {% if application.message %}
+            <div class="mt-4 pt-4 border-t border-gray-100">
+                <p class="text-gray-600 italic">"{{ application.message }}"</p>
             </div>
-            {% elif application.status == 'ACCEPTED' %}
-            <a href="{% url 'chat' application.applicant.id %}" class="action-button" style="background: #4dabf7; color: white;">
-                <i class="fas fa-comment"></i>
-                Chat
-            </a>
             {% endif %}
         </div>
-    </div>
-
-    {% if application.message %}
-    <div class="mt-3 pt-3 border-top">
-        <p class="text-muted mb-0"><em>"{{ application.message }}"</em></p>
-    </div>
-    {% endif %}
-</div>
-{% endfor %}
+        {% endfor %}
     </div>
     {% endif %}
 
-    <div class="mt-5">
-        <a href="{% url 'marketplace' %}" class="action-button" style="background: #f8f9fa; color: #495057;">
-            <i class="fas fa-arrow-left"></i>
+    <div class="mt-8">
+        <a href="{% url 'marketplace' %}" class="action-btn action-btn-secondary">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
             Back to Marketplace
         </a>
     </div>
+
+    {% if project.owner == request.user %}
+    <!-- Delete Project Button -->
+    <div class="mt-4">
+        <form method="post" action="{% url 'project-delete' project.pk %}" onsubmit="return confirm('Are you sure you want to delete this project?');">
+            {% csrf_token %}
+            <button type="submit" class="action-btn action-btn-secondary w-full">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg>
+                Delete Project
+            </button>
+        </form>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
