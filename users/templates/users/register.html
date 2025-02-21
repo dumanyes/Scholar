@@ -21,6 +21,7 @@
           <!-- Step Progress -->
           <div class="relative">
             <div class="w-full bg-gray-200 rounded-full h-2">
+              <!-- The progress bar fill -->
               <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: {{ progress }}%"></div>
             </div>
             <div class="text-right text-sm text-gray-500 mt-1">Step {{ step|add:1 }} of 5</div>
@@ -50,6 +51,7 @@
             {% csrf_token %}
             <input type="hidden" name="step" value="{{ step }}">
 
+            {# STEP 0: Basic Personal Info #}
             {% if step == 0 %}
               <!-- Step 1: Personal Info -->
               <div class="space-y-4">
@@ -81,7 +83,79 @@
                   </label>
                 </div>
               </div>
+            {% endif %}
 
+            {# STEP 1: Verification Code #}
+            {% if step == 1 %}
+              <!-- Step 2: Verification Code -->
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-600">Verification Code</label>
+                  <input 
+                    type="text" 
+                    name="verification_code" 
+                    class="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:ring-offset-2"
+                    placeholder="Enter the code we emailed you" 
+                  >
+                </div>
+                <p class="text-xs text-gray-500">
+                  If you didn’t receive a code, 
+                  <a href="#" class="text-blue-600 hover:underline">click here</a> to resend.
+                </p>
+              </div>
+            {% endif %}
+
+            {# STEP 2: Password Setup (example) #}
+            {% if step == 2 %}
+              <!-- Step 3: Password -->
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-600">Password</label>
+                  {{ form.password1|add_class:"w-full py-3 px-4 border border-gray-300 rounded-lg" }}
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-600">Confirm Password</label>
+                  {{ form.password2|add_class:"w-full py-3 px-4 border border-gray-300 rounded-lg" }}
+                </div>
+              </div>
+            {% endif %}
+
+            {# STEP 3: Skills (example) #}
+            {% if step == 3 %}
+              <!-- Step 4: Skills -->
+              <input type="hidden" id="selected_skills" name="selected_skills" value="">
+              <p class="text-gray-600 text-sm">Pick your top skills:</p>
+              <!-- Example skill checkboxes or dynamic content -->
+              <div class="grid grid-cols-2 gap-2 mt-2">
+                <label class="flex items-center space-x-2">
+                  <input type="checkbox" name="skill_checkbox" value="Python">
+                  <span>Python</span>
+                </label>
+                <label class="flex items-center space-x-2">
+                  <input type="checkbox" name="skill_checkbox" value="Data Analysis">
+                  <span>Data Analysis</span>
+                </label>
+                <!-- Add more as needed -->
+              </div>
+            {% endif %}
+
+            {# STEP 4: Interests (example) #}
+            {% if step == 4 %}
+              <!-- Step 5: Interests -->
+              <input type="hidden" id="selected_interests" name="selected_interests" value="">
+              <p class="text-gray-600 text-sm">Pick your research interests:</p>
+              <!-- Example interest checkboxes or dynamic content -->
+              <div class="grid grid-cols-2 gap-2 mt-2">
+                <label class="flex items-center space-x-2">
+                  <input type="checkbox" name="interest_checkbox" value="AI">
+                  <span>AI</span>
+                </label>
+                <label class="flex items-center space-x-2">
+                  <input type="checkbox" name="interest_checkbox" value="WebDev">
+                  <span>Web Development</span>
+                </label>
+                <!-- Add more as needed -->
+              </div>
             {% endif %}
 
             <!-- Navigation Buttons -->
@@ -112,7 +186,6 @@
     </div>
   </div>
 </main>
-
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -147,5 +220,4 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 </script>
-
 {% endblock content %}
