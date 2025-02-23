@@ -19,7 +19,7 @@ SECRET_KEY = str(os.getenv('SECRET_KEY'))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'scholar-d6c0.onrender.com']
 # 'scholar-d6c0.onrender.com'
 
 # Application definition
@@ -93,8 +93,11 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-# DATABASES['default'] = dj_database_url.parse("postgresql://scholar_t_db_01_user:gLhki25VqEsUl4icyP1E25xsneJTxqS8@dpg-cus2gg23esus73fi6ns0-a.oregon-postgres.render.com/scholar_t_db_01")
-# #postgresql://scholar_t_db_01_user:gLhki25VqEsUl4icyP1E25xsneJTxqS8@dpg-cus2gg23esus73fi6ns0-a.oregon-postgres.render.com/scholar_t_db_01
+DATABASES['default'] = dj_database_url.parse("postgresql://scholar_t_db_01_user:gLhki25VqEsUl4icyP1E25xsneJTxqS8@dpg-cus2gg23esus73fi6ns0-a.oregon-postgres.render.com/scholar_t_db_01")
+
+
+
+#postgresql://scholar_t_db_01_user:gLhki25VqEsUl4icyP1E25xsneJTxqS8@dpg-cus2gg23esus73fi6ns0-a.oregon-postgres.render.com/scholar_t_db_01
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
