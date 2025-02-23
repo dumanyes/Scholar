@@ -3,50 +3,57 @@
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
-  <h1 class="text-3xl font-bold mb-6">My Requests</h1>
-  
+  <h1 class="text-3xl font-bold mb-8 text-center">My Requests</h1>
+
   {% if applications %}
-    <div class="space-y-4">
+    <div class="space-y-6">
       {% for application in applications %}
-        <div class="bg-white rounded-xl shadow p-6 flex flex-col md:flex-row items-center justify-between">
-          <div>
+        <div class="bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row items-center justify-between">
+          <div class="flex-1">
             <h2 class="text-xl font-semibold text-gray-800">
-              <a href="{% url 'project-detail' pk=application.project.pk %}">
+              <a href="{% url 'project-detail' pk=application.project.pk %}" class="hover:underline">
                 {{ application.project.title }}
               </a>
             </h2>
-            <p class="text-sm text-gray-600">
-              Applied on: {{ application.applied_at|date:"M d, Y H:i" }}
-            </p>
+            <p class="text-sm text-gray-600">Applied on: {{ application.applied_at|date:"M d, Y H:i" }}</p>
           </div>
-          <div class="flex items-center gap-4">
+          <div class="flex flex-col md:flex-row items-center gap-4">
             <span class="px-4 py-1 rounded-full text-sm font-medium
-                {% if application.status == 'ACCEPTED' %}
-                    bg-green-500 text-white
-                {% elif application.status == 'REJECTED' %}
-                    bg-red-500 text-white
-                {% else %}
-                    bg-yellow-500 text-white
-                {% endif %}">
+              {% if application.status == 'ACCEPTED' %}
+                bg-green-500 text-white
+              {% elif application.status == 'REJECTED' %}
+                bg-red-500 text-white
+              {% else %}
+                bg-yellow-500 text-white
+              {% endif %}">
               {{ application.get_status_display }}
             </span>
             {% if application.status == 'ACCEPTED' %}
-            <a href="{% url 'chat' application.project.owner.id %}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
-              Chat
-            </a>
+              <a href="{% url 'chat' application.project.owner.id %}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                Chat
+              </a>
+            {% endif %}
+            {% if application.status == 'PENDING' %}
+              <a href="{% url 'withdraw-application' project_id=application.project.id %}" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
+                Withdraw Application
+              </a>
             {% endif %}
           </div>
         </div>
       {% endfor %}
     </div>
-    <div class="mt-6">
+    <div class="mt-8">
       {% if is_paginated %}
         <div class="flex justify-center space-x-4">
           {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Previous</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition">
+              Previous
+            </a>
           {% endif %}
           {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Next</a>
+            <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition">
+              Next
+            </a>
           {% endif %}
         </div>
       {% endif %}
@@ -54,9 +61,9 @@
   {% else %}
     <p class="text-center text-gray-600">You haven't sent any requests yet.</p>
   {% endif %}
-  
+
   <div class="mt-8 text-center">
-    <a href="{% url 'marketplace' %}" class="inline-block px-6 py-3 bg-gray-200 rounded hover:bg-gray-300">
+    <a href="{% url 'marketplace' %}" class="inline-block px-6 py-3 bg-gray-200 rounded hover:bg-gray-300 transition">
       Back to Marketplace
     </a>
   </div>

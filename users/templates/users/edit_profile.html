@@ -5,64 +5,47 @@
 {% block title %}Edit Profile{% endblock %}
 
 {% block content %}
-<!-- Include desired fonts -->
-<link
-  href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500&display=swap"
-  rel="stylesheet"
-/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
 
-<div class="container my-5">
-  <div
-    class="card shadow-lg rounded-lg p-4 mx-auto parchment-bg"
-    style="max-width: 800px;"
-  >
-    <h2 class="text-center mb-4 author-name">
-      <i class="fas fa-scroll mr-2"></i>Edit Manuscript
+<div class="container my-8">
+  <div class="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-6">
+    <h2 class="text-center text-2xl font-bold mb-6">
+      <i class="fas fa-user-edit mr-2"></i>Edit Profile
     </h2>
-
-    <form method="post" action="{% url 'users-edit-profile' %}" enctype="multipart/form-data">
+    <form method="post" action="{% url 'users-edit-profile' %}" enctype="multipart/form-data" id="profile-form">
       {% csrf_token %}
 
       <!-- Avatar Section -->
-      <div class="form-group text-center mb-5">
-        <div class="avatar-container relative inline-block">
-          <!-- The preview image -->
-          <img
-            class="avatar-frame mb-3 w-24 h-24 object-cover rounded-full border border-gray-300"
-            src="{{ user.profile.avatar.url }}"
-            alt="Profile Picture"
-            onerror="this.src='/static/images/default-avatar.png'"
-          />
-          <!-- Label with camera icon to trigger file input -->
-          <label
-            class="btn-edit absolute bottom-0 right-0 bg-gray-800 text-white rounded-full p-1 hover:bg-gray-700 transition cursor-pointer"
-            title="Upload new photo"
-          >
+      <div class="flex flex-col items-center mb-6">
+        <div class="relative">
+          <img class="w-24 h-24 object-cover rounded-full border border-gray-300" 
+               src="{{ user.profile.avatar.url }}" 
+               alt="Profile Picture" 
+               onerror="this.src='/static/images/default-avatar.png'">
+          <label class="absolute bottom-0 right-0 bg-gray-800 text-white p-2 rounded-full cursor-pointer hover:bg-gray-700" title="Upload new photo">
             <i class="fas fa-camera"></i>
-            <!-- Hide the file input visually, but it still triggers on click -->
             {{ profile_form.avatar|add_class:"hidden" }}
           </label>
         </div>
+        {% if profile_form.avatar.errors %}
+          <p class="text-red-600 text-sm mt-2">{{ profile_form.avatar.errors|join:", " }}</p>
+        {% endif %}
       </div>
 
       <!-- Personal Details -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div>
-          <label class="detail-label block text-gray-700">Username</label>
+          <label class="block text-gray-700">Username</label>
           {{ user_form.username|add_class:"w-full px-3 py-2 border rounded" }}
           {% if user_form.username.errors %}
-          <div class="text-red-600 text-sm mt-1">
-            {{ user_form.username.errors|join:", " }}
-          </div>
+            <p class="text-red-600 text-sm mt-1">{{ user_form.username.errors|join:", " }}</p>
           {% endif %}
         </div>
         <div>
-          <label class="detail-label block text-gray-700">Email</label>
+          <label class="block text-gray-700">Email</label>
           {{ user_form.email|add_class:"w-full px-3 py-2 border rounded" }}
           {% if user_form.email.errors %}
-          <div class="text-red-600 text-sm mt-1">
-            {{ user_form.email.errors|join:", " }}
-          </div>
+            <p class="text-red-600 text-sm mt-1">{{ user_form.email.errors|join:", " }}</p>
           {% endif %}
         </div>
       </div>
@@ -70,158 +53,190 @@
       <!-- Professional Details -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div>
-          <label class="detail-label block text-gray-700">Organization</label>
+          <label class="block text-gray-700">Organization</label>
           {{ profile_form.organization|add_class:"w-full px-3 py-2 border rounded" }}
+          {% if profile_form.organization.errors %}
+            <p class="text-red-600 text-sm mt-1">{{ profile_form.organization.errors|join:", " }}</p>
+          {% endif %}
         </div>
         <div>
-          <label class="detail-label block text-gray-700">Position</label>
+          <label class="block text-gray-700">Position</label>
           {{ profile_form.position|add_class:"w-full px-3 py-2 border rounded" }}
+          {% if profile_form.position.errors %}
+            <p class="text-red-600 text-sm mt-1">{{ profile_form.position.errors|join:", " }}</p>
+          {% endif %}
         </div>
       </div>
 
       <!-- Biography -->
       <div class="mb-4">
-        <label class="detail-label block text-gray-700">Biography</label>
+        <label class="block text-gray-700">Biography</label>
         {{ profile_form.bio|add_class:"w-full px-3 py-2 border rounded" }}
-        <small class="text-gray-500">Chronicle your academic journey</small>
+        <small class="text-gray-500">Tell us about your academic journey</small>
+        {% if profile_form.bio.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ profile_form.bio.errors|join:", " }}</p>
+        {% endif %}
       </div>
 
-      <!-- University -->
+      <!-- University with Search -->
       <div class="mb-4">
-        <label class="detail-label block text-gray-700">University</label>
-        {{ profile_form.university|add_class:"w-full px-3 py-2 border rounded" }}
-      </div>
+  <label class="block text-gray-700">University</label>
+  <select name="university" id="id_university" class="w-full px-3 py-2 border rounded">
+    <option value="">Select a University</option>
+    {% for uni in universities %}
+      <option value="{{ uni.id }}"
+        {% if user.profile.university and user.profile.university.id == uni.id %}selected{% endif %}>
+        {{ uni.name }}
+      </option>
+    {% endfor %}
+  </select>
+  {% if profile_form.university.errors %}
+    <p class="text-red-600 text-sm mt-1">{{ profile_form.university.errors|join:", " }}</p>
+  {% endif %}
+</div>
 
-      <!-- Location: Country and City -->
+
+      <!-- Dynamic Location Selection -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <!-- Country with Search -->
         <div>
-          <label class="detail-label block text-gray-700">Country</label>
-          {{ profile_form.country|add_class:"w-full px-3 py-2 border rounded" }}
+          <label class="block text-gray-700">Country</label>
+          <input type="text" id="country-search" placeholder="Search Country" class="mb-2 w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <select name="country" id="id_country" class="w-full px-3 py-2 border rounded">
+            <option value="">Select a country</option>
+            {% for country in countries %}
+              <option value="{{ country.id }}"
+                {% if user.profile.country and user.profile.country.id == country.id %}selected{% endif %}>
+                {{ country.name }}
+              </option>
+            {% endfor %}
+          </select>
+          {% if profile_form.country.errors %}
+            <p class="text-red-600 text-sm mt-1">{{ profile_form.country.errors|join:", " }}</p>
+          {% endif %}
         </div>
+        <!-- City with Search -->
         <div>
-          <label class="detail-label block text-gray-700">City</label>
-          {{ profile_form.city|add_class:"w-full px-3 py-2 border rounded" }}
+          <label class="block text-gray-700">City</label>
+          <input type="text" id="city-search" placeholder="Search City" class="mb-2 w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <select name="city" id="id_city" class="w-full px-3 py-2 border rounded">
+            <option value="">Select a city</option>
+            {% for city in cities %}
+              <option value="{{ city.id }}" data-country="{{ city.country.id }}"
+                {% if user.profile.city and user.profile.city.id == city.id %}selected{% endif %}>
+                {{ city.name }}
+              </option>
+            {% endfor %}
+          </select>
+          {% if profile_form.city.errors %}
+            <p class="text-red-600 text-sm mt-1">{{ profile_form.city.errors|join:", " }}</p>
+          {% endif %}
         </div>
       </div>
 
-      <!-- Skills & Expertise -->
+      <!-- Categories Selection (Replaces Interests) -->
       <div class="mb-4">
-        <label class="detail-label block text-gray-700 mb-1">Skills & Expertise</label>
-        <div class="flex items-center gap-2">
-          <input
-            type="text"
-            id="skill-input"
-            class="form-control w-full px-3 py-2 border rounded"
-            placeholder="Search or add a skill"
-            onkeypress="handleSkillKeyPress(event)"
-            list="popular-skills"
-          />
-          <button
-            type="button"
-            class="btn-add bg-blue-600 text-white px-3 py-2 rounded"
-            onclick="addSkillFromInput()"
-          >
-            <i class="fas fa-plus"></i>
-          </button>
-        </div>
-        <!-- Datalist with up to 20 popular skills -->
-        <datalist id="popular-skills">
-          {% for skill in popular_skills %}
-          <option value="{{ skill.name }}"></option>
-          {% endfor %}
-        </datalist>
-        <!-- Selected Skills Tags -->
-        <div class="selected-tags mt-2 flex flex-wrap" id="selected-skills-list">
-          {% for skill in user.profile.skills.all %}
-          <span
-            class="tag inline-flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm mr-2 mb-2"
-          >
-            {{ skill.name }}
-            <i
-              class="fas fa-times ml-1 cursor-pointer"
-              onclick="removeSkill('{{ skill.name }}')"
-            ></i>
-          </span>
+        <label class="block text-gray-700 font-medium mb-2">Your Categories</label>
+        <div id="categories-buttons" class="flex flex-wrap gap-2 mb-2">
+          {% for category in available_categories %}
+            <button type="button"
+                    class="px-4 py-2 rounded-full text-sm transition border bg-gray-50 text-gray-700 border-gray-200"
+                    data-id="{{ category.id }}">
+              {{ category.name }}
+            </button>
           {% endfor %}
         </div>
-        {{ profile_form.skills }}
+        <input type="hidden" name="categories" id="categories-hidden" value="{{ profile_form.initial.categories }}">
+        {% if profile_form.categories.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ profile_form.categories.errors|join:", " }}</p>
+        {% endif %}
       </div>
 
-      <!-- Research Interests -->
+      <!-- Skills Selection -->
       <div class="mb-4">
-        <label class="detail-label block text-gray-700 mb-1">Research Interests</label>
-        <div class="flex items-center gap-2">
-          <input
-            type="text"
-            id="interest-input"
-            class="form-control w-full px-3 py-2 border rounded"
-            placeholder="Search or add an interest"
-            onkeypress="handleInterestKeyPress(event)"
-            list="popular-interests"
-          />
-          <button
-            type="button"
-            class="btn-add bg-blue-600 text-white px-3 py-2 rounded"
-            onclick="addInterestFromInput()"
-          >
-            <i class="fas fa-plus"></i>
-          </button>
-        </div>
-        <!-- Datalist with up to 20 popular interests -->
-        <datalist id="popular-interests">
-          {% for interest in popular_interests %}
-          <option value="{{ interest.name }}"></option>
+        <label class="block text-gray-700 font-medium mb-2">
+          Your Skills (Select at least 1 skill)
+        </label>
+        <div class="space-y-2">
+          {% for category in skill_categories %}
+            <div class="border border-gray-200 rounded-lg overflow-hidden">
+              <details class="group">
+                <summary class="flex justify-between items-center p-4 cursor-pointer bg-gray-50">
+                  <span class="font-medium">{{ category.name }}</span>
+                  <svg class="w-5 h-5 transition-transform group-open:rotate-180" viewBox="0 0 24 24">
+                    <path d="M7 10l5 5 5-5z" />
+                  </svg>
+                </summary>
+                <div class="p-4 space-y-4">
+                  {% for subcat in category.subcategories.all %}
+                    <details class="group/sub">
+                      <summary class="flex justify-between items-center p-2 cursor-pointer">
+                        <span class="font-medium">{{ subcat.name }}</span>
+                        <svg class="w-4 h-4 transition-transform group-open/sub:rotate-180" viewBox="0 0 24 24">
+                          <path d="M7 10l5 5 5-5z" />
+                        </svg>
+                      </summary>
+                      <div class="mt-2 space-y-2">
+                        {% for skill in subcat.skills.all %}
+                          <div class="p-2 rounded-md cursor-pointer transition hover:bg-gray-50 skill-item"
+                               data-skill-id="{{ skill.id }}" data-skill-name="{{ skill.name }}">
+                            {{ skill.name }}
+                          </div>
+                        {% endfor %}
+                      </div>
+                    </details>
+                  {% endfor %}
+                </div>
+              </details>
+            </div>
           {% endfor %}
-        </datalist>
-        <!-- Selected Interests Tags -->
-        <div class="selected-tags mt-2 flex flex-wrap" id="selected-interests-list">
-          {% for interest in user.profile.interests.all %}
-          <span
-            class="tag inline-flex items-center bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm mr-2 mb-2"
-          >
-            {{ interest.name }}
-            <i
-              class="fas fa-times ml-1 cursor-pointer"
-              onclick="removeInterest('{{ interest.name }}')"
-            ></i>
-          </span>
-          {% endfor %}
         </div>
-        {{ profile_form.interests }}
+        <input type="hidden" name="skills" id="skills-hidden" value="{{ profile_form.initial.skills|default:"" }}">
+        <!-- Selected Skills Display -->
+        <div id="selected-skills-display" class="mt-3 flex flex-wrap gap-2"></div>
+        {% if profile_form.skills.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ profile_form.skills.errors|join:", " }}</p>
+        {% endif %}
       </div>
 
       <!-- Contact Information -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div>
-          <label class="detail-label block text-gray-700">LinkedIn</label>
+          <label class="block text-gray-700">LinkedIn</label>
           {{ profile_form.linkedin|add_class:"w-full px-3 py-2 border rounded" }}
+          {% if profile_form.linkedin.errors %}
+            <p class="text-red-600 text-sm mt-1">{{ profile_form.linkedin.errors|join:", " }}</p>
+          {% endif %}
         </div>
         <div>
-          <label class="detail-label block text-gray-700">GitHub</label>
+          <label class="block text-gray-700">GitHub</label>
           {{ profile_form.github|add_class:"w-full px-3 py-2 border rounded" }}
+          {% if profile_form.github.errors %}
+            <p class="text-red-600 text-sm mt-1">{{ profile_form.github.errors|join:", " }}</p>
+          {% endif %}
         </div>
         <div>
-          <label class="detail-label block text-gray-700">Google Scholar</label>
+          <label class="block text-gray-700">Google Scholar</label>
           {{ profile_form.google_scholar|add_class:"w-full px-3 py-2 border rounded" }}
+          {% if profile_form.google_scholar.errors %}
+            <p class="text-red-600 text-sm mt-1">{{ profile_form.google_scholar.errors|join:", " }}</p>
+          {% endif %}
         </div>
         <div>
-          <label class="detail-label block text-gray-700">Telegram</label>
+          <label class="block text-gray-700">Telegram</label>
           {{ profile_form.telegram|add_class:"w-full px-3 py-2 border rounded" }}
+          {% if profile_form.telegram.errors %}
+            <p class="text-red-600 text-sm mt-1">{{ profile_form.telegram.errors|join:", " }}</p>
+          {% endif %}
         </div>
       </div>
 
       <!-- Form Actions -->
-      <div class="flex justify-between mt-6">
-        <a
-          href="{% url 'users-profile' %}"
-          class="btn-secondary inline-flex items-center bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition"
-        >
+      <div class="flex justify-between">
+        <a href="{% url 'users-profile' %}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition inline-flex items-center">
           <i class="fas fa-times mr-2"></i>Cancel
         </a>
-        <button
-          type="submit"
-          class="btn-primary inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-        >
+        <button type="submit" id="save-button" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition inline-flex items-center">
           <i class="fas fa-save mr-2"></i>Save Changes
         </button>
       </div>
@@ -231,142 +246,147 @@
 
 <!-- JavaScript Section -->
 <script>
-/* ========================
-   Live Avatar Preview
-   ======================== */
-document.addEventListener('DOMContentLoaded', function() {
-  const avatarInput = document.querySelector('input[name="avatar"]');
-  const avatarFrame = document.querySelector('.avatar-frame');
+document.addEventListener("DOMContentLoaded", function () {
+  const saveButton = document.getElementById('save-button');
 
-  if (avatarInput) {
-    avatarInput.addEventListener('change', function() {
-      if (this.files && this.files[0]) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          avatarFrame.src = e.target.result; // update the img src
-        };
-        reader.readAsDataURL(this.files[0]);
+  // --- Categories Selection ---
+  // --- Categories Selection ---
+const categoryButtons = document.querySelectorAll('#categories-buttons button');
+const categoriesHidden = document.getElementById('categories-hidden');
+// Read initial value from the hidden field (it should be set by the form's __init__)
+let selectedCategories = categoriesHidden.value ? categoriesHidden.value.split(",").filter(v => v) : [];
+
+// On page load, update the UI for already selected categories:
+selectedCategories.forEach(id => {
+  const btn = document.querySelector(`#categories-buttons button[data-id="${id}"]`);
+  if (btn) {
+    btn.classList.remove('bg-gray-50','text-gray-700','border-gray-200');
+    btn.classList.add('bg-blue-100','text-blue-700','border-blue-200');
+  }
+});
+
+// Add click event listeners
+categoryButtons.forEach(button => {
+  button.addEventListener('click', function() {
+    const id = button.getAttribute('data-id');
+    if (selectedCategories.includes(id)) {
+      // Remove the selection
+      selectedCategories = selectedCategories.filter(cid => cid !== id);
+      button.classList.remove('bg-blue-100','text-blue-700','border-blue-200');
+      button.classList.add('bg-gray-50','text-gray-700','border-gray-200');
+    } else {
+      // Add the selection
+      selectedCategories.push(id);
+      button.classList.remove('bg-gray-50','text-gray-700','border-gray-200');
+      button.classList.add('bg-blue-100','text-blue-700','border-blue-200');
+    }
+    categoriesHidden.value = selectedCategories.join(",");
+  });
+});
+
+
+  // --- Skills Selection & Display with Removable Tags ---
+  const skillsHidden = document.getElementById('skills-hidden');
+  let selectedSkills = skillsHidden.value ? skillsHidden.value.split(",") : [];
+  const skillItems = document.querySelectorAll('.skill-item');
+  const selectedSkillsDisplay = document.getElementById('selected-skills-display');
+
+  function updateSelectedSkillsDisplay() {
+    selectedSkillsDisplay.innerHTML = "";
+    selectedSkills.forEach(skillId => {
+      const skillElement = document.querySelector(`.skill-item[data-skill-id="${skillId}"]`);
+      if (skillElement) {
+        const skillName = skillElement.getAttribute('data-skill-name');
+        const tag = document.createElement('span');
+        tag.className = "inline-flex items-center bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm cursor-pointer";
+        tag.textContent = skillName;
+        tag.addEventListener('click', () => {
+          selectedSkills = selectedSkills.filter(id => id !== skillId);
+          skillsHidden.value = selectedSkills.join(",");
+          skillElement.classList.remove('bg-blue-50','text-blue-700');
+          updateSelectedSkillsDisplay();
+          checkFormValidity();
+        });
+        selectedSkillsDisplay.appendChild(tag);
       }
     });
   }
-});
+  selectedSkills.forEach(id => {
+    const el = document.querySelector(`.skill-item[data-skill-id="${id}"]`);
+    if (el) {
+      el.classList.add('bg-blue-50','text-blue-700');
+    }
+  });
+  updateSelectedSkillsDisplay();
 
-/* ========================
-   Dynamic City Loading
-   ======================== */
-document.getElementById('{{ profile_form.country.auto_id }}').addEventListener('change', function() {
-  let countryId = this.value;
-  fetch(`/ajax/load-cities/?country_id=${countryId}`)
-    .then(response => response.json())
-    .then(data => {
-      let citySelect = document.getElementById('{{ profile_form.city.auto_id }}');
-      citySelect.innerHTML = '<option value="">---------</option>';
-      data.forEach(city => {
-        let option = document.createElement('option');
-        option.value = city.id;
-        option.textContent = city.name;
-        citySelect.appendChild(option);
-      });
+  skillItems.forEach(item => {
+    item.addEventListener('click', function() {
+      const skillId = item.getAttribute('data-skill-id');
+      if (selectedSkills.includes(skillId)) {
+        selectedSkills = selectedSkills.filter(id => id !== skillId);
+        item.classList.remove('bg-blue-50','text-blue-700');
+      } else {
+        selectedSkills.push(skillId);
+        item.classList.add('bg-blue-50','text-blue-700');
+      }
+      skillsHidden.value = selectedSkills.join(",");
+      updateSelectedSkillsDisplay();
+      checkFormValidity();
     });
-});
-
-/* ========================
-   Skills Autocomplete
-   ======================== */
-let selectedSkills = new Set([
-  {% for skill in user.profile.skills.all %}
-    "{{ skill.name }}"{% if not forloop.last %}, {% endif %}
-  {% endfor %}
-]);
-
-function handleSkillKeyPress(event) {
-  if (event.key === 'Enter') {
-    event.preventDefault();
-    addSkillFromInput();
-  }
-}
-
-function addSkillFromInput() {
-  const input = document.getElementById('skill-input');
-  const skillName = input.value.trim();
-  if (skillName && !selectedSkills.has(skillName)) {
-    selectedSkills.add(skillName);
-    updateSkillsDisplay();
-    input.value = '';
-  }
-}
-
-function removeSkill(name) {
-  selectedSkills.delete(name);
-  updateSkillsDisplay();
-}
-
-function updateSkillsDisplay() {
-  const container = document.getElementById('selected-skills-list');
-  container.innerHTML = '';
-  selectedSkills.forEach(skill => {
-    const span = document.createElement('span');
-    span.className = "inline-flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm mr-2 mb-2";
-    span.innerHTML = `${skill} <i class="fas fa-times ml-1 cursor-pointer" onclick="removeSkill('${skill}')"></i>`;
-    container.appendChild(span);
   });
-  document.getElementById('id_skills').value = Array.from(selectedSkills).join(',');
-}
 
-/* ========================
-   Interests Autocomplete
-   ======================== */
-let selectedInterests = new Set([
-  {% for interest in user.profile.interests.all %}
-    "{{ interest.name }}"{% if not forloop.last %}, {% endif %}
-  {% endfor %}
-]);
+  // --- Dynamic Location: Country and City Filtering ---
+  const countrySearch = document.getElementById('country-search');
+  const countrySelect = document.getElementById('id_country');
+  const citySearch = document.getElementById('city-search');
+  const citySelect = document.getElementById('id_city');
 
-function handleInterestKeyPress(event) {
-  if (event.key === 'Enter') {
-    event.preventDefault();
-    addInterestFromInput();
-  }
-}
-
-function addInterestFromInput() {
-  const input = document.getElementById('interest-input');
-  const interestName = input.value.trim();
-  if (interestName && !selectedInterests.has(interestName)) {
-    selectedInterests.add(interestName);
-    updateInterestsDisplay();
-    input.value = '';
-  }
-}
-
-function removeInterest(name) {
-  selectedInterests.delete(name);
-  updateInterestsDisplay();
-}
-
-function updateInterestsDisplay() {
-  const container = document.getElementById('selected-interests-list');
-  container.innerHTML = '';
-  selectedInterests.forEach(interest => {
-    const span = document.createElement('span');
-    span.className = "inline-flex items-center bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm mr-2 mb-2";
-    span.innerHTML = `${interest} <i class="fas fa-times ml-1 cursor-pointer" onclick="removeInterest('${interest}')"></i>`;
-    container.appendChild(span);
+  countrySearch.addEventListener('keyup', function() {
+    const filter = countrySearch.value.toLowerCase();
+    Array.from(countrySelect.options).forEach(option => {
+      const text = option.text.toLowerCase();
+      option.style.display = text.includes(filter) ? '' : 'none';
+    });
   });
-  document.getElementById('id_interests').value = Array.from(selectedInterests).join(',');
-}
 
-/* ========================
-   Initialization on DOM Load
-   ======================== */
-document.addEventListener('DOMContentLoaded', function() {
-  // Hide the original form fields for skills & interests
-  document.getElementById('id_skills').style.display = 'none';
-  document.getElementById('id_interests').style.display = 'none';
+  function filterCities() {
+    const selectedCountryId = countrySelect.value;
+    const filter = citySearch.value.toLowerCase();
+    Array.from(citySelect.options).forEach(option => {
+      const optionCountry = option.getAttribute('data-country');
+      const text = option.text.toLowerCase();
+      if ((selectedCountryId === "" || optionCountry === selectedCountryId) && text.includes(filter)) {
+        option.style.display = '';
+      } else {
+        option.style.display = 'none';
+      }
+    });
+  }
+  countrySelect.addEventListener('change', filterCities);
+  citySearch.addEventListener('keyup', filterCities);
 
-  // Initialize displays
-  updateSkillsDisplay();
-  updateInterestsDisplay();
+  // --- Form Validation: Disable Save if Required Fields are Missing ---
+  function checkFormValidity() {
+    // Require at least one skill selected.
+    if (selectedSkills.length < 1) {
+      saveButton.disabled = true;
+      saveButton.classList.add('opacity-50', 'cursor-not-allowed');
+    } else {
+      saveButton.disabled = false;
+      saveButton.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+  }
+  checkFormValidity();
+
+  // Prevent form submission if button is disabled.
+  const profileForm = document.getElementById('profile-form');
+  profileForm.addEventListener('submit', function(e) {
+    checkFormValidity();
+    if (saveButton.disabled) {
+      e.preventDefault();
+      alert('Please fix the errors before submitting the form.');
+    }
+  });
 });
 </script>
 {% endblock %}

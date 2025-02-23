@@ -19,7 +19,8 @@ SECRET_KEY = str(os.getenv('SECRET_KEY'))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'scholar-d6c0.onrender.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+# 'scholar-d6c0.onrender.com'
 
 # Application definition
 INSTALLED_APPS = [
@@ -92,8 +93,8 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-DATABASES['default'] = dj_database_url.parse("postgresql://scholar_t_db_01_user:gLhki25VqEsUl4icyP1E25xsneJTxqS8@dpg-cus2gg23esus73fi6ns0-a.oregon-postgres.render.com/scholar_t_db_01")
-#postgresql://scholar_t_db_01_user:gLhki25VqEsUl4icyP1E25xsneJTxqS8@dpg-cus2gg23esus73fi6ns0-a.oregon-postgres.render.com/scholar_t_db_01
+# DATABASES['default'] = dj_database_url.parse("postgresql://scholar_t_db_01_user:gLhki25VqEsUl4icyP1E25xsneJTxqS8@dpg-cus2gg23esus73fi6ns0-a.oregon-postgres.render.com/scholar_t_db_01")
+# #postgresql://scholar_t_db_01_user:gLhki25VqEsUl4icyP1E25xsneJTxqS8@dpg-cus2gg23esus73fi6ns0-a.oregon-postgres.render.com/scholar_t_db_01
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -126,7 +127,6 @@ SOCIAL_AUTH_GITHUB_SECRET = str(os.getenv('GITHUB_SECRET'))
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = "68116905972-t2olk8h12rlk254ci2ftl6ekqhtm1k11.apps.googleusercontent.com"
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = "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"
-
 SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = 'http://localhost:8000/oauth/complete/google-oauth2/'
 
 
@@ -167,4 +167,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap5'  # Or 'bootstrap4', depending on your version of Bootstrap
+
+TIME_ZONE = "Asia/Yekaterinburg"
 

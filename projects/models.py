@@ -1,10 +1,11 @@
-# models.py
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.urls import reverse
+from django.core.exceptions import ValidationError
 
 User = get_user_model()
+
 
 def get_default_owner():
     """Get or create a default owner user"""
@@ -17,7 +18,37 @@ def get_default_owner():
     )
     return user.id
 
-# models.py
+
+class MaxWordsValidator:
+    """
+    Validator that ensures a given text does not exceed a maximum number of words.
+    """
+
+    def __init__(self, max_words):
+        self.max_words = max_words
+
+    def __call__(self, value):
+        if value:
+            words = value.split()
+            if len(words) > self.max_words:
+                raise ValidationError(
+                    f"Количество слов не должно превышать {self.max_words}. Сейчас {len(words)} слов."
+                )
+
+    def __eq__(self, other):
+        return isinstance(other, MaxWordsValidator) and self.max_words == other.max_words
+
+    def deconstruct(self):
+        return (
+            'projects.models.MaxWordsValidator',
+            [self.max_words],
+            {}
+        )
+
+
+# -------------------------------
+# Общая категория для проектов
+# -------------------------------
 class Category(models.Model):
     name = models.CharField(max_length=50, unique=True)
 
@@ -25,32 +56,152 @@ class Category(models.Model):
         return self.name
 
 
+# -------------------------------
+# Иерархия навыков
+# -------------------------------
+class SkillsCategory(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class SkillsSubCategory(models.Model):
+    name = models.CharField(max_length=50)
+    category = models.ForeignKey(SkillsCategory, on_delete=models.CASCADE, related_name='subcategories')
+
+    class Meta:
+        unique_together = ('name', 'category')
+
+    def __str__(self):
+        return f"{self.name} ({self.category.name})"
+
+
+class Skill(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    subcategory = models.ForeignKey(SkillsSubCategory, on_delete=models.CASCADE, related_name='skills')
+
+    def __str__(self):
+        return f"{self.name} ({self.subcategory.name} - {self.subcategory.category.name})"
+
+
+# -------------------------------
+# Иерархия интересов
+# -------------------------------
+class InterestsCategory(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class InterestsSubCategory(models.Model):
+    name = models.CharField(max_length=50)
+    category = models.ForeignKey(InterestsCategory, on_delete=models.CASCADE, related_name='subcategories')
+
+    class Meta:
+        unique_together = ('name', 'category')
+
+    def __str__(self):
+        return f"{self.name} ({self.category.name})"
+
+
+class Interest(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    subcategory = models.ForeignKey(InterestsSubCategory, on_delete=models.CASCADE, related_name='interests')
+
+    def __str__(self):
+        return f"{self.name} ({self.subcategory.name} - {self.subcategory.category.name})"
+
+
+# -------------------------------
+# New Models: Languages and Required Roles
+# -------------------------------
+class Language(models.Model):
+    """
+    Represents a language relevant to a project.
+    Can be used for programming languages (e.g., Python, JavaScript) or natural languages.
+    """
+    name = models.CharField(max_length=50, unique=True)
+
+    class Meta:
+        verbose_name = "Language"
+        verbose_name_plural = "Languages"
+
+    def __str__(self):
+        return self.name
+
+
+class RequiredRole(models.Model):
+    """
+    Represents a role required for a project, such as 'Designer', 'Developer', etc.
+    Using a separate model helps manage and query these roles efficiently.
+    """
+    name = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        verbose_name = "Required Role"
+        verbose_name_plural = "Required Roles"
+
+    def __str__(self):
+        return self.name
+
+
+# -------------------------------
+# Проект и связанные модели
+# -------------------------------
 class Project(models.Model):
     category = models.ManyToManyField(Category, blank=True)
-
-    title = models.CharField(max_length=200, default='Untitled Project')
-    description = models.TextField(default='No description provided')
-
+    title = models.CharField(
+        max_length=200,
+        default='',
+        validators=[MaxWordsValidator(20)]
+    )
+    description = models.TextField(
+        default='',
+        validators=[MaxWordsValidator(250)]
+    )
     owner = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='owned_projects',
-        default=get_default_owner  # Add default value
+        default=get_default_owner
     )
     created_at = models.DateTimeField(default=timezone.now)
-    skills_required = models.CharField(
-        max_length=200,
-        default='No specific skills required',
-        help_text="Comma-separated list of skills"
-    )
+    skills_required = models.ManyToManyField(Skill, blank=True, help_text="Select required skills")
     is_active = models.BooleanField(default=True)
     last_modified = models.DateTimeField(auto_now=True)
     project_link = models.URLField(blank=True, null=True)
-
-    project_mission = models.TextField(blank=True, null=True)
-    project_objectives = models.TextField(blank=True, null=True)
-    languages = models.CharField(max_length=100, blank=True, null=True)  # You could store comma-separated values
-    required_roles = models.CharField(max_length=200, blank=True, null=True)  # Also as comma-separated values
+    project_mission = models.TextField(
+        blank=True,
+        null=True,
+        validators=[MaxWordsValidator(70)]
+    )
+    project_objectives = models.TextField(
+        blank=True,
+        null=True,
+        validators=[MaxWordsValidator(150)]
+    )
+    # Updated languages and required_roles fields as many-to-many relationships.
+    languages = models.ManyToManyField(
+        Language, blank=True,
+        help_text="Select languages relevant to the project (e.g., Python, Spanish, etc.)"
+    )
+    required_roles = models.ManyToManyField(
+        RequiredRole, blank=True,
+        help_text="Select roles required for the project (e.g., Designer, Developer, etc.)"
+    )
+    # -------------------------------
+    # Metrics fields to track engagement and performance
+    # -------------------------------
+    view_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Number of times the project page has been viewed."
+    )
+    application_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Number of applications received for this project."
+    )
 
     class Meta:
         ordering = ['-created_at']
@@ -63,7 +214,6 @@ class Project(models.Model):
     def clean(self):
         super().clean()
         if self.pk is not None and self.category.count() > 5:
-            from django.core.exceptions import ValidationError
             raise ValidationError("You can select at most 5 categories.")
 
     def get_absolute_url(self):
@@ -76,25 +226,33 @@ class Project(models.Model):
 
     @property
     def skills_list(self):
-        return [skill.strip() for skill in self.skills_required.split(',')]
+        return [skill.name for skill in self.skills_required.all()]
 
-    # projects/models.py
     def get_skill_match(self, user):
+        """
+        Calculates the match score between the project's required skills and the user's skills.
+        If no required skills are set, returns 100.
+        """
         if not user.is_authenticated or not hasattr(user, 'profile'):
             return 0
-
-        required_skills = {s.strip().lower() for s in self.skills_required.split(',') if s.strip()}
+        required_skills = {skill.name.lower() for skill in self.skills_required.all()}
         if not required_skills:
             return 100
-
-        user_skills = {s.name.lower() for s in user.profile.skills.all()}
+        user_skills = {skill.name.lower() for skill in user.profile.skills.all()}
         if not user_skills:
             return 0
-
         match_count = len(required_skills & user_skills)
         return round((match_count / len(required_skills)) * 100)
 
-
+    @property
+    def popularity_score(self):
+        """
+        Calculates a simple popularity score for the project.
+        This metric can be used to rank projects by engagement.
+        For example, we can weight each application more heavily than a view.
+        """
+        # Example: each application is weighted 10 times more than a view.
+        return self.application_count * 10 + self.view_count
 
 
 class ProjectApplication(models.Model):
@@ -103,7 +261,6 @@ class ProjectApplication(models.Model):
         ('ACCEPTED', 'Accepted'),
         ('REJECTED', 'Rejected')
     ]
-
     project = models.ForeignKey(
         Project,
         on_delete=models.CASCADE,
@@ -124,6 +281,10 @@ class ProjectApplication(models.Model):
         blank=True,
         help_text="Optional message to the project owner"
     )
+    contribution = models.TextField(
+        blank=True,
+        help_text="Опишите, как вы планируете участвовать в проекте."
+    )
 
     class Meta:
         unique_together = ('project', 'applicant')
@@ -142,6 +303,15 @@ class ProjectApplication(models.Model):
         }
         return status_colors.get(self.status, 'secondary')
 
+    @property
+    def matching_score(self):
+        """
+        Returns a match score for the candidate with respect to the project,
+        calculated via the project's get_skill_match method.
+        """
+        return self.project.get_skill_match(self.applicant)
+
+
 class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     message = models.TextField()
@@ -155,6 +325,7 @@ class Notification(models.Model):
     def __str__(self):
         return f"Notification for {self.user.username}"
 
+
 class ChatRoom(models.Model):
     participants = models.ManyToManyField(User, related_name='chat_rooms')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -164,6 +335,7 @@ class ChatRoom(models.Model):
 
     def __str__(self):
         return f"Chat between {', '.join([user.username for user in self.participants.all()])}"
+
 
 class ChatMessage(models.Model):
     room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='messages')

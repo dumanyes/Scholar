@@ -1,63 +1,88 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <title>ScholarHub</title>
-    <style>
-        :root {
-            --primary-color: #2D2A32;
-            --accent-color: #7A6F5B;
-            --background-color: #FFFFFF;
-            --text-primary: #2D2A32;
-            --text-secondary: #5F5B54;
-            --border-color: #DCD8CF;
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>ScholarHub</title>
+  <style>
+    :root {
+      --primary-color: #2D2A32;
+      --accent-color: #7A6F5B;
+      --background-color: #FFFFFF;
+      --text-primary: #2D2A32;
+      --text-secondary: #5F5B54;
+      --border-color: #DCD8CF;
+    }
+  </style>
 </head>
 <body class="bg-white text-gray-900 flex flex-col min-h-screen">
-    <nav class="bg-white shadow-md border-b border-gray-300 py-4">
-        <div class="container mx-auto flex justify-between items-center px-4">
-            <a class="text-2xl font-semibold text-gray-900" href="/">
-                <img src="/media/photo_5274128391500590554_x-removebg-preview.png" 
-                     alt="ScholarHub" 
-                     class="h-10 w-auto inline-block">
-            </a>
-            <button class="block lg:hidden text-gray-900 focus:outline-none">
-                <span class="text-lg">☰</span>
-            </button>
-            <div class="hidden lg:flex space-x-6">
-                <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-about' %}">About</a>
-                <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-services' %}">Services</a>
-                <a class="text-gray-900 hover:text-gray-600" href="{% url 'marketplace' %}">Marketplace</a>
-                <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-contact' %}">Contact</a>
-                {% if user.is_authenticated %}
-                    <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-profile' %}">Profile</a>
-                    <a class="text-gray-900 hover:text-gray-600" href="{% url 'logout' %}">Logout</a>
-                {% else %}
-                    <a class="text-gray-900 hover:text-gray-600" href="{% url 'login' %}">Sign in</a>
-                {% endif %}
-            </div>
-        </div>
-    </nav>
-    <main class="flex-grow container mx-auto px-4 py-8">
-        {% if messages %}
-            <div class="space-y-2 mb-8">
-                {% for message in messages %}
-                    <div class="p-4 bg-gray-100 border-l-4 border-blue-500 rounded-lg shadow-md">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
+  <nav class="bg-white shadow-md border-b border-gray-300 py-4">
+    <div class="container mx-auto flex justify-between items-center px-4">
+      <a class="text-2xl font-semibold text-gray-900" href="/">
+        <img src="/media/photo_5274128391500590554_x-removebg-preview.png" 
+             alt="ScholarHub" 
+             class="h-10 w-auto inline-block">
+      </a>
+      <!-- Hamburger for Mobile -->
+      <button id="mobileMenuButton" class="block lg:hidden text-gray-900 focus:outline-none">
+        <span class="text-lg">☰</span>
+      </button>
+      <!-- Desktop Navigation -->
+      <div class="hidden lg:flex space-x-6">
+        <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-about' %}">About</a>
+        <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-services' %}">Services</a>
+        <a class="text-gray-900 hover:text-gray-600" href="{% url 'marketplace' %}">Marketplace</a>
+        <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-contact' %}">Contact</a>
+        {% if user.is_authenticated %}
+          <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-profile' %}">Profile</a>
+          <a class="text-gray-900 hover:text-gray-600" href="{% url 'logout' %}">Logout</a>
+        {% else %}
+          <a class="text-gray-900 hover:text-gray-600" href="{% url 'login' %}">Sign in</a>
         {% endif %}
-        {% block content %}{% endblock %}
-    </main>
-    <footer class="bg-white border-t border-gray-300 py-6 mt-auto text-center">
-        <p class="text-gray-600">
-            © 2025 ScholarHub. All rights reserved.<br>
-            <a href="/privacy-policy" class="text-blue-600 hover:text-blue-800 transition-colors">Privacy Policy</a>
-        </p>
-    </footer>
+      </div>
+    </div>
+    <!-- Mobile Navigation Menu -->
+    <div id="mobileMenu" class="lg:hidden hidden bg-white border-t border-gray-300">
+      <div class="container mx-auto px-4 py-4 space-y-4">
+        <a class="block text-gray-900 hover:text-gray-600" href="{% url 'users-about' %}">About</a>
+        <a class="block text-gray-900 hover:text-gray-600" href="{% url 'users-services' %}">Services</a>
+        <a class="block text-gray-900 hover:text-gray-600" href="{% url 'marketplace' %}">Marketplace</a>
+        <a class="block text-gray-900 hover:text-gray-600" href="{% url 'users-contact' %}">Contact</a>
+        {% if user.is_authenticated %}
+          <a class="block text-gray-900 hover:text-gray-600" href="{% url 'users-profile' %}">Profile</a>
+          <a class="block text-gray-900 hover:text-gray-600" href="{% url 'logout' %}">Logout</a>
+        {% else %}
+          <a class="block text-gray-900 hover:text-gray-600" href="{% url 'login' %}">Sign in</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+  <main class="flex-grow container mx-auto px-4 py-8">
+    {% if messages %}
+      <div class="space-y-2 mb-8">
+        {% for message in messages %}
+          <div class="p-4 bg-gray-100 border-l-4 border-blue-500 rounded-lg shadow-md">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="bg-white border-t border-gray-300 py-6 mt-auto text-center">
+    <p class="text-gray-600">
+      © 2025 ScholarHub. All rights reserved.<br>
+      <a href="/privacy-policy" class="text-blue-600 hover:text-blue-800 transition-colors">Privacy Policy</a>
+    </p>
+  </footer>
+  <script>
+    // Toggle mobile menu visibility
+    const mobileMenuButton = document.getElementById("mobileMenuButton");
+    const mobileMenu = document.getElementById("mobileMenu");
+    mobileMenuButton.addEventListener("click", () => {
+      mobileMenu.classList.toggle("hidden");
+    });
+  </script>
 </body>
 </html>

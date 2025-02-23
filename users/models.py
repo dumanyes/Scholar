@@ -5,6 +5,8 @@ from PIL import Image
 from cities_light.models import Country, City
 from datetime import date
 
+from projects.models import Category
+
 
 class University(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -12,27 +14,6 @@ class University(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class Skill(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
-    approved = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.name
-
-
-class Interest(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
-    approved = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.name
-
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -46,8 +27,10 @@ class Profile(models.Model):
     university = models.ForeignKey(University, blank=True, null=True, on_delete=models.SET_NULL)
 
     # Professional Details
-    skills = models.ManyToManyField(Skill, blank=True)
-    interests = models.ManyToManyField(Interest, blank=True)
+    # Now referencing the Skill and Interest models from projects app.
+    skills = models.ManyToManyField('projects.Skill', blank=True, related_name='users')
+    categories = models.ManyToManyField(Category, blank=True, related_name='profiles')
+
     organization = models.CharField(max_length=255, blank=True, default="Independent Researcher")
     position = models.CharField(max_length=255, blank=True, default="Member")
 

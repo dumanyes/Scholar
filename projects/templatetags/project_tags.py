@@ -3,10 +3,21 @@ import string
 from django import template
 
 register = template.Library()
+@register.filter
+def is_common_skill(skill, project):
+    required_ids = [s.id for s in project.skills_required.all()]
+    return skill.id in required_ids
+
 
 @register.filter
 def skill_match(project, user):
-    return project.get_skill_match(user)
+    """
+    Returns the match percentage for the given project and user.
+    """
+    try:
+        return project.get_skill_match(user)
+    except Exception:
+        return 0
 
 @register.filter
 def skill_in_profile(skill, user):
@@ -27,4 +38,5 @@ def skill_in_profile(skill, user):
         user_skills_lower.append(s_clean)
 
     return skill_clean in user_skills_lower
+
 

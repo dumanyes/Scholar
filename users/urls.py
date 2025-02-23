@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from django.views.generic import RedirectView
 
 from . import views
@@ -9,8 +9,8 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='users-register'),
     path('profile/', profile, name='users-profile'),
     path('profile/edit/', EditProfileView.as_view(), name='users-edit-profile'),  # New edit profile page
-    path('get_cities/', views.get_cities, name='get_cities'),
-    path('get_cities/<int:country_id>/', views.get_cities, name='get_cities'),
+
+
     path('search_interests/', views.search_interests, name='search_interests'),
     path('search_skills/', views.search_skills, name='search_skills'),
 
@@ -22,6 +22,11 @@ urlpatterns = [
     # path('verify-email/', VerifyEmailView.as_view(), name='verify-email'),
     path('resend-code/', ResendCodeView.as_view(), name='resend-code'),
     path('privacy-policy/', views.privacyPolicy, name='privacy-policy'),
+    path('password-reset/', include('django.contrib.auth.urls')),
+
+    path('user/<str:username>/', views.user_profile, name='user-profile'),
+
+
 
 
 ]

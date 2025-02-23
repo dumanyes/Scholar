@@ -9,50 +9,50 @@
 <div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            
+
             <!-- Left Column (Profile Details) -->
             <div class="lg:col-span-1">
                 <div class="bg-white rounded-xl shadow-sm p-6 space-y-6 text-center hover:shadow-md transition-shadow duration-300">
-                    
+
                     <!-- Profile Picture & Name -->
                     <div class="relative inline-block group">
-                        <img class="w-32 h-32 rounded-full border-4 border-gray-50 shadow-lg mx-auto group-hover:border-blue-100 transition-all duration-300" 
-                             src="{{ user.profile.avatar.url }}" alt="{{ user.get_full_name }}"
+                        <img class="w-32 h-32 rounded-full border-4 border-gray-50 shadow-lg mx-auto group-hover:border-blue-100 transition-all duration-300"
+                             src="{{ profile_user.profile.avatar.url }}" alt="{{ profile_user.get_full_name }}"
                              onerror="this.src='/static/images/default-avatar.png'">
-                        {% if user.profile.is_verified %}
+                        {% if profile_user.profile.is_verified %}
                         <div class="absolute bottom-2 right-2 bg-blue-500 rounded-full p-1.5">
                             <i class="fa-solid fa-check-circle text-white text-sm"></i>
                         </div>
                         {% endif %}
                     </div>
-                    
-                    <h1 class="mt-4 text-2xl font-bold text-gray-900">{{ user.get_full_name }}</h1>
+
+                    <h1 class="mt-4 text-2xl font-bold text-gray-900">{{ profile_user.get_full_name }}</h1>
                     <p class="text-gray-500 flex items-center justify-center space-x-1">
-                        <span>@{{ user.username }}</span>
+                        <span>@{{ profile_user.username }}</span>
                     </p>
 
                     <!-- Additional Information -->
                     <div class="space-y-2">
                         <p class="text-gray-700 font-medium flex items-center justify-center space-x-2">
                             <i class="fas fa-briefcase text-blue-500 text-sm"></i>
-                            <span>{{ user.profile.position|default:"Position not specified" }}</span>
+                            <span>{{ profile_user.profile.position|default:"Position not specified" }}</span>
                         </p>
                         <p class="text-gray-600 flex items-center justify-center space-x-2">
                             <i class="fas fa-building text-blue-500 text-sm"></i>
-                            <span>{{ user.profile.organization|default:"No organization specified" }}</span>
+                            <span>{{ profile_user.profile.organization|default:"No organization specified" }}</span>
                         </p>
-                        
-                        {% if user.profile.university %}
+
+                        {% if profile_user.profile.university %}
                         <p class="text-gray-600 flex items-center justify-center space-x-2">
                             <i class="fas fa-graduation-cap text-blue-500 text-sm"></i>
-                            <span>{{ user.profile.university }}</span>
+                            <span>{{ profile_user.profile.university }}</span>
                         </p>
                         {% endif %}
-                        
-                        {% if user.profile.country and user.profile.city %}
+
+                        {% if profile_user.profile.country and profile_user.profile.city %}
                         <p class="text-gray-600 flex items-center justify-center space-x-2">
                             <i class="fas fa-map-marker-alt text-blue-500 text-sm"></i>
-                            <span>{{ user.profile.city }}, {{ user.profile.country }}</span>
+                            <span>{{ profile_user.profile.city }}, {{ profile_user.profile.country }}</span>
                         </p>
                         {% endif %}
                     </div>
@@ -62,24 +62,26 @@
                         <div>
                             <div class="text-xl font-bold text-gray-900 flex items-center justify-center space-x-2">
                                 <i class="fas fa-project-diagram text-blue-500"></i>
-                                <span>{{ num_projects }}</span>
+                                <span>{{ projects_count }}</span>
                             </div>
                             <div class="text-sm text-gray-500">Projects</div>
                         </div>
                     </div>
 
-                    <!-- Edit Profile Button -->
-                    <a href="{% url 'users-edit-profile' %}" 
+                    <!-- Optionally, if the project owner is the current user, show an Edit Profile button -->
+                    {% if request.user.username == profile_user.username %}
+                    <a href="{% url 'users-edit-profile' %}"
                        class="mt-6 w-full inline-flex items-center justify-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-300 space-x-2">
                         <i class="fa-solid fa-user-pen"></i>
                         <span>Edit Profile</span>
                     </a>
+                    {% endif %}
                 </div>
             </div>
 
             <!-- Right Column (Detailed Information) -->
             <div class="lg:col-span-3 space-y-8">
-                
+
                 <!-- Bio Section -->
                 <div class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow duration-300">
                     <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
@@ -87,13 +89,13 @@
                         <span>About</span>
                     </h2>
                     <p class="text-gray-600 leading-relaxed">
-                        {{ user.profile.bio|default:"This space awaits your intellectual narrative..." }}
+                        {{ profile_user.profile.bio|default:"This space awaits your intellectual narrative..." }}
                     </p>
                 </div>
 
                 <!-- Skills and Categories -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    
+
                     <!-- Skills -->
                     <div class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow duration-300">
                         <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
@@ -101,7 +103,7 @@
                             <span>Skills</span>
                         </h2>
                         <div class="flex flex-wrap gap-2">
-                            {% for skill in user.profile.skills.all %}
+                            {% for skill in profile_user.profile.skills.all %}
                             <span class="inline-flex items-center bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm hover:bg-blue-100 transition-colors duration-300">
                                 <i class="fas fa-code text-sm mr-1"></i>
                                 {{ skill.name }}
@@ -120,7 +122,7 @@
                             <span>Categories</span>
                         </h2>
                         <div class="flex flex-wrap gap-2">
-                            {% for category in user.profile.categories.all %}
+                            {% for category in profile_user.profile.categories.all %}
                             <span class="inline-flex items-center bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm hover:bg-green-100 transition-colors duration-300">
                                 <i class="fas fa-tag text-sm mr-1"></i>
                                 {{ category.name }}
@@ -140,17 +142,17 @@
                         <span>Contact & Links</span>
                     </h2>
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-                        
+
                         <!-- Email -->
-                        <a href="mailto:{{ user.email }}" 
+                        <a href="mailto:{{ profile_user.email }}"
                            class="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 transition-colors duration-300 group">
                             <i class="fa-solid fa-envelope text-2xl text-gray-600 group-hover:text-blue-600 mb-2"></i>
                             <span class="text-sm text-gray-600 group-hover:text-blue-600 text-center">Email</span>
                         </a>
 
                         <!-- Telegram -->
-                        {% if user.profile.telegram %}
-                        <a href="https://t.me/{{ user.profile.telegram }}" 
+                        {% if profile_user.profile.telegram %}
+                        <a href="https://t.me/{{ profile_user.profile.telegram }}"
                            class="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 transition-colors duration-300 group">
                             <i class="fa-brands fa-telegram text-2xl text-gray-600 group-hover:text-[#0088cc] mb-2"></i>
                             <span class="text-sm text-gray-600 group-hover:text-[#0088cc] text-center">Telegram</span>
@@ -158,8 +160,8 @@
                         {% endif %}
 
                         <!-- LinkedIn -->
-                        {% if user.profile.linkedin %}
-                        <a href="{{ user.profile.linkedin }}" 
+                        {% if profile_user.profile.linkedin %}
+                        <a href="{{ profile_user.profile.linkedin }}"
                            class="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 transition-colors duration-300 group">
                             <i class="fa-brands fa-linkedin text-2xl text-gray-600 group-hover:text-[#0A66C2] mb-2"></i>
                             <span class="text-sm text-gray-600 group-hover:text-[#0A66C2] text-center">LinkedIn</span>
@@ -167,8 +169,8 @@
                         {% endif %}
 
                         <!-- GitHub -->
-                        {% if user.profile.github %}
-                        <a href="{{ user.profile.github }}" 
+                        {% if profile_user.profile.github %}
+                        <a href="{{ profile_user.profile.github }}"
                            class="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 transition-colors duration-300 group">
                             <i class="fa-brands fa-github text-2xl text-gray-600 group-hover:text-gray-900 mb-2"></i>
                             <span class="text-sm text-gray-600 group-hover:text-gray-900 text-center">GitHub</span>
@@ -176,8 +178,8 @@
                         {% endif %}
 
                         <!-- Google Scholar -->
-                        {% if user.profile.google_scholar %}
-                        <a href="{{ user.profile.google_scholar }}" 
+                        {% if profile_user.profile.google_scholar %}
+                        <a href="{{ profile_user.profile.google_scholar }}"
                            class="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 transition-colors duration-300 group">
                             <i class="fa-solid fa-graduation-cap text-2xl text-gray-600 group-hover:text-[#4285F4] mb-2"></i>
                             <span class="text-sm text-gray-600 group-hover:text-[#4285F4] text-center">Scholar</span>

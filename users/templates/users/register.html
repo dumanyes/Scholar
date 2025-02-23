@@ -21,10 +21,11 @@
           <!-- Step Progress -->
           <div class="relative">
             <div class="w-full bg-gray-200 rounded-full h-2">
-              <!-- The progress bar fill -->
               <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: {{ progress }}%"></div>
             </div>
-            <div class="text-right text-sm text-gray-500 mt-1">Step {{ step|add:1 }} of 5</div>
+            <div class="text-right text-sm text-gray-500 mt-1">
+              Step {{ step|add:1 }} of 4
+            </div>
           </div>
 
           <!-- Error Messages -->
@@ -51,35 +52,34 @@
             {% csrf_token %}
             <input type="hidden" name="step" value="{{ step }}">
 
-            {# STEP 0: Basic Personal Info #}
+            {# STEP 0: Personal Info #}
             {% if step == 0 %}
-              <!-- Step 1: Personal Info -->
+              {{ form.non_field_errors }}
               <div class="space-y-4">
                 <div>
-                  <label class="block text-sm font-medium text-gray-600">First Name</label>
-                  {{ form.first_name|add_class:"w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:ring-offset-2" }}
+                  <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700">First Name</label>
+                  {% render_field form.first_name class="block w-full p-2 border border-gray-300 rounded" %}
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-600">Last Name</label>
-                  {{ form.last_name|add_class:"w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:ring-offset-2" }}
+                  <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700">Last Name</label>
+                  {% render_field form.last_name class="block w-full p-2 border border-gray-300 rounded" %}
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-600">Username</label>
-                  {{ form.username|add_class:"w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:ring-offset-2" }}
+                  <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700">Username</label>
+                  {% render_field form.username class="block w-full p-2 border border-gray-300 rounded" %}
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-600">Email</label>
-                  {{ form.email|add_class:"w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:ring-offset-2" }}
+                  <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">Email</label>
+                  {% render_field form.email class="block w-full p-2 border border-gray-300 rounded" %}
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-600">Birthdate</label>
-                  {{ form.birthdate|add_class:"w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:ring-offset-2" }}
+                  <label for="{{ form.birthdate.id_for_label }}" class="block text-sm font-medium text-gray-700">Birthdate</label>
+                  {% render_field form.birthdate class="block w-full p-2 border border-gray-300 rounded" %}
                 </div>
-                <div class="flex items-center space-x-3">
-                  {{ form.terms_and_conditions }}
-                  <label class="text-sm text-gray-600">
-                    I agree to the 
-                    <a href="/terms" class="text-blue-600 hover:underline">Terms and Conditions</a>
+                <div>
+                  <label class="inline-flex items-center">
+                    {% render_field form.terms_and_conditions %}
+                    <span class="ml-2 text-sm text-gray-700">I agree to the <a href="{% url 'users-terms' %}" class="text-blue-600 hover:text-blue-800">terms and conditions</a></span>
                   </label>
                 </div>
               </div>
@@ -87,97 +87,80 @@
 
             {# STEP 1: Verification Code #}
             {% if step == 1 %}
-              <!-- Step 2: Verification Code -->
+              <!-- Verification code input section (add your fields as needed) -->
               <div class="space-y-4">
                 <div>
-                  <label class="block text-sm font-medium text-gray-600">Verification Code</label>
-                  <input 
-                    type="text" 
-                    name="verification_code" 
-                    class="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:ring-offset-2"
-                    placeholder="Enter the code we emailed you" 
-                  >
+                  <label for="id_verification_code" class="block text-sm font-medium text-gray-700">Verification Code</label>
+                  <input type="text" name="verification_code" id="id_verification_code" class="block w-full p-2 border border-gray-300 rounded" placeholder="Enter your verification code" required>
                 </div>
-                <p class="text-xs text-gray-500">
-                  If you didn’t receive a code, 
-                  <a href="#" class="text-blue-600 hover:underline">click here</a> to resend.
-                </p>
               </div>
             {% endif %}
 
-            {# STEP 2: Password Setup (example) #}
+            {# STEP 2: Password Setup #}
             {% if step == 2 %}
-              <!-- Step 3: Password -->
               <div class="space-y-4">
                 <div>
-                  <label class="block text-sm font-medium text-gray-600">Password</label>
-                  {{ form.password1|add_class:"w-full py-3 px-4 border border-gray-300 rounded-lg" }}
+                  <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700">Password</label>
+                  {% render_field form.password1 class="block w-full p-2 border border-gray-300 rounded" %}
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-600">Confirm Password</label>
-                  {{ form.password2|add_class:"w-full py-3 px-4 border border-gray-300 rounded-lg" }}
+                  <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                  {% render_field form.password2 class="block w-full p-2 border border-gray-300 rounded" %}
                 </div>
               </div>
             {% endif %}
 
-            {# STEP 3: Skills (example) #}
+            {# STEP 3: Skills Selection #}
             {% if step == 3 %}
-              <!-- Step 4: Skills -->
               <input type="hidden" id="selected_skills" name="selected_skills" value="">
-              <p class="text-gray-600 text-sm">Pick your top skills:</p>
-              <!-- Example skill checkboxes or dynamic content -->
-              <div class="grid grid-cols-2 gap-2 mt-2">
-                <label class="flex items-center space-x-2">
-                  <input type="checkbox" name="skill_checkbox" value="Python">
-                  <span>Python</span>
-                </label>
-                <label class="flex items-center space-x-2">
-                  <input type="checkbox" name="skill_checkbox" value="Data Analysis">
-                  <span>Data Analysis</span>
-                </label>
-                <!-- Add more as needed -->
-              </div>
-            {% endif %}
+              <p class="text-gray-600 text-sm">
+                Select at least {{ min_selections }} skills by clicking a Category, then a Subcategory, and finally a Skill:
+              </p>
+              
+              <div id="selected-count" class="text-gray-600 font-medium mb-4"></div>
 
-            {# STEP 4: Interests (example) #}
-            {% if step == 4 %}
-              <!-- Step 5: Interests -->
-              <input type="hidden" id="selected_interests" name="selected_interests" value="">
-              <p class="text-gray-600 text-sm">Pick your research interests:</p>
-              <!-- Example interest checkboxes or dynamic content -->
-              <div class="grid grid-cols-2 gap-2 mt-2">
-                <label class="flex items-center space-x-2">
-                  <input type="checkbox" name="interest_checkbox" value="AI">
-                  <span>AI</span>
-                </label>
-                <label class="flex items-center space-x-2">
-                  <input type="checkbox" name="interest_checkbox" value="WebDev">
-                  <span>Web Development</span>
-                </label>
-                <!-- Add more as needed -->
+              <div class="space-y-4 mt-4">
+                {% for category in skill_categories %}
+                  <div class="category-container border p-2 rounded-lg">
+                    <div class="category-header flex items-center justify-between cursor-pointer bg-gray-50 px-3 py-2 hover:bg-gray-100">
+                      <p class="font-semibold text-gray-700">{{ category.name }}</p>
+                      <svg class="arrow-icon w-5 h-5 text-gray-500 transform transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                    <div class="subcategories-container hidden divide-y divide-gray-200">
+                      {% for subcategory in category.subcategories.all %}
+                        <div class="subcategory-container">
+                          <div class="subcategory-header cursor-pointer flex items-center justify-between px-6 py-2 hover:bg-gray-50">
+                            <p class="text-sm font-medium text-gray-600">{{ subcategory.name }}</p>
+                            <svg class="arrow-icon w-4 h-4 text-gray-400 transform transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                          <div class="skills-container hidden bg-gray-50 pl-8 py-2">
+                            <div class="grid grid-cols-2 gap-2">
+                              {% for skill in subcategory.skills.all %}
+                                <div class="skill-item cursor-pointer p-2 rounded hover:bg-gray-100" data-skill-id="{{ skill.id }}">
+                                  <span class="text-sm text-gray-700">{{ skill.name }}</span>
+                                </div>
+                              {% endfor %}
+                            </div>
+                          </div>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% endfor %}
               </div>
             {% endif %}
 
             <!-- Navigation Buttons -->
             <div class="flex items-center justify-between">
               {% if step > 0 %}
-                <button 
-                  type="button" 
-                  class="text-sm text-gray-500 hover:text-gray-700 transition-all duration-200" 
-                  onclick="window.history.back()"
-                >
-                  ← Back
-                </button>
+                <button type="button" class="text-sm text-gray-500 hover:text-gray-700 transition-all duration-200" onclick="window.history.back()">← Back</button>
               {% endif %}
-              <button 
-                type="submit" 
-                class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg transition-all duration-300 shadow-md"
-              >
-                {% if step == 4 %}
-                  Complete Registration
-                {% else %}
-                  Next →
-                {% endif %}
+              <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg transition-all duration-300 shadow-md">
+                {% if step == 3 %}Complete Registration{% else %}Next →{% endif %}
               </button>
             </div>
           </form>
@@ -187,37 +170,80 @@
   </div>
 </main>
 
+<style>
+  .skill-item.selected {
+    background-color: #dbeafe;
+    border: 1px solid #3b82f6;
+  }
+</style>
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll(".category-header").forEach(header => {
+    header.addEventListener("click", () => {
+      const container = header.closest(".category-container");
+      const subcatList = container.querySelector(".subcategories-container");
+      subcatList.classList.toggle("hidden");
+      const arrow = header.querySelector(".arrow-icon");
+      arrow.classList.toggle("rotate-90");
+    });
+  });
+
+  document.querySelectorAll(".subcategory-header").forEach(subHeader => {
+    subHeader.addEventListener("click", () => {
+      const container = subHeader.closest(".subcategory-container");
+      const skillList = container.querySelector(".skills-container");
+      skillList.classList.toggle("hidden");
+      const arrow = subHeader.querySelector(".arrow-icon");
+      arrow.classList.toggle("rotate-90");
+    });
+  });
+
+  let selectedSkillIds = [];
+
+  document.querySelectorAll(".skill-item").forEach(skillDiv => {
+    skillDiv.addEventListener("click", () => {
+      const skillId = skillDiv.getAttribute("data-skill-id");
+      if (skillDiv.classList.contains("selected")) {
+        skillDiv.classList.remove("selected");
+        selectedSkillIds = selectedSkillIds.filter(id => id !== skillId);
+      } else {
+        skillDiv.classList.add("selected");
+        selectedSkillIds.push(skillId);
+      }
+      updateSelectedCount();
+    });
+  });
+
+  function updateSelectedCount() {
+    const selectedCount = selectedSkillIds.length;
+    const required = {{ min_selections }};
+    const display = document.getElementById("selected-count");
+    if (display) {
+      display.textContent = `Selected skills: ${selectedCount}/${required}`;
+      display.className = selectedCount >= required ? "text-green-600 font-medium mb-4" : "text-gray-600 font-medium mb-4";
+    }
+  }
+
   const form = document.querySelector("form");
   form.addEventListener("submit", function (event) {
-    // Step 4: Skills
     if ({{ step }} === 3) {
-      const checkboxes = document.querySelectorAll('input[name="skill_checkbox"]:checked');
-      const skills = Array.from(checkboxes).map(cb => cb.value);
-      document.getElementById('selected_skills').value = JSON.stringify(skills);
-      if (skills.length < {{ min_selections }}) {
+      const hiddenInput = document.getElementById('selected_skills');
+      if (hiddenInput) {
+        hiddenInput.value = JSON.stringify(selectedSkillIds);
+      }
+      if (selectedSkillIds.length < {{ min_selections }}) {
         event.preventDefault();
-        alert("Please select at least {{ min_selections }} skills.");
+        alert(`Please select at least {{ min_selections }} skills.`);
       }
     }
-    // Step 5: Interests
-    if ({{ step }} === 4) {
-      const checkboxes = document.querySelectorAll('input[name="interest_checkbox"]:checked');
-      const interests = Array.from(checkboxes).map(cb => cb.value);
-      document.getElementById('selected_interests').value = JSON.stringify(interests);
-      if (interests.length < {{ min_selections }}) {
-        event.preventDefault();
-        alert("Please select at least {{ min_selections }} interests.");
-      }
-    }
-
-    // Basic HTML5 validation check
     if (!form.checkValidity()) {
       event.preventDefault();
       alert("Please fix the errors in the form before proceeding.");
     }
   });
+
+  updateSelectedCount();
 });
 </script>
 {% endblock content %}

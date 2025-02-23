@@ -2,12 +2,186 @@
 {% block title %}Our Services{% endblock %}
 
 {% block content %}
-<section class="content-wrapper">
-    <div class="container">
-        <h1 class="hero-title mb-4">Research Services</h1>
-        <p class="hero-subtitle">
-            Discover tools and services designed to empower your research journey.
+<!-- Hero Section -->
+<section class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto text-center mb-16">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">Our Services</h1>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+            Empowering research collaboration through innovative tools and intelligent matching
         </p>
+    </div>
+
+    <!-- AI-Powered Researcher Matching -->
+    <div class="max-w-7xl mx-auto mb-16">
+        <div class="text-center mb-12">
+            <div class="flex justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2a8 8 0 0 0-8 8c0 6 8 12 8 12s8-6 8-12a8 8 0 0 0-8-8zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
+                </svg>
+            </div>
+            <h2 class="text-3xl font-semibold text-gray-900 mb-4">AI-Powered Researcher Matching</h2>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                Connect with the perfect research partners through our intelligent matching system.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
+                <div class="flex items-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 ml-3">Smart Profile Matching</h3>
+                </div>
+                <p class="text-gray-600">Our AI algorithms analyze research interests, expertise, and project needs to suggest ideal collaborators.</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
+                <div class="flex items-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 ml-3">Cross-Disciplinary Connections</h3>
+                </div>
+                <p class="text-gray-600">Break down academic silos by connecting with researchers across different fields and institutions.</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
+                <div class="flex items-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 ml-3">Advanced Search Filters</h3>
+                </div>
+                <p class="text-gray-600">Find potential collaborators using detailed filters for expertise, location, and research focus.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Marketplace -->
+    <div class="max-w-7xl mx-auto mb-16 border-t border-gray-200 pt-16">
+        <div class="text-center mb-12">
+            <div class="flex justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+            </div>
+            <h2 class="text-3xl font-semibold text-gray-900 mb-4">Dynamic Project Marketplace</h2>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                Discover and share research opportunities in our collaborative marketplace.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
+                <div class="flex items-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="20" x2="12" y2="10"></line>
+                        <line x1="18" y1="20" x2="18" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="16"></line>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 ml-3">Project Discovery</h3>
+                </div>
+                <p class="text-gray-600">Browse and post research projects, funding opportunities, and collaboration requests.</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
+                <div class="flex items-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 ml-3">Easy Collaboration</h3>
+                </div>
+                <p class="text-gray-600">Connect directly with project leaders and express interest in participation.</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
+                <div class="flex items-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                        <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 ml-3">Academic Networking</h3>
+                </div>
+                <p class="text-gray-600">Build your research network through project-based collaborations.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resource Hub -->
+    <div class="max-w-7xl mx-auto mb-16 border-t border-gray-200 pt-16">
+        <div class="text-center mb-12">
+            <div class="flex justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+            </div>
+            <h2 class="text-3xl font-semibold text-gray-900 mb-4">Comprehensive Resource Hub</h2>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                Access curated research tools, datasets, and educational materials.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
+                <div class="flex items-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 ml-3">Research Datasets</h3>
+                </div>
+                <p class="text-gray-600">Access and share valuable research datasets across disciplines.</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
+                <div class="flex items-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 18l6-6-6-6"></path>
+                        <path d="M8 6l-6 6 6 6"></path>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 ml-3">Research Tools</h3>
+                </div>
+                <p class="text-gray-600">Discover and utilize cutting-edge research tools and software.</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
+                <div class="flex items-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 ml-3">Educational Resources</h3>
+                </div>
+                <p class="text-gray-600">Access tutorials, guides, and best practices for research methodology.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="max-w-4xl mx-auto text-center mt-16">
+        <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-xl p-8">
+            <h2 class="text-2xl font-semibold text-white mb-4">
+                Ready to Enhance Your Research Journey?
+            </h2>
+            <p class="text-white/90 mb-6">
+                Join ScholarHub today and connect with researchers worldwide.
+            </p>
+            <a href="{% url 'users-profile' %}" class="inline-block bg-white text-blue-600 px-8 py-3 rounded-lg font-medium hover:bg-blue-50 transition-colors">
+                Get Started
+            </a>
+        </div>
     </div>
 </section>
 {% endblock %}

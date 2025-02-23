@@ -1,16 +1,16 @@
-# views.py
-import json
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.urls import reverse_lazy, reverse
-from django.views import View
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Exists, OuterRef
-from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import ProjectForm
-from .models import Project, ProjectApplication, Notification, User, ChatMessage, ChatRoom, Category
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse_lazy
+from django.views import View
+from django.views.generic import DetailView, UpdateView, DeleteView
+from django.contrib import messages
+
+
+from django.urls import reverse
+from django.views.generic import CreateView
+
+from .forms import ProjectForm, ProjectApplicationForm
+from .models import Notification, SkillsCategory, Skill, Language, RequiredRole
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Exists, OuterRef, Q
@@ -39,9 +39,11 @@ class MarketplaceView(LoginRequiredMixin, ListView):
         # Filter by skills (text-based, comma-separated)
         skills_param = self.request.GET.get('skills', '')
         if skills_param:
-            skill_list = [s.strip() for s in skills_param.split(',') if s.strip()]
-            for skill in skill_list:
-                queryset = queryset.filter(skills_required__icontains=skill)
+            skill_names = [s.strip() for s in skills_param.split(',') if s.strip()]
+            q_objects = Q()
+            for name in skill_names:
+                q_objects |= Q(skills_required__name__icontains=name)
+            queryset = queryset.filter(q_objects).distinct()
 
         # Text search: title or description
         q = self.request.GET.get('q', '')
@@ -101,22 +103,94 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
     template_name = 'marketplace/project_detail.html'
     context_object_name = 'project'
 
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        # Increment the view count
+        self.object.view_count += 1
+        self.object.save(update_fields=['view_count'])
+        return super().get(request, *args, **kwargs)
 
-class ApplyProjectView(LoginRequiredMixin, View):
-    def post(self, request, *args, **kwargs):
-        project = get_object_or_404(Project, id=self.kwargs['project_id'])
-        application, created = ProjectApplication.objects.get_or_create(
-            project=project,
-            applicant=request.user,
-            defaults={'status': 'PENDING'}
-        )
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        sort_app = self.request.GET.get('sort_applications')
+        applications = list(self.object.applications.all())
+        if sort_app == 'most_matched':
+            applications.sort(key=lambda a: a.matching_score, reverse=True)
+        elif sort_app == 'most_unmatched':
+            applications.sort(key=lambda a: a.matching_score)
+        elif sort_app == 'most_recent':
+            applications.sort(key=lambda a: a.applied_at, reverse=True)
+        elif sort_app == 'most_old':
+            applications.sort(key=lambda a: a.applied_at)
+        context['sorted_applications'] = applications
+        context['user_skill_ids'] = set()
+        if self.request.user.is_authenticated and hasattr(self.request.user, 'profile'):
+            context['user_skill_ids'] = set(
+                self.request.user.profile.skills.values_list('id', flat=True)
+            )
+        return context
 
-        if created:
-            messages.success(request, 'Application submitted successfully!')
+
+class ApplyProjectView(View):
+    def get(self, request, project_id):
+        project = get_object_or_404(Project, id=project_id)
+        # If an application already exists, you might want to redirect or inform the user.
+        if ProjectApplication.objects.filter(project=project, applicant=request.user).exists():
+            messages.info(request, "You have already applied to this project.")
+            return redirect('project-detail', pk=project.id)
+        form = ProjectApplicationForm()
+        context = {
+            'project': project,
+            'form': form,
+        }
+        return render(request, 'marketplace/apply_project.html', context)
+
+    def post(self, request, project_id):
+        project = get_object_or_404(Project, id=project_id)
+        if ProjectApplication.objects.filter(project=project, applicant=request.user).exists():
+            messages.info(request, "You have already applied to this project.")
+            return redirect('project-detail', pk=project.id)
+        form = ProjectApplicationForm(request.POST)
+        if form.is_valid():
+            application = form.save(commit=False)
+            application.project = project
+            application.applicant = request.user
+            application.status = 'PENDING'
+            application.save()
+            # Update the application's count on the project.
+            project.application_count = project.applications.count()
+            project.save(update_fields=['application_count'])
+            messages.success(request, 'Your application has been submitted successfully!')
+            return redirect('project-detail', pk=project.id)
         else:
-            messages.warning(request, 'You have already applied to this project')
+            context = {
+                'project': project,
+                'form': form,
+            }
+            return render(request, 'marketplace/apply_project.html', context)
 
-        return redirect('project-detail', pk=project.id)
+
+
+class DeleteApplicationView(LoginRequiredMixin, DeleteView):
+    model = ProjectApplication
+    template_name = 'marketplace/application_confirm_delete.html'  # A confirmation page
+    success_url = reverse_lazy('my-requests')  # Or wherever you want to redirect the applicant
+
+    def get_queryset(self):
+        # Only allow deletion of applications that belong to the current user.
+        return ProjectApplication.objects.filter(applicant=self.request.user)
+
+@login_required
+def withdraw_application(request, project_id):
+    # Find the application of the current user for the given project.
+    application = ProjectApplication.objects.filter(project__id=project_id, applicant=request.user).first()
+    if application:
+        application.delete()
+        messages.success(request, "Your application has been withdrawn.")
+    else:
+        messages.error(request, "You have not applied to this project.")
+    # Redirect to marketplace or project detail as desired.
+    return redirect('marketplace')
 
 
 class MyProjectsView(LoginRequiredMixin, ListView):
@@ -127,73 +201,157 @@ class MyProjectsView(LoginRequiredMixin, ListView):
         return Project.objects.filter(owner=self.request.user)
 
 
+
+from django.shortcuts import redirect
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import CreateView
+from .forms import ProjectForm
+from .models import Project, Skill, Category, SkillsCategory, Language, RequiredRole
+
 class ProjectCreateView(LoginRequiredMixin, CreateView):
     model = Project
     form_class = ProjectForm
-    template_name = 'marketplace/project_create.html'  # Separate template for creation
+    template_name = 'marketplace/project_create.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        available_skills = list(self.request.user.profile.skills.values_list('name', flat=True))
-        available_categories = list(Category.objects.values_list('name', flat=True))
-        context['available_skills_json'] = json.dumps(available_skills)
-        context['available_categories_json'] = json.dumps(available_categories)
-        # Pass language and role options for checkboxes
-        context['language_options'] = json.dumps(["English", "Русский", "Қазақша"])
-        context['role_options'] = json.dumps(["ML Engineer", "Backend Developer", "Frontend Developer", "Project Manager"])
+        context['skill_categories'] = SkillsCategory.objects.prefetch_related(
+            'subcategories__skills'
+        ).all()
+        context['available_categories'] = Category.objects.all()
+        context['min_selections'] = 5
+        # Pass actual querysets for languages and required roles.
+        context['languages'] = Language.objects.all()
+        context['required_roles'] = RequiredRole.objects.all()
         return context
 
     def form_valid(self, form):
-        # Assign the project owner.
+        # Get the list of selected skill IDs from cleaned_data.
+        skill_ids = form.cleaned_data.get('skills_required', [])
+        selected_skills = Skill.objects.filter(id__in=skill_ids)
+        if len(selected_skills) < 5:
+            messages.error(self.request, 'Please select at least 5 skills.')
+            context = self.get_context_data()
+            return self.render_to_response(context)
+
+        # Save the project instance.
         form.instance.owner = self.request.user
-        # Save the instance (without m2m fields) so it gets an ID.
         self.object = form.save(commit=False)
         self.object.save()
-        form.save_m2m()  # Save many-to-many fields coming from the form
+        form.save_m2m()
+        self.object.skills_required.set(selected_skills)
 
-        # Handle additional many-to-many assignment for categories via a hidden input.
+        # Process categories from the hidden input (IDs)
         categories_str = self.request.POST.get('categories', '')
         if categories_str:
-            category_names = [name.strip() for name in categories_str.split(',') if name.strip()]
-            for cat_name in category_names:
-                category_obj, created = Category.objects.get_or_create(name=cat_name)
-                self.object.category.add(category_obj)
+            category_ids = [cid.strip() for cid in categories_str.split(',') if cid.strip()]
+            categories_qs = Category.objects.filter(id__in=category_ids)
+            self.object.category.set(categories_qs)
+
+        # Process languages field (hidden input as a comma-separated list of IDs)
+        languages_str = self.request.POST.get('languages', '')
+        if languages_str:
+            language_ids = [lid.strip() for lid in languages_str.split(',') if lid.strip()]
+            language_objs = Language.objects.filter(id__in=language_ids)
+            self.object.languages.set(language_objs)
+
+        # Process required roles field (hidden input as a comma-separated list of IDs)
+        roles_str = self.request.POST.get('required_roles', '')
+        if roles_str:
+            role_ids = [rid.strip() for rid in roles_str.split(',') if rid.strip()]
+            role_objs = RequiredRole.objects.filter(id__in=role_ids)
+            self.object.required_roles.set(role_objs)
 
         messages.success(self.request, "Project created successfully!")
         return redirect(self.object.get_absolute_url())
 
 
+import json
+from django.shortcuts import redirect
+from django.contrib import messages
+from django.urls import reverse_lazy, reverse
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import UpdateView
+from .forms import ProjectForm
+from .models import Project, Skill, Category, SkillsCategory, Language, RequiredRole
 
 class ProjectUpdateView(LoginRequiredMixin, UpdateView):
     model = Project
     form_class = ProjectForm
-    template_name = 'marketplace/project_update.html'  # Separate template for update
+    template_name = 'marketplace/project_update.html'
     context_object_name = 'project'
 
     def get_queryset(self):
         # Only allow the owner to update the project.
         return Project.objects.filter(owner=self.request.user)
 
-    def get_success_url(self):
-        messages.success(self.request, "Project updated successfully!")
-        return reverse_lazy('project-detail', kwargs={'pk': self.object.pk})
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Pass available skills and categories as JSON strings for use in autocomplete.
-        available_skills = list(self.request.user.profile.skills.values_list('name', flat=True))
-        available_categories = list(Category.objects.values_list('name', flat=True))
-        context['available_skills_json'] = json.dumps(available_skills)
-        context['available_categories_json'] = json.dumps(available_categories)
-        # Pass existing categories to prepopulate the category tags.
-        context['existing_categories'] = [cat.name for cat in self.object.category.all()]
+        context['skill_categories'] = SkillsCategory.objects.prefetch_related(
+            'subcategories__skills'
+        ).all()
+        context['available_categories'] = Category.objects.all()
+        context['min_selections'] = 5
+        context['languages'] = Language.objects.all()
+        context['required_roles'] = RequiredRole.objects.all()
+        # Prepopulate many-to-many selections both as lists and comma-separated strings
+        context['selected_categories_list'] = [str(cat.id) for cat in self.object.category.all()]
+        context['selected_skills_list'] = [str(skill.id) for skill in self.object.skills_required.all()]
+        context['selected_languages_list'] = [str(lang.id) for lang in self.object.languages.all()]
+        context['selected_required_roles_list'] = [str(role.id) for role in self.object.required_roles.all()]
+
+        context['selected_categories'] = ",".join(context['selected_categories_list'])
+        context['selected_skills'] = ",".join(context['selected_skills_list'])
+        context['selected_languages'] = ",".join(context['selected_languages_list'])
+        context['selected_required_roles'] = ",".join(context['selected_required_roles_list'])
         return context
+
+    def form_valid(self, form):
+        # Get the list of selected skill IDs from cleaned_data.
+        skill_ids = form.cleaned_data.get('skills_required', [])
+        selected_skills = Skill.objects.filter(id__in=skill_ids)
+        if len(selected_skills) < 5:
+            messages.error(self.request, 'Please select at least 5 skills.')
+            context = self.get_context_data()
+            return self.render_to_response(context)
+
+        # Update the project instance.
+        form.instance.owner = self.request.user
+        self.object = form.save(commit=False)
+        self.object.save()
+        form.save_m2m()
+        self.object.skills_required.set(selected_skills)
+
+        # Process categories from the hidden input (IDs)
+        categories_str = self.request.POST.get('categories', '')
+        if categories_str:
+            category_ids = [cid.strip() for cid in categories_str.split(',') if cid.strip()]
+            categories_qs = Category.objects.filter(id__in=category_ids)
+            self.object.category.set(categories_qs)
+
+        # Process languages field (hidden input as a comma-separated list of IDs)
+        languages_str = self.request.POST.get('languages', '')
+        if languages_str:
+            language_ids = [lid.strip() for lid in languages_str.split(',') if lid.strip()]
+            language_objs = Language.objects.filter(id__in=language_ids)
+            self.object.languages.set(language_objs)
+
+        # Process required roles field (hidden input as a comma-separated list of IDs)
+        roles_str = self.request.POST.get('required_roles', '')
+        if roles_str:
+            role_ids = [rid.strip() for rid in roles_str.split(',') if rid.strip()]
+            role_objs = RequiredRole.objects.filter(id__in=role_ids)
+            self.object.required_roles.set(role_objs)
+
+        messages.success(self.request, "Project updated successfully!")
+        return redirect(self.object.get_absolute_url())
 
 
 
 class ProjectDeleteView(LoginRequiredMixin, DeleteView):
     model = Project
-    template_name = 'marketplace/project_confirm_delete.html'  # Separate template for delete confirmation
+    template_name = 'marketplace/project_confirm_delete.html'  # Confirmation page
     success_url = reverse_lazy('my-projects')
 
     def get_queryset(self):
@@ -210,12 +368,21 @@ class ProjectToggleView(LoginRequiredMixin, View):
 
 
 def user_profile(request, username):
-    user = get_object_or_404(User, username=username)
+    # Retrieve the user by username
+    profile_user = get_object_or_404(User, username=username)
+
+    # Retrieve all projects owned by the user
+    user_projects = Project.objects.filter(owner=profile_user)
+
+    # Prepare the context for the template
     context = {
-        'profile_user': user,
-        'projects_count': Project.objects.filter(owner=user).count(),
+        'profile_user': profile_user,
+        'projects_count': user_projects.count(),
+        'projects': user_projects,  # Include projects if you want to display them
     }
-    return render(request, 'users/profile.html', context)
+
+    # Render the profile template with the given context
+    return render(request, 'marketplace/project_profile.html', context)
 
 
 @login_required

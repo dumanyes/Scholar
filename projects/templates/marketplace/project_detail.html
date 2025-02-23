@@ -1,5 +1,6 @@
 {% extends "users/base.html" %}
 {% load static %}
+{% load project_tags %}
 
 {% block content %}
 <style>
@@ -30,6 +31,18 @@
         margin-bottom: 2rem;
     }
 
+    .loading-indicator {
+        display: none;
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 10px 20px;
+        background: var(--primary);
+        color: white;
+        border-radius: 1rem;
+        z-index: 1000;
+    }
+
     .status-pill {
         display: inline-flex;
         align-items: center;
@@ -51,16 +64,20 @@
         width: 48px;
         height: 48px;
         border-radius: 50%;
-        background: var(--primary);
-        color: white;
+        overflow: hidden;
         display: flex;
         align-items: center;
         justify-content: center;
+        background: var(--primary);
+        color: white;
         font-weight: 600;
         font-size: 1.25rem;
     }
 
-    .skill-tag {
+    .skill-tag,
+    .category-tag,
+    .language-tag,
+    .role-tag {
         display: inline-flex;
         padding: 0.5rem 1rem;
         background: var(--background);
@@ -70,6 +87,16 @@
         color: var(--text);
         margin: 0.25rem;
         border: 1px solid var(--border);
+        text-decoration: none;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    /* For matched skills, add green styling */
+    .matched-skill {
+        background: #d1fae5;
+        color: #065f46;
+        border-color: #34d399;
     }
 
     .detail-card {
@@ -86,7 +113,7 @@
         padding: 1.5rem;
         margin-bottom: 1rem;
         box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-        transition: transform 0.2s ease;
+        transition: transform 0.2s ease, opacity 0.3s ease;
     }
 
     .application-card:hover {
@@ -109,6 +136,15 @@
     .status-badge.rejected {
         background: rgba(239, 68, 68, 0.1);
         color: var(--danger);
+    }
+
+    .match-score {
+        padding: 0.375rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--primary);
     }
 
     .action-btn {
@@ -138,15 +174,17 @@
         border: 1px solid var(--border);
     }
 
-    .category-tag {
-        display: inline-flex;
+    .sort-filter {
         padding: 0.5rem 1rem;
-        background: rgba(16, 185, 129, 0.1);
-        color: var(--primary);
-        border-radius: 0.75rem;
-        font-size: 0.875rem;
-        font-weight: 500;
-        margin: 0.25rem;
+        border-radius: 1rem;
+        background: #e5e7eb;
+        color: #374151;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .sort-filter.active {
+        background: var(--primary);
+        color: white;
     }
 </style>
 
@@ -158,29 +196,41 @@
                 <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ project.title }}</h1>
                 <span class="status-pill {% if not project.is_active %}inactive{% endif %}">
                     {% if project.is_active %}
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/></svg>
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+                        </svg>
                         Active
                     {% else %}
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
                         Inactive
                     {% endif %}
                 </span>
             </div>
             {% if project.owner == request.user %}
             <a href="{% url 'project-update' project.pk %}" class="action-btn action-btn-secondary">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                </svg>
                 Edit
             </a>
             {% endif %}
         </div>
 
         <div class="flex items-center gap-4">
-            <div class="user-avatar">
-                {{ project.owner.username|first|upper }}
-            </div>
+            <a href="{% url 'project-user-profile' project.owner.username %}">
+                {% if project.owner.profile.avatar %}
+                <img src="{{ project.owner.profile.avatar.url }}" alt="{{ project.owner.username }}" class="w-12 h-12 rounded-full object-cover">
+                {% else %}
+                <div class="user-avatar">{{ project.owner.username|first|upper }}</div>
+                {% endif %}
+            </a>
             <div>
-                <p class="text-lg font-medium text-gray-900">@{{ project.owner.username }}</p>
-                <p class="text-sm text-gray-500">Posted {{ project.created_at|timesince }} ago</p>
+                <a href="{% url 'project-user-profile' project.owner.username %}" class="text-lg font-medium text-gray-900 hover:text-primary">
+                    @{{ project.owner.username }}
+                </a>
+                <p class="text-sm text-gray-500">Posted {{ project.created_at|date:"H:i M d, Y" }}</p>
             </div>
         </div>
     </div>
@@ -193,6 +243,17 @@
                 <h2 class="text-xl font-bold text-gray-900 mb-4">Project Description</h2>
                 <p class="text-gray-600 leading-relaxed">{{ project.description }}</p>
             </div>
+
+            {% if project.project_link %}
+            <div class="detail-card">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">Project Link</h2>
+                <p class="text-gray-600 leading-relaxed">
+                    <a href="{{ project.project_link }}" target="_blank" class="text-blue-600 hover:underline">
+                        {{ project.project_link }}
+                    </a>
+                </p>
+            </div>
+            {% endif %}
 
             {% if project.project_mission %}
             <div class="detail-card">
@@ -208,25 +269,37 @@
             </div>
             {% endif %}
 
-            {% if project.languages %}
+            {% if project.languages.all %}
             <div class="detail-card">
                 <h2 class="text-xl font-bold text-gray-900 mb-4">Languages</h2>
-                <p class="text-gray-600 leading-relaxed">{{ project.languages }}</p>
+                <div class="flex flex-wrap">
+                    {% for language in project.languages.all %}
+                    <span class="language-tag">{{ language.name }}</span>
+                    {% endfor %}
+                </div>
             </div>
             {% endif %}
 
-            {% if project.required_roles %}
+            {% if project.required_roles.all %}
             <div class="detail-card">
                 <h2 class="text-xl font-bold text-gray-900 mb-4">Required Collaborator Roles</h2>
-                <p class="text-gray-600 leading-relaxed">{{ project.required_roles }}</p>
+                <div class="flex flex-wrap">
+                    {% for role in project.required_roles.all %}
+                    <span class="role-tag">{{ role.name }}</span>
+                    {% endfor %}
+                </div>
             </div>
             {% endif %}
 
             <div class="detail-card">
                 <h2 class="text-xl font-bold text-gray-900 mb-4">Required Skills</h2>
-                <div class="flex flex-wrap">
-                    {% for skill in project.skills_required.split %}
-                    <span class="skill-tag">{{ skill }}</span>
+                <div class="flex flex-wrap" id="project-skills">
+                    {% for skill in project.skills_required.all %}
+                        {% if skill in request.user.profile.skills.all %}
+                            <span class="skill-tag matched-skill">{{ skill.name }}</span>
+                        {% else %}
+                            <span class="skill-tag">{{ skill.name }}</span>
+                        {% endif %}
                     {% endfor %}
                 </div>
             </div>
@@ -236,131 +309,215 @@
         <div class="lg:col-span-1">
             <div class="detail-card">
                 <h2 class="text-xl font-bold text-gray-900 mb-4">Project Details</h2>
-
                 <div class="space-y-4">
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Categories</p>
                         <div class="flex flex-wrap">
                             {% for category in project.category.all %}
-                            <span class="category-tag">{{ category.name }}</span>
+                            <a href="{% url 'marketplace' %}?categories={{ category.id }}" class="category-tag">
+                                {{ category.name }}
+                            </a>
                             {% endfor %}
                         </div>
                     </div>
-
                     <div class="flex justify-between items-center">
                         <p class="text-sm text-gray-500">Status</p>
                         <span class="font-medium {% if project.is_active %}text-green-600{% else %}text-red-600{% endif %}">
                             {{ project.is_active|yesno:"Active,Inactive" }}
                         </span>
                     </div>
-
                     <div class="flex justify-between items-center">
                         <p class="text-sm text-gray-500">Last Updated</p>
-                        <span class="font-medium">{{ project.last_modified|date:"M d, Y" }}</span>
+                        <span class="font-medium">{{ project.last_modified|date:"H:i M d, Y" }}</span>
                     </div>
-
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm text-gray-500">Views</p>
+                        <span class="font-medium">{{ project.view_count }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm text-gray-500">Applications</p>
+                        <span class="font-medium">{{ project.applications.count }}</span>
+                    </div>
                     {% if user.is_authenticated and user != project.owner %}
-                    <form method="POST" action="{% url 'apply-project' project.id %}">
-                        {% csrf_token %}
-                        <button type="submit" class="action-btn action-btn-primary w-full mt-4">
-                            {% if has_applied %}
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
-                                Applied
-                            {% else %}
-                                Apply Now
-                            {% endif %}
+                    <div>
+                        {% if has_applied %}
+                        <button disabled class="action-btn action-btn-secondary w-full mt-4">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            Applied
                         </button>
-                    </form>
+                        {% else %}
+                        <a href="{% url 'apply-project' project.id %}" class="action-btn action-btn-primary w-full mt-4">
+                            Apply Now
+                        </a>
+                        {% endif %}
+                    </div>
                     {% endif %}
-
                     {% if project.owner == request.user %}
-                    <form method="POST" action="{% url 'project-toggle' project.pk %}">
-                        {% csrf_token %}
-                        <button type="submit" class="action-btn action-btn-secondary w-full mt-4">
-                            {% if project.is_active %}Deactivate Project{% else %}Activate Project{% endif %}
-                        </button>
-                    </form>
-                    {% endif %}
+<div class="flex flex-col gap-4 mt-4">
+    <form action="{% url 'project-toggle' project.pk %}" method="POST">
+        {% csrf_token %}
+        <button type="submit" class="action-btn action-btn-secondary w-full">
+            {% if project.is_active %}
+                Deactivate Project
+            {% else %}
+                Activate Project
+            {% endif %}
+        </button>
+    </form>
+    <a href="{% url 'project-delete' project.pk %}" class="action-btn action-btn-secondary w-full">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/>
+        </svg>
+        Delete Project
+    </a>
+</div>
+{% endif %}
+
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Applications Section (At Bottom) -->
     {% if project.owner == request.user %}
-    <!-- Applications Section -->
-    <div class="mt-8">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">Applications ({{ project.applications.count }})</h2>
-        {% for application in project.applications.all %}
-        <div class="application-card">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div class="flex items-center gap-4">
-                    <a href="{% url 'user-profile' application.applicant.username %}" class="user-avatar">
-                        {{ application.applicant.username|first|upper }}
-                    </a>
-                    <div>
-                        <a href="{% url 'user-profile' application.applicant.username %}" class="text-lg font-medium text-gray-900 hover:text-primary">
-                            @{{ application.applicant.username }}
-                        </a>
-                        <p class="text-sm text-gray-500 mt-1">
-                            Applied {{ application.applied_at|timesince }} ago
-                        </p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4">
-                    <span class="status-badge {% if application.status == 'ACCEPTED' %}accepted{% elif application.status == 'REJECTED' %}rejected{% endif %}">
-                        {{ application.get_status_display }}
-                    </span>
-                    {% if application.status == 'PENDING' %}
-                    <div class="flex gap-2">
-                        <form method="POST" action="{% url 'update-application' application.id 'ACCEPTED' %}">
-                            {% csrf_token %}
-                            <button type="submit" class="action-btn action-btn-primary">
-                                Accept
-                            </button>
-                        </form>
-                        <form method="POST" action="{% url 'update-application' application.id 'REJECTED' %}">
-                            {% csrf_token %}
-                            <button type="submit" class="action-btn action-btn-secondary">
-                                Reject
-                            </button>
-                        </form>
-                    </div>
-                    {% elif application.status == 'ACCEPTED' %}
-                    <a href="{% url 'chat' application.applicant.id %}" class="action-btn action-btn-primary">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                        Chat
-                    </a>
-                    {% endif %}
-                </div>
-            </div>
-            {% if application.message %}
-            <div class="mt-4 pt-4 border-t border-gray-100">
-                <p class="text-gray-600 italic">"{{ application.message }}"</p>
-            </div>
-            {% endif %}
+    <div class="mt-12">
+        <div class="flex flex-wrap gap-4 mb-6">
+            <a href="#" class="sort-filter {% if request.GET.sort_applications == 'most_matched' %}active{% endif %}" data-sort="most_matched">Most Matched</a>
+            <a href="#" class="sort-filter {% if request.GET.sort_applications == 'most_unmatched' %}active{% endif %}" data-sort="most_unmatched">Most Unmatched</a>
+            <a href="#" class="sort-filter {% if request.GET.sort_applications == 'most_recent' %}active{% endif %}" data-sort="most_recent">Most Recent</a>
+            <a href="#" class="sort-filter {% if request.GET.sort_applications == 'most_old' %}active{% endif %}" data-sort="most_old">Most Old</a>
         </div>
-        {% endfor %}
+
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Applications (<span id="application-count">{{ project.applications.count }}</span>)</h2>
+        <div id="applications-container">
+            {% for application in sorted_applications %}
+            <div class="application-card" data-skills="{% for skill in application.applicant.profile.skills.all %}{{ skill.id }} {% endfor %}">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <a href="{% url 'project-user-profile' application.applicant.username %}">
+                            {% if application.applicant.profile.avatar %}
+                            <img src="{{ application.applicant.profile.avatar.url }}" alt="{{ application.applicant.username }}" class="w-10 h-10 rounded-full object-cover">
+                            {% else %}
+                            <div class="user-avatar">
+                                {{ application.applicant.username|first|upper }}
+                            </div>
+                            {% endif %}
+                        </a>
+                        <div>
+                            <a href="{% url 'project-user-profile' application.applicant.username %}" class="text-lg font-medium text-gray-900 hover:text-primary">
+                                {{ application.applicant.get_full_name }} (@{{ application.applicant.username }})
+                            </a>
+                            <p class="text-sm text-gray-500">
+                                Applied {{ application.applied_at|timesince }} ago
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                <strong>Match Score:</strong> <span class="match-score">{{ application.matching_score }}%</span>
+                            </p>
+                            <div class="flex flex-wrap gap-1 mt-1">
+                                {% for skill in application.applicant.profile.skills.all %}
+                                    {% if skill|is_common_skill:project %}
+                                        <span class="skill-tag matched-skill">{{ skill.name }}</span>
+                                    {% else %}
+                                        <span class="skill-tag">{{ skill.name }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="status-badge {% if application.status == 'ACCEPTED' %}accepted{% elif application.status == 'REJECTED' %}rejected{% endif %}">
+                            {{ application.get_status_display }}
+                        </span>
+                        {% if application.status == 'PENDING' %}
+                        <div class="flex gap-2">
+                            <form method="POST" action="{% url 'update-application' application.id 'ACCEPTED' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="action-btn action-btn-primary">
+                                    Accept
+                                </button>
+                            </form>
+                            <form method="POST" action="{% url 'update-application' application.id 'REJECTED' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="action-btn action-btn-secondary">
+                                    Reject
+                                </button>
+                            </form>
+                        </div>
+                        {% elif application.status == 'ACCEPTED' %}
+                        <a href="{% url 'chat' application.applicant.id %}" class="action-btn action-btn-primary">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                            Chat
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if application.message %}
+                <div class="mt-4 pt-4 border-t border-gray-100">
+                    <p class="text-gray-600 italic">"{{ application.message }}"</p>
+                </div>
+                {% endif %}
+                {% if application.contribution %}
+                <div class="mt-2">
+                    <p class="text-gray-700 font-medium">Contribution:</p>
+                    <p class="text-gray-600">{{ application.contribution }}</p>
+                </div>
+                {% endif %}
+                {% if user == application.applicant %}
+                <div class="mt-4">
+                    <a href="{% url 'withdraw-application' project_id=project.id %}" class="action-btn action-btn-secondary">
+                        Withdraw Application
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
     </div>
     {% endif %}
 
     <div class="mt-8">
         <a href="{% url 'marketplace' %}" class="action-btn action-btn-secondary">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
             Back to Marketplace
         </a>
     </div>
-
-    {% if project.owner == request.user %}
-    <!-- Delete Project Button -->
-    <div class="mt-4">
-        <form method="post" action="{% url 'project-delete' project.pk %}" onsubmit="return confirm('Are you sure you want to delete this project?');">
-            {% csrf_token %}
-            <button type="submit" class="action-btn action-btn-secondary w-full">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg>
-                Delete Project
-            </button>
-        </form>
-    </div>
-    {% endif %}
 </div>
+
+<script>
+// AJAX sorting for applications without page refresh
+document.querySelectorAll('.sort-filter').forEach(filter => {
+    filter.addEventListener('click', function(e) {
+        e.preventDefault();
+        const sortType = this.getAttribute('data-sort');
+        document.querySelector('.loading-indicator').style.display = 'block';
+        fetch(window.location.pathname + '?sort_applications=' + sortType)
+            .then(response => response.text())
+            .then(html => {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                const updatedSection = tempDiv.querySelector('#applications-container');
+                if (updatedSection) {
+                    document.getElementById('applications-container').innerHTML = updatedSection.innerHTML;
+                }
+                const newCount = tempDiv.querySelector('#application-count');
+                if (newCount) {
+                    document.getElementById('application-count').innerText = newCount.innerText;
+                }
+                document.querySelector('.loading-indicator').style.display = 'none';
+            })
+            .catch(error => {
+                console.error('Error loading sorted applications:', error);
+                document.querySelector('.loading-indicator').style.display = 'none';
+            });
+    });
+});
+</script>
+
+<div class="loading-indicator">Loading...</div>
 {% endblock %}
