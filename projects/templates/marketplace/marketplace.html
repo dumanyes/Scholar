@@ -5,17 +5,14 @@
 {% block content %}
 <head>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Ensure jQuery is loaded for autocomplete -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        /* Fallback for line-clamp if Tailwind line-clamp classes are not available */
         .line-clamp-6 {
             display: -webkit-box;
             -webkit-line-clamp: 6;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
-        /* Simple heart animation */
         .heart-btn {
             transition: transform 0.3s ease;
         }
@@ -48,10 +45,26 @@
         </div>
     </div>
 
-    <!-- Hidden Input for Selected Categories -->
-    <input type="hidden" id="selectedCategories" name="categories" value="{{ request.GET.categories }}">
+    <!-- Main Search Form (with hidden categories and sort inputs) -->
+    <div class="relative max-w-2xl mx-auto mb-8">
+        <form id="searchForm" method="GET">
+            <input type="hidden" id="timeSort" name="time_sort" value="{{ request.GET.time_sort }}">
+            <input type="hidden" id="matchSort" name="match_sort" value="{{ request.GET.match_sort }}">
+            <input type="hidden" id="selectedCategories" name="categories" value="{{ request.GET.categories }}">
+            <input type="text"
+                   id="searchInput"
+                   name="q"
+                   value="{{ request.GET.q }}"
+                   placeholder="Search research projects..."
+                   class="w-full px-6 py-4 rounded-2xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+            <button type="submit"
+                    class="absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+    </div>
 
-    <!-- Clickable Category Badges for Multi-Select -->
+    <!-- Clickable Category Badges (Main Page) -->
     <div class="flex flex-wrap gap-2 justify-center mb-6">
         <button type="button" onclick="selectAll()" id="cat-all"
            class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-full text-sm font-medium transition">
@@ -65,7 +78,7 @@
         {% endfor %}
     </div>
 
-    <!-- Sort Filters -->
+    <!-- Sorting Controls -->
     <div class="flex flex-col md:flex-row items-center justify-center gap-4 mb-6">
         <div class="flex flex-wrap gap-2 items-center">
             <span class="font-medium">Time Sort:</span>
@@ -89,24 +102,6 @@
                 Most Unmatched
             </button>
         </div>
-    </div>
-
-    <!-- Search Form with Autocomplete -->
-    <div class="relative max-w-2xl mx-auto mb-8">
-        <form id="searchForm" method="GET">
-            <input type="hidden" id="timeSort" name="time_sort" value="{{ request.GET.time_sort }}">
-            <input type="hidden" id="matchSort" name="match_sort" value="{{ request.GET.match_sort }}">
-            <input type="text"
-                   id="searchInput"
-                   name="q"
-                   value="{{ request.GET.q }}"
-                   placeholder="Search research projects..."
-                   class="w-full px-6 py-4 rounded-2xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
-            <button type="submit"
-                    class="absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400">
-                <i class="fas fa-search"></i>
-            </button>
-        </form>
     </div>
 
     <!-- Project Cards -->
@@ -145,29 +140,29 @@
 
             <!-- Avatar, Username, Country and City -->
             <div class="flex items-center gap-3 mb-4">
-    {% if project.owner.profile.avatar %}
-      <a href="{% url 'project-user-profile' project.owner.username %}">
-          <img src="{{ project.owner.profile.avatar.url }}" alt="{{ project.owner.username }}"
-               class="w-10 h-10 rounded-full object-cover border border-gray-200">
-      </a>
-    {% else %}
-      <a href="{% url 'project-user-profile' project.owner.username %}"
-         class="w-10 h-10 rounded-full flex items-center justify-center bg-green-500 text-white font-bold">
-          {{ project.owner.username|first|upper }}
-      </a>
-    {% endif %}
-    <div>
-      <a href="{% url 'project-user-profile' project.owner.username %}" class="text-gray-700 font-medium hover:text-blue-600">
-          @{{ project.owner.username }}
-      </a>
-      {% if project.owner.profile.city or project.owner.profile.country %}
-        <p class="text-xs text-gray-500">
-          {% if project.owner.profile.city %}{{ project.owner.profile.city }}{% endif %}
-          {% if project.owner.profile.country %} - {{ project.owner.profile.country }}{% endif %}
-        </p>
-      {% endif %}
-    </div>
-</div>
+                {% if project.owner.profile.avatar %}
+                <a href="{% url 'project-user-profile' project.owner.username %}">
+                    <img src="{{ project.owner.profile.avatar.url }}" alt="{{ project.owner.username }}"
+                         class="w-10 h-10 rounded-full object-cover border border-gray-200">
+                </a>
+                {% else %}
+                <a href="{% url 'project-user-profile' project.owner.username %}"
+                   class="w-10 h-10 rounded-full flex items-center justify-center bg-green-500 text-white font-bold">
+                    {{ project.owner.username|first|upper }}
+                </a>
+                {% endif %}
+                <div>
+                    <a href="{% url 'project-user-profile' project.owner.username %}" class="text-gray-700 font-medium hover:text-blue-600">
+                        @{{ project.owner.username }}
+                    </a>
+                    {% if project.owner.profile.city or project.owner.profile.country %}
+                    <p class="text-xs text-gray-500">
+                        {% if project.owner.profile.city %}{{ project.owner.profile.city }}{% endif %}
+                        {% if project.owner.profile.country %} - {{ project.owner.profile.country }}{% endif %}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
 
             <!-- Project Title -->
             <h2 class="text-2xl font-semibold mb-4">{{ project.title }}</h2>
@@ -190,15 +185,15 @@
                     <i class="fas fa-arrow-right"></i>
                 </a>
                 {% if project.has_applied %}
-                  <a href="{% url 'withdraw-application' project_id=project.id %}"
-                     class="px-6 py-2 rounded-xl font-semibold transition-all bg-red-600 text-white hover:bg-red-700">
-                      Withdraw Application
-                  </a>
+                <a href="{% url 'withdraw-application' project_id=project.id %}"
+                   class="px-6 py-2 rounded-xl font-semibold transition-all bg-red-600 text-white hover:bg-red-700">
+                    Withdraw Application
+                </a>
                 {% else %}
-                  <a href="{% url 'apply-project' project_id=project.id %}"
-                     class="px-6 py-2 rounded-xl font-semibold transition-all bg-blue-600 text-white hover:bg-blue-700">
-                      Apply Now
-                  </a>
+                <a href="{% url 'apply-project' project_id=project.id %}"
+                   class="px-6 py-2 rounded-xl font-semibold transition-all bg-blue-600 text-white hover:bg-blue-700">
+                    Apply Now
+                </a>
                 {% endif %}
             </div>
 
@@ -211,53 +206,125 @@
         {% endfor %}
     </div>
 
-    <!-- Filter Dialog -->
+    <!-- Filter Dialog with Clickable Categories & Skills Selection -->
     <div class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-50" id="filterDialog">
-        <div class="bg-white rounded-2xl w-full max-w-md p-6 m-4">
+        <div class="bg-white rounded-2xl w-full max-w-lg p-6 m-4">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-xl font-semibold">Filter Projects</h3>
                 <button type="button" onclick="toggleFilterDialog()" class="text-gray-500 hover:text-gray-700">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <!-- Filter Form -->
             <form id="filterForm" method="GET" class="space-y-6">
-                <!-- In Filter Dialog -->
-<div>
-    <label class="block text-sm font-medium mb-2">Category</label>
-    <select class="w-full px-4 py-3 rounded-2xl border border-gray-200" name="categories" multiple>
-        {% for cat in all_categories %}
-        <option value="{{ cat.id }}"
-            {% if cat.id|stringformat:"s" in selected_categories %}selected{% endif %}>
-            {{ cat.name }}
-        </option>
-        {% endfor %}
-    </select>
-</div>
+                <!-- Clickable Categories in Filter Dialog -->
                 <div>
-                    <label class="block text-sm font-medium mb-2">Skills Required</label>
-                    <input type="text"
-                           placeholder="Enter skills..."
-                           class="w-full px-4 py-3 rounded-2xl border border-gray-200"
-                           name="skills"
-                           value="{{ request.GET.skills }}">
+                    <label class="block text-sm font-medium mb-2">Categories</label>
+                    <div id="filter-categories" class="flex flex-wrap gap-2">
+                        <button type="button" onclick="selectAllFilterCategories()" id="filter-cat-all"
+                            class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-full text-sm font-medium transition">
+                            All
+                        </button>
+                        {% for cat in all_categories %}
+                        <button type="button" onclick="toggleFilterCategory('{{ cat.id }}')" id="filter-cat-{{ cat.id }}"
+                            class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-full text-sm font-medium transition">
+                            {{ cat.name }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" id="filterSelectedCategories" name="categories" value="{{ request.GET.categories }}">
                 </div>
+
+                <div>
+                <label class="block text-sm font-medium mb-2">Skills Required</label>
+
+                <!-- Search Bar -->
+                <input
+                    type="text"
+                    id="filter-skill-search"
+                    class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition mb-4"
+                    placeholder="Search skills..."
+                />
+
+                <!-- Skill Hints Container -->
+                <div
+                    id="filter-skill-hints"
+                    class="border border-gray-200 rounded-md bg-white shadow absolute hidden z-10"
+                    style="max-height: 200px; overflow-y: auto;"
+                ></div>
+
+                <!-- Selected Skills Display -->
+                <div id="filter-selected-skills" class="mb-4 flex flex-wrap gap-2"></div>
+
+                <!-- Collapsible Skills List -->
+                <div id="filter-skills-list" class="space-y-2">
+                    {% for category in skill_categories %}
+                    <div class="border border-gray-200 rounded-lg overflow-hidden">
+                        <details class="group">
+                            <summary class="flex justify-between items-center p-4 cursor-pointer list-none bg-gray-50">
+                                <span class="font-medium">{{ category.name }}</span>
+                                <svg class="w-5 h-5 transition-transform group-open:rotate-180" viewBox="0 0 24 24">
+                                    <path d="M7 10l5 5 5-5z"/>
+                                </svg>
+                            </summary>
+                            <div class="p-4 space-y-4">
+                                {% for subcat in category.subcategories.all %}
+                                <details class="group/sub">
+                                    <summary class="flex justify-between items-center p-2 cursor-pointer list-none">
+                                        <span class="font-medium">{{ subcat.name }}</span>
+                                        <svg class="w-4 h-4 transition-transform group-open/sub:rotate-180" viewBox="0 0 24 24">
+                                            <path d="M7 10l5 5 5-5z"/>
+                                        </svg>
+                                    </summary>
+                                    <div class="mt-2 space-y-2">
+                                        {% for skill in subcat.skills.all %}
+                                        <div
+                                            class="p-2 rounded-md cursor-pointer transition hover:bg-gray-50 filter-skill-item"
+                                            data-skill-id="{{ skill.id }}"
+                                            data-skill-name="{{ skill.name|lower }}"
+                                        >
+                                            {{ skill.name }}
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </details>
+                                {% endfor %}
+                            </div>
+                        </details>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <input type="hidden" name="skills" id="filter-skills-hidden" value="{{ request.GET.skills }}">
+
+
+
+                    <!-- Hidden field to store comma-separated skill IDs -->
+                    <input type="hidden" name="skills" id="filter-skills-hidden" value="{{ request.GET.skills }}">
+                    {% if form.errors.skills_required %}
+                      <div class="text-red-600 text-sm mt-1">
+                        {% for error in form.errors.skills_required %}
+                          <p>{{ error }}</p>
+                        {% endfor %}
+                      </div>
+                    {% else %}
+                      <div id="filter-skills-error" class="text-red-600 text-sm mt-1"></div>
+                    {% endif %}
+                </div>
+
+                <!-- Search Title/Description -->
                 <div>
                     <label class="block text-sm font-medium mb-2">Search Title / Description</label>
-                    <input type="text"
-                           placeholder="Search text..."
-                           class="w-full px-4 py-3 rounded-2xl border border-gray-200"
-                           name="q"
-                           value="{{ request.GET.q }}">
+                    <input type="text" placeholder="Search text..." class="w-full px-4 py-3 rounded-2xl border border-gray-200" name="q" value="{{ request.GET.q }}">
                 </div>
+
                 <div class="flex gap-4">
-                    <button type="button"
-                            onclick="toggleFilterDialog()"
-                            class="flex-1 px-6 py-3 bg-gray-100 rounded-2xl font-semibold hover:bg-gray-200 transition-all">
+                    <button type="button" onclick="resetFilterDialog()" class="flex-1 px-6 py-3 bg-red-100 rounded-2xl font-semibold hover:bg-red-200 transition-all">
+                        Clear
+                    </button>
+                    <button type="button" onclick="toggleFilterDialog()" class="flex-1 px-6 py-3 bg-gray-100 rounded-2xl font-semibold hover:bg-gray-200 transition-all">
                         Cancel
                     </button>
-                    <button type="submit"
-                            class="flex-1 px-6 py-3 bg-green-600 text-white rounded-2xl font-semibold hover:bg-green-700 transition-all">
+                    <button type="submit" class="flex-1 px-6 py-3 bg-green-600 text-white rounded-2xl font-semibold hover:bg-green-700 transition-all">
                         Apply
                     </button>
                 </div>
@@ -266,127 +333,287 @@
     </div>
 </div>
 
-<!-- JSON data for autocomplete -->
-<script id="autocomplete-data" type="application/json">
-    {{ autocomplete_data_json|safe }}
+<!-- JavaScript for Main Page Category Selection -->
+<script>
+let selectedCategories = [];
+document.addEventListener("DOMContentLoaded", function() {
+    const catInput = document.getElementById('selectedCategories');
+    if (catInput.value) {
+        selectedCategories = catInput.value.split(',');
+        selectedCategories.forEach(catId => {
+            const badge = document.getElementById('cat-' + catId);
+            if (badge) badge.classList.add('bg-blue-300', 'text-white');
+        });
+        if (selectedCategories.length > 0) {
+            document.getElementById('cat-all').classList.remove('bg-blue-300', 'text-white');
+        }
+    } else {
+        document.getElementById('cat-all').classList.add('bg-blue-300', 'text-white');
+    }
+});
+function toggleCategory(catId) {
+    document.getElementById('cat-all').classList.remove('bg-blue-300', 'text-white');
+    const badge = document.getElementById('cat-' + catId);
+    const index = selectedCategories.indexOf(catId);
+    if (index > -1) {
+        selectedCategories.splice(index, 1);
+        badge.classList.remove('bg-blue-300', 'text-white');
+    } else {
+        selectedCategories.push(catId);
+        badge.classList.add('bg-blue-300', 'text-white');
+    }
+    document.getElementById('selectedCategories').value = selectedCategories.join(',');
+    if (selectedCategories.length === 0) {
+        document.getElementById('cat-all').classList.add('bg-blue-300', 'text-white');
+    }
+    document.getElementById('searchForm').submit();
+}
+function selectAll() {
+    selectedCategories = [];
+    document.getElementById('selectedCategories').value = "";
+    {% for cat in all_categories %}
+    document.getElementById('cat-{{ cat.id }}').classList.remove('bg-blue-300', 'text-white');
+    {% endfor %}
+    document.getElementById('cat-all').classList.add('bg-blue-300', 'text-white');
+    document.getElementById('searchForm').submit();
+}
 </script>
 
+<!-- JavaScript for Filter Dialog Categories & Skills -->
 <script>
-    // Initialize autocomplete for the search bar
-    const autocompleteData = JSON.parse(document.getElementById('autocomplete-data').textContent);
-    $("#searchInput").autocomplete({
-        source: autocompleteData,
-        minLength: 2,
-        autoFocus: true
+// Filter Dialog Category Selection
+let filterSelectedCategories = [];
+document.addEventListener("DOMContentLoaded", function() {
+    const filterCatInput = document.getElementById('filterSelectedCategories');
+    if (filterCatInput.value) {
+        filterSelectedCategories = filterCatInput.value.split(',');
+        filterSelectedCategories.forEach(catId => {
+            const badge = document.getElementById('filter-cat-' + catId);
+            if (badge) badge.classList.add('bg-blue-300', 'text-white');
+        });
+        if(filterSelectedCategories.length > 0) {
+            document.getElementById('filter-cat-all').classList.remove('bg-blue-300', 'text-white');
+        }
+    } else {
+        document.getElementById('filter-cat-all').classList.add('bg-blue-300', 'text-white');
+    }
+});
+function toggleFilterCategory(catId) {
+    document.getElementById('filter-cat-all').classList.remove('bg-blue-300', 'text-white');
+    const badge = document.getElementById('filter-cat-' + catId);
+    const index = filterSelectedCategories.indexOf(catId);
+    if (index > -1) {
+        filterSelectedCategories.splice(index, 1);
+        badge.classList.remove('bg-blue-300', 'text-white');
+    } else {
+        filterSelectedCategories.push(catId);
+        badge.classList.add('bg-blue-300', 'text-white');
+    }
+    document.getElementById('filterSelectedCategories').value = filterSelectedCategories.join(',');
+}
+function selectAllFilterCategories() {
+    filterSelectedCategories = [];
+    document.getElementById('filterSelectedCategories').value = "";
+    {% for cat in all_categories %}
+    document.getElementById('filter-cat-{{ cat.id }}').classList.remove('bg-blue-300', 'text-white');
+    {% endfor %}
+    document.getElementById('filter-cat-all').classList.add('bg-blue-300', 'text-white');
+}
+
+// Filter Dialog Skill Selection
+// Filter Dialog Skill Handling
+let filterSelectedSkills = new Set();
+const filterSkillSearch = document.getElementById('filter-skill-search');
+const filterSkillHints = document.getElementById('filter-skill-hints');
+const filterSelectedSkillsContainer = document.getElementById('filter-selected-skills');
+
+// Collect all skills data
+let filterAllSkillsData = [];
+document.querySelectorAll('.filter-skill-item').forEach(item => {
+    filterAllSkillsData.push({
+        id: item.dataset.skillId,
+        name: item.dataset.skillName
+    });
+});
+
+// Show skill hints
+function showFilterSkillHints(query) {
+    const matched = filterAllSkillsData.filter(s =>
+        s.name.includes(query.toLowerCase())
+    );
+
+    filterSkillHints.innerHTML = matched.length ?
+        matched.map(s => `
+            <div class="p-2 hover:bg-gray-100 cursor-pointer"
+                 data-skill-id="${s.id}"
+                 data-skill-name="${s.name}">
+                ${s.name}
+            </div>
+        `).join('') : '';
+
+    filterSkillHints.style.display = matched.length ? 'block' : 'none';
+}
+
+// Skill search input handler
+filterSkillSearch.addEventListener('input', function(e) {
+    showFilterSkillHints(e.target.value.trim());
+});
+
+// Skill hint selection
+filterSkillHints.addEventListener('click', function(e) {
+    const target = e.target.closest('[data-skill-id]');
+    if (!target) return;
+
+    const skillId = target.dataset.skillId;
+    const skillItem = document.querySelector(`.filter-skill-item[data-skill-id="${skillId}"]`);
+
+    if (filterSelectedSkills.has(skillId)) {
+        filterSelectedSkills.delete(skillId);
+        skillItem.classList.remove('bg-blue-50', 'text-blue-700');
+    } else {
+        filterSelectedSkills.add(skillId);
+        skillItem.classList.add('bg-blue-50', 'text-blue-700');
+    }
+
+    updateFilterSkillsDisplay();
+    filterSkillHints.style.display = 'none';
+});
+
+// Update selected skills display
+function updateFilterSkillsDisplay() {
+    filterSelectedSkillsContainer.innerHTML = '';
+    filterSelectedSkills.forEach(skillId => {
+        const skill = document.querySelector(`.filter-skill-item[data-skill-id="${skillId}"]`);
+        if (skill) {
+            const tag = document.createElement('div');
+            tag.className = 'bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm flex items-center gap-2';
+            tag.innerHTML = `
+                ${skill.textContent}
+                <button type="button"
+                        class="text-blue-500 hover:text-blue-700"
+                        onclick="removeFilterSkill('${skillId}')">
+                    ×
+                </button>
+            `;
+            filterSelectedSkillsContainer.appendChild(tag);
+        }
     });
 
-    // Global variable to store selected category IDs
-    let selectedCategories = [];
+    document.getElementById('filter-skills-hidden').value =
+        Array.from(filterSelectedSkills).join(',');
+}
 
-    document.addEventListener("DOMContentLoaded", function() {
-        // Initialize categories based on the hidden input value
-        const catInput = document.getElementById('selectedCategories');
-        if (catInput.value) {
-            selectedCategories = catInput.value.split(',');
-            selectedCategories.forEach(catId => {
-                const badge = document.getElementById('cat-' + catId);
-                if (badge) {
-                    badge.classList.add('bg-blue-300', 'text-white');
-                }
+// Remove skill handler
+function removeFilterSkill(skillId) {
+    filterSelectedSkills.delete(skillId);
+    document.querySelector(`.filter-skill-item[data-skill-id="${skillId}"]`)
+        .classList.remove('bg-blue-50', 'text-blue-700');
+    updateFilterSkillsDisplay();
+}
+
+// Close hints when clicking outside
+document.addEventListener('click', function(e) {
+    if (!filterSkillSearch.contains(e.target) && !filterSkillHints.contains(e.target)) {
+        filterSkillHints.style.display = 'none';
+    }
+});
+function showFilterSkillHints(query) {
+    const matched = filterAllSkillsData.filter(s => s.name.toLowerCase().includes(query.toLowerCase()));
+    if (!query || matched.length === 0) {
+        filterSkillHints.innerHTML = '';
+        filterSkillHints.classList.add('hidden');
+        return;
+    }
+    let html = '';
+    matched.forEach(skill => {
+        html += `<div class="p-2 hover:bg-gray-100 cursor-pointer" data-hint-id="${skill.id}" data-hint-name="${skill.name}">${skill.name}</div>`;
+    });
+    filterSkillHints.innerHTML = html;
+    filterSkillHints.classList.remove('hidden');
+}
+filterSkillSearchInput.addEventListener('input', function() {
+    const query = filterSkillSearchInput.value.trim();
+    showFilterSkillHints(query);
+});
+filterSkillHints.addEventListener('click', function(e) {
+    const target = e.target.closest('div[data-hint-id]');
+    if (!target) return;
+    const skillId = target.getAttribute('data-hint-id');
+    if (filterSelectedSkills.has(skillId)) {
+        filterSelectedSkills.delete(skillId);
+        document.querySelector(`.filter-skill-item[data-skill-id="${skillId}"]`).classList.remove('bg-blue-50', 'text-blue-700');
+    } else {
+        filterSelectedSkills.add(skillId);
+        document.querySelector(`.filter-skill-item[data-skill-id="${skillId}"]`).classList.add('bg-blue-50', 'text-blue-700');
+    }
+    document.getElementById('filter-skills-hidden').value = Array.from(filterSelectedSkills).join(',');
+    updateFilterSelectedSkillsContainer();
+    filterSkillHints.innerHTML = '';
+    filterSkillHints.classList.add('hidden');
+});
+document.addEventListener('click', function(e) {
+    if (!filterSkillHints.contains(e.target) && e.target !== filterSkillSearchInput) {
+        filterSkillHints.classList.add('hidden');
+    }
+});
+function updateFilterSelectedSkillsContainer() {
+    filterSelectedSkillsContainer.innerHTML = '';
+    filterSelectedSkills.forEach(skillId => {
+        const skillElem = document.querySelector(`.filter-skill-item[data-skill-id="${skillId}"]`);
+        if (skillElem) {
+            const skillName = skillElem.getAttribute('data-skill-name');
+            const tag = document.createElement('span');
+            tag.className = 'bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm cursor-pointer';
+            tag.textContent = skillName + ' ×';
+            tag.setAttribute('data-skill-id', skillId);
+            tag.addEventListener('click', function() {
+                filterSelectedSkills.delete(skillId);
+                document.getElementById('filter-skills-hidden').value = Array.from(filterSelectedSkills).join(',');
+                document.querySelector(`.filter-skill-item[data-skill-id="${skillId}"]`).classList.remove('bg-blue-50', 'text-blue-700');
+                updateFilterSelectedSkillsContainer();
             });
-            if(selectedCategories.length > 0) {
-                document.getElementById('cat-all').classList.remove('bg-blue-300', 'text-white');
-            }
-        } else {
-            document.getElementById('cat-all').classList.add('bg-blue-300', 'text-white');
+            filterSelectedSkillsContainer.appendChild(tag);
         }
     });
+}
+function toggleFilterDialog() {
+    const dialog = document.getElementById('filterDialog');
+    dialog.classList.toggle('hidden');
+    dialog.classList.toggle('flex');
+}
+function resetFilterDialog() {
+    document.getElementById('filterForm').reset();
+    // Optionally reset clickable elements here
+}
 
-    function toggleCategory(catId) {
-        // Remove active state from "All" if any category is toggled
-        document.getElementById('cat-all').classList.remove('bg-blue-300', 'text-white');
-        const badge = document.getElementById('cat-' + catId);
-        const index = selectedCategories.indexOf(catId);
-        if (index > -1) {
-            selectedCategories.splice(index, 1);
-            badge.classList.remove('bg-blue-300', 'text-white');
-        } else {
-            selectedCategories.push(catId);
-            badge.classList.add('bg-blue-300', 'text-white');
-        }
-        document.getElementById('selectedCategories').value = selectedCategories.join(',');
-        if(selectedCategories.length === 0) {
-            document.getElementById('cat-all').classList.add('bg-blue-300', 'text-white');
-        }
-        console.log("Selected Categories:", selectedCategories);
-        // Uncomment the line below to auto-submit the search form on change:
-        // document.getElementById('searchForm').submit();
+function toggleMatchSort(value) {
+    const matchSortInput = document.getElementById('matchSort');
+    if (matchSortInput.value === value) {
+        matchSortInput.value = "";
+        document.getElementById('sort-match-' + value).classList.remove('bg-purple-300', 'text-white');
+    } else {
+        matchSortInput.value = value;
+        document.getElementById('sort-match-mostmatcher').classList.remove('bg-purple-300', 'text-white');
+        document.getElementById('sort-match-mostunmatched').classList.remove('bg-purple-300', 'text-white');
+        document.getElementById('sort-match-' + value).classList.add('bg-purple-300', 'text-white');
     }
+    console.log("Match Sort set to:", matchSortInput.value);
+    document.getElementById('searchForm').submit();
+}
 
-    function selectAll() {
-        selectedCategories = [];
-        document.getElementById('selectedCategories').value = "";
-        {% for cat in all_categories %}
-        document.getElementById('cat-{{ cat.id }}').classList.remove('bg-blue-300', 'text-white');
-        {% endfor %}
-        document.getElementById('cat-all').classList.add('bg-blue-300', 'text-white');
-        console.log("All categories selected (cleared).");
-        // Uncomment the line below to auto-submit the search form on change:
-        // document.getElementById('searchForm').submit();
+function toggleTimeSort(value) {
+    const timeSortInput = document.getElementById('timeSort');
+    if (timeSortInput.value === value) {
+        timeSortInput.value = "";
+        document.getElementById('sort-time-' + value).classList.remove('bg-green-300', 'text-white');
+    } else {
+        timeSortInput.value = value;
+        document.getElementById('sort-time-recent').classList.remove('bg-green-300', 'text-white');
+        document.getElementById('sort-time-old').classList.remove('bg-green-300', 'text-white');
+        document.getElementById('sort-time-' + value).classList.add('bg-green-300', 'text-white');
     }
-
-    function toggleTimeSort(value) {
-        const timeSortInput = document.getElementById('timeSort');
-        if (timeSortInput.value === value) {
-            timeSortInput.value = "";
-            document.getElementById('sort-time-' + value).classList.remove('bg-green-300', 'text-white');
-        } else {
-            timeSortInput.value = value;
-            document.getElementById('sort-time-recent').classList.remove('bg-green-300', 'text-white');
-            document.getElementById('sort-time-old').classList.remove('bg-green-300', 'text-white');
-            document.getElementById('sort-time-' + value).classList.add('bg-green-300', 'text-white');
-        }
-        console.log("Time Sort set to:", timeSortInput.value);
-        document.getElementById('searchForm').submit();
-    }
-
-    function toggleMatchSort(value) {
-        const matchSortInput = document.getElementById('matchSort');
-        if (matchSortInput.value === value) {
-            matchSortInput.value = "";
-            document.getElementById('sort-match-' + value).classList.remove('bg-purple-300', 'text-white');
-        } else {
-            matchSortInput.value = value;
-            document.getElementById('sort-match-mostmatcher').classList.remove('bg-purple-300', 'text-white');
-            document.getElementById('sort-match-mostunmatched').classList.remove('bg-purple-300', 'text-white');
-            document.getElementById('sort-match-' + value).classList.add('bg-purple-300', 'text-white');
-        }
-        console.log("Match Sort set to:", matchSortInput.value);
-        document.getElementById('searchForm').submit();
-    }
-
-    function toggleFilterDialog() {
-        const dialog = document.getElementById('filterDialog');
-        dialog.classList.toggle('hidden');
-        dialog.classList.toggle('flex');
-    }
-
-    document.getElementById('filterDialog').addEventListener('click', (e) => {
-        if(e.target === document.getElementById('filterDialog')) {
-            toggleFilterDialog();
-        }
-    });
-
-    // Dummy save (favorite) functionality with animated heart icon
-    function saveProject(projectId) {
-        const heartIcon = event.currentTarget.querySelector('i.fas.fa-heart');
-        heartIcon.classList.remove('text-gray-400');
-        heartIcon.classList.add('text-red-500');
-        heartIcon.style.transform = "scale(1.3)";
-        setTimeout(() => {
-            heartIcon.style.transform = "scale(1)";
-        }, 300);
-        alert("Project " + projectId + " saved to your favorites!");
-    }
+    console.log("Time Sort set to:", timeSortInput.value);
+    document.getElementById('searchForm').submit();
+}
 </script>
 {% endblock %}

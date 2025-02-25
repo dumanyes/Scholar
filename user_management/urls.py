@@ -11,6 +11,7 @@ from users.forms import LoginForm
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('marketplace/', include('projects.urls')),  # Marketplace routes (projects app)
+    path('ai-assistant/', include('ai_assistant.urls', namespace='ai_assistant')),
     path('oauth/', include('social_django.urls', namespace='social')),  # Social auth routes
 
     path('', include('users.urls')),  # User management paths

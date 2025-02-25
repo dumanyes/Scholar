@@ -18,83 +18,90 @@ from django.views.generic import ListView
 from .models import Project, ProjectApplication, Category
 
 
+from django.db.models import Q, Exists, OuterRef
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import ListView
+from .models import Project, ProjectApplication, Category
+
 class MarketplaceView(LoginRequiredMixin, ListView):
     model = Project
     template_name = 'marketplace/marketplace.html'
     context_object_name = 'projects'
-    paginate_by = 10  # Note: When sorting in Python, pagination might not work as expected.
+    paginate_by = 10
 
     def get_queryset(self):
-        # Start with active projects
         queryset = Project.objects.filter(is_active=True)
 
-        # --- Filtering ---
-        # Filter by category (accept multiple IDs, comma separated)
+        # Category filtering
         categories_param = self.request.GET.get('categories', '')
         if categories_param:
             cat_ids = [cid.strip() for cid in categories_param.split(',') if cid.strip()]
             if cat_ids:
                 queryset = queryset.filter(category__id__in=cat_ids).distinct()
 
-        # Filter by skills (text-based, comma-separated)
+        # Skill filtering (exact match for selected skills)
         skills_param = self.request.GET.get('skills', '')
         if skills_param:
-            skill_names = [s.strip() for s in skills_param.split(',') if s.strip()]
-            q_objects = Q()
-            for name in skill_names:
-                q_objects |= Q(skills_required__name__icontains=name)
-            queryset = queryset.filter(q_objects).distinct()
+            skill_ids = [s.strip() for s in skills_param.split(',') if s.strip()]
+            if skill_ids:
+                # Filter projects that have ALL selected skills
+                for skill_id in skill_ids:
+                    queryset = queryset.filter(skills_required__id=skill_id)
+                queryset = queryset.distinct()
 
-        # Text search: title or description
+        # Text search
         q = self.request.GET.get('q', '')
         if q:
             queryset = queryset.filter(
-                Q(title__icontains=q) | Q(description__icontains=q)
+                Q(title__icontains=q) |
+                Q(description__icontains=q) |
+                Q(project_mission__icontains=q) |
+                Q(project_objectives__icontains=q)
             )
 
-        # Annotate if user has applied
-        if self.request.user.is_authenticated:
-            queryset = queryset.annotate(
-                has_applied=Exists(
-                    ProjectApplication.objects.filter(
-                        project=OuterRef('pk'),
-                        applicant=self.request.user
-                    )
+        # Annotate application status
+        queryset = queryset.annotate(
+            has_applied=Exists(
+                ProjectApplication.objects.filter(
+                    project=OuterRef('pk'),
+                    applicant=self.request.user
                 )
             )
+        )
 
-        # --- Sorting ---
-        # Get new sort parameters from GET
+        # Sorting
         time_sort = self.request.GET.get('time_sort', '')
         match_sort = self.request.GET.get('match_sort', '')
 
-        # If time sort is provided, apply it.
         if time_sort:
             if time_sort == 'recent':
-                queryset = queryset.order_by('-created_at')
-            elif time_sort == 'old':
-                queryset = queryset.order_by('created_at')
-            return queryset
+                return queryset.order_by('-created_at')
+            if time_sort == 'old':
+                return queryset.order_by('created_at')
 
-        # Otherwise, if match sort is provided, sort in Python.
         if match_sort in ['mostmatcher', 'mostunmatched']:
             projects = list(queryset)
-            reverse = (match_sort == 'mostmatcher')
-            projects.sort(key=lambda p: p.get_skill_match(self.request.user), reverse=reverse)
+            reverse_sort = (match_sort == 'mostmatcher')
+            projects.sort(
+                key=lambda p: p.get_skill_match(self.request.user),
+                reverse=reverse_sort
+            )
             return projects
 
-        # Default: order by most recent.
-        queryset = queryset.order_by('-created_at')
-        return queryset
+        return queryset.order_by('-created_at')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Provide all categories for clickable filtering in the template.
-        context['all_categories'] = Category.objects.all()
-        # Also provide the user's skills (lowercased) for highlighting.
-        context['user_skills'] = set(s.name.lower() for s in self.request.user.profile.skills.all())
+        context.update({
+            'all_categories': Category.objects.all(),
+            'user_skills': set(s.name.lower() for s in self.request.user.profile.skills.all()),
+            'selected_categories': self.request.GET.get('categories', '').split(','),
+            'selected_skills': self.request.GET.get('skills', '').split(','),
+            'current_query': self.request.GET.get('q', ''),
+            'time_sort': self.request.GET.get('time_sort', ''),
+            'match_sort': self.request.GET.get('match_sort', '')
+        })
         return context
-
 
 
 
@@ -209,6 +216,7 @@ from django.views.generic import CreateView
 from .forms import ProjectForm
 from .models import Project, Skill, Category, SkillsCategory, Language, RequiredRole
 
+
 class ProjectCreateView(LoginRequiredMixin, CreateView):
     model = Project
     form_class = ProjectForm
@@ -216,24 +224,24 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['skill_categories'] = SkillsCategory.objects.prefetch_related(
-            'subcategories__skills'
-        ).all()
+        context['skill_categories'] = SkillsCategory.objects.prefetch_related('subcategories__skills').all()
         context['available_categories'] = Category.objects.all()
-        context['min_selections'] = 5
-        # Pass actual querysets for languages and required roles.
         context['languages'] = Language.objects.all()
         context['required_roles'] = RequiredRole.objects.all()
         return context
 
     def form_valid(self, form):
+        """ Custom validation and debugging for project creation. """
+        print("🟢 Form is valid. Attempting to create project.")
+
         # Get the list of selected skill IDs from cleaned_data.
         skill_ids = form.cleaned_data.get('skills_required', [])
         selected_skills = Skill.objects.filter(id__in=skill_ids)
-        if len(selected_skills) < 5:
-            messages.error(self.request, 'Please select at least 5 skills.')
-            context = self.get_context_data()
-            return self.render_to_response(context)
+
+        if len(selected_skills) < 1:
+            messages.error(self.request, "Please select at least 1 skills.")
+            print("❌ ERROR: Less than 1 skills selected.")
+            return self.render_to_response(self.get_context_data(form=form))
 
         # Save the project instance.
         form.instance.owner = self.request.user
@@ -242,29 +250,39 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
         form.save_m2m()
         self.object.skills_required.set(selected_skills)
 
-        # Process categories from the hidden input (IDs)
+        # Debugging categories
         categories_str = self.request.POST.get('categories', '')
+        print(f"📌 Categories received: {categories_str}")
         if categories_str:
             category_ids = [cid.strip() for cid in categories_str.split(',') if cid.strip()]
             categories_qs = Category.objects.filter(id__in=category_ids)
             self.object.category.set(categories_qs)
 
-        # Process languages field (hidden input as a comma-separated list of IDs)
+        # Debugging languages
         languages_str = self.request.POST.get('languages', '')
+        print(f"📌 Languages received: {languages_str}")
         if languages_str:
             language_ids = [lid.strip() for lid in languages_str.split(',') if lid.strip()]
             language_objs = Language.objects.filter(id__in=language_ids)
             self.object.languages.set(language_objs)
 
-        # Process required roles field (hidden input as a comma-separated list of IDs)
+        # Debugging required roles
         roles_str = self.request.POST.get('required_roles', '')
+        print(f"📌 Required Roles received: {roles_str}")
         if roles_str:
             role_ids = [rid.strip() for rid in roles_str.split(',') if rid.strip()]
             role_objs = RequiredRole.objects.filter(id__in=role_ids)
             self.object.required_roles.set(role_objs)
 
-        messages.success(self.request, "Project created successfully!")
+        messages.success(self.request, "✅ Project created successfully!")
         return redirect(self.object.get_absolute_url())
+
+    def form_invalid(self, form):
+        """ Debugging for form invalid cases. """
+        print("❌ ERROR: Form is invalid.")
+        print("🔴 Form Errors:", form.errors.as_json())
+        messages.error(self.request, "Something went wrong. Please check your inputs.")
+        return self.render_to_response(self.get_context_data(form=form))
 
 
 import json

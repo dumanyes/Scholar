@@ -110,11 +110,17 @@
         {% endif %}
       </div>
 
-    <div>
+      <!-- Project Link (optional) -->
+      <div>
         <label for="project-link" class="block text-sm font-medium text-gray-700 mb-2">Project Link (optional)</label>
-        <input id="project-link" type="url" name="project_link" value="{{ form.project_link.value|default_if_none:'' }}"
-               class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-               placeholder="Enter project link" />
+        <input
+          id="project-link"
+          type="url"
+          name="project_link"
+          value="{{ form.project_link.value|default_if_none:'' }}"
+          class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+          placeholder="Enter project link"
+        />
         {% if form.project_link.errors %}
           <div class="text-red-600 text-sm mt-1">
             {% for error in form.project_link.errors %}
@@ -150,12 +156,30 @@
         {% endif %}
       </div>
 
-      <!-- Skills Section -->
+      <!-- Skills Section with Search and Selected Skills Display -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
           Required Skills
         </label>
-        <div class="space-y-2">
+        <!-- Search Bar for Skills -->
+        <input
+          type="text"
+          id="skill-search"
+          class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition mb-4"
+          placeholder="Search skills..."
+        />
+        <!-- Container for auto-suggest hints (shown below the search bar) -->
+        <div
+          id="skill-hints"
+          class="border border-gray-200 rounded-md bg-white shadow absolute hidden z-10"
+          style="max-height: 200px; overflow-y: auto;"
+        ></div>
+
+        <!-- Display Selected Skills as Tags -->
+        <div id="selected-skills-container" class="mb-4 flex flex-wrap gap-2"></div>
+
+        <!-- Original Collapsible Skills Structure (not filtered by search) -->
+        <div class="space-y-2" id="skills-list">
           {% for category in skill_categories %}
             <div class="border border-gray-200 rounded-lg overflow-hidden">
               <details class="group">
@@ -179,6 +203,7 @@
                           <div
                             class="p-2 rounded-md cursor-pointer transition hover:bg-gray-50 skill-item"
                             data-skill-id="{{ skill.id }}"
+                            data-skill-name="{{ skill.name }}"
                           >
                             {{ skill.name }}
                           </div>
@@ -191,7 +216,8 @@
             </div>
           {% endfor %}
         </div>
-        <!-- Rename hidden input to "skills_required" -->
+
+        <!-- Hidden field to store comma-separated skill IDs -->
         <input type="hidden" name="skills_required" id="skills_required">
         {% if form.errors.skills_required %}
           <div class="text-red-600 text-sm mt-1">
@@ -221,9 +247,10 @@
           {% endfor %}
         </div>
         <input type="hidden" name="languages" id="languages-hidden">
+        <div id="languages-error" class="text-red-600 text-sm mt-1"></div>
       </div>
 
-      <!-- Required Roles Section -->
+      <!-- Required Roles Section (optional) -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
           Required Roles
@@ -256,34 +283,55 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // ---------------------------
+  // Global references
+  // ---------------------------
   const submitButton = document.getElementById('submit-button');
 
-  // Title elements
+  // Text fields
   const titleInput = document.getElementById('project-title');
   const titleCounter = document.getElementById('title-counter');
   const titleError = document.getElementById('title-error');
 
-  // Description elements
   const descriptionInput = document.getElementById('project-description');
   const descriptionCounter = document.getElementById('description-counter');
   const descriptionError = document.getElementById('description-error');
 
-  // Mission elements
   const missionInput = document.getElementById('project-mission');
   const missionCounter = document.getElementById('mission-counter');
   const missionError = document.getElementById('mission-error');
 
-  // Objectives elements
   const objectivesInput = document.getElementById('project-objectives');
   const objectivesCounter = document.getElementById('objectives-counter');
   const objectivesError = document.getElementById('objectives-error');
 
-  // Skills elements
-  const skillsError = document.getElementById('skills-error');
+  // Hidden inputs
   const skillsHidden = document.getElementById('skills_required');
-  let selectedSkills = new Set();
+  const languagesHidden = document.getElementById('languages-hidden');
+  const categoriesHidden = document.getElementById('categories-hidden');
+  const rolesHidden = document.getElementById('roles-hidden');
 
-  // Utility function to update word counters and show error messages
+  // Error messages
+  const skillsError = document.getElementById('skills-error');
+  const languagesError = document.getElementById('languages-error');
+
+  // Global states
+  let selectedCategories = [];
+  let selectedSkills = new Set();
+  let selectedLanguages = [];
+  let selectedRoles = [];
+
+  // Skills search
+  const skillSearchInput = document.getElementById('skill-search');
+  const skillHints = document.getElementById('skill-hints');
+  const allSkillItems = document.querySelectorAll('.skill-item');
+
+  // Selected skills container (for tags)
+  const selectedSkillsContainer = document.getElementById('selected-skills-container');
+
+  // ---------------------------
+  // Word Counter Logic
+  // ---------------------------
   function updateCounter(inputElement, counterElement, maxWords, errorElement) {
     const words = inputElement.value.trim().split(/\s+/).filter(word => word.length > 0);
     const count = words.length;
@@ -300,60 +348,195 @@ document.addEventListener('DOMContentLoaded', function() {
     checkFormValidity();
   }
 
-  // Check skills validity
+  // ---------------------------
+  // Skills: Display/Remove Tags
+  // ---------------------------
+  function updateSelectedSkillsContainer() {
+    // Clear existing tags
+    selectedSkillsContainer.innerHTML = '';
+
+    // For each selected skill, create a tag
+    selectedSkills.forEach(skillId => {
+      const skillElem = document.querySelector(`.skill-item[data-skill-id="${skillId}"]`);
+      if (skillElem) {
+        const skillName = skillElem.getAttribute('data-skill-name');
+        const tag = document.createElement('span');
+        tag.className = 'bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm cursor-pointer';
+        tag.textContent = skillName + ' ×';
+        tag.setAttribute('data-skill-id', skillId);
+
+        // On clicking a tag, remove the skill
+        tag.addEventListener('click', function() {
+          selectedSkills.delete(skillId);
+          skillsHidden.value = Array.from(selectedSkills).join(',');
+
+          // Remove highlight from the original skill item
+          const skillItem = document.querySelector(`.skill-item[data-skill-id="${skillId}"]`);
+          if (skillItem) {
+            skillItem.classList.remove('bg-blue-50', 'text-blue-700');
+          }
+          updateSelectedSkillsContainer();
+          checkSkillsValidity();
+        });
+
+        selectedSkillsContainer.appendChild(tag);
+      }
+    });
+  }
+
+  // ---------------------------
+  // Skill Hints (auto-suggest)
+  // ---------------------------
+  // Collect all skills into an array for hinting
+  let allSkillsData = [];
+  allSkillItems.forEach(item => {
+    allSkillsData.push({
+      id: item.dataset.skillId,
+      name: item.dataset.skillName
+    });
+  });
+
+  function showSkillHints(query) {
+    // Filter skills by query
+    const matched = allSkillsData.filter(s =>
+      s.name.toLowerCase().includes(query.toLowerCase())
+    );
+
+    // If no query or no matches, hide the hint box
+    if (!query || matched.length === 0) {
+      skillHints.innerHTML = '';
+      skillHints.classList.add('hidden');
+      return;
+    }
+
+    // Build the hint list
+    let html = '';
+    matched.forEach(skill => {
+      html += `
+        <div
+          class="p-2 hover:bg-gray-100 cursor-pointer"
+          data-hint-id="${skill.id}"
+          data-hint-name="${skill.name}"
+        >
+          ${skill.name}
+        </div>
+      `;
+    });
+    skillHints.innerHTML = html;
+    skillHints.classList.remove('hidden');
+  }
+
+  skillSearchInput.addEventListener('input', function() {
+    const query = skillSearchInput.value.trim();
+    showSkillHints(query);
+  });
+
+  // When user clicks on a hint, toggle the skill selection
+  skillHints.addEventListener('click', function(e) {
+    const target = e.target.closest('div[data-hint-id]');
+    if (!target) return;
+    const skillId = target.dataset.hintId;
+    const skillName = target.dataset.hintName;
+
+    if (selectedSkills.has(skillId)) {
+      // If already selected, remove it
+      selectedSkills.delete(skillId);
+      // Remove highlight from collapsible item
+      const skillItem = document.querySelector(`.skill-item[data-skill-id="${skillId}"]`);
+      if (skillItem) {
+        skillItem.classList.remove('bg-blue-50', 'text-blue-700');
+      }
+    } else {
+      // Add skill
+      selectedSkills.add(skillId);
+      // Highlight collapsible item
+      const skillItem = document.querySelector(`.skill-item[data-skill-id="${skillId}"]`);
+      if (skillItem) {
+        skillItem.classList.add('bg-blue-50', 'text-blue-700');
+      }
+    }
+
+    // Update hidden input and tags
+    skillsHidden.value = Array.from(selectedSkills).join(',');
+    updateSelectedSkillsContainer();
+    checkSkillsValidity();
+
+    // Hide hints after selection
+    skillHints.innerHTML = '';
+    skillHints.classList.add('hidden');
+  });
+
+  // If user clicks anywhere else on the page, hide the hint box
+  document.addEventListener('click', function(e) {
+    if (!skillHints.contains(e.target) && e.target !== skillSearchInput) {
+      skillHints.classList.add('hidden');
+    }
+  });
+
+  // ---------------------------
+  // Skills Validity
+  // ---------------------------
   function checkSkillsValidity() {
-    if (selectedSkills.size < 5) {
-      skillsError.textContent = 'Please select at least 5 skills.';
+    if (selectedSkills.size < 1) {
+      skillsError.textContent = 'Please select at least 1 skill.';
     } else {
       skillsError.textContent = '';
     }
     checkFormValidity();
   }
 
-  // Overall form validity check: disable submit button if any errors exist.
+  // ---------------------------
+  // Overall Form Validation
+  // ---------------------------
   function checkFormValidity() {
-    const titleWords = titleInput.value.trim().split(/\s+/).filter(w => w.length > 0).length;
-    const descriptionWords = descriptionInput.value.trim().split(/\s+/).filter(w => w.length > 0).length;
-    const missionWords = missionInput ? missionInput.value.trim().split(/\s+/).filter(w => w.length > 0).length : 0;
-    const objectivesWords = objectivesInput ? objectivesInput.value.trim().split(/\s+/).filter(w => w.length > 0).length : 0;
-    const skillsValid = (selectedSkills.size >= 5);
-    if (titleWords > 20 || descriptionWords > 250 || !skillsValid) {
-      submitButton.disabled = true;
-      submitButton.classList.add('opacity-50', 'cursor-not-allowed');
-    } else {
+    // Word counts
+    const titleCount = titleInput.value.trim().split(/\s+/).filter(Boolean).length;
+    const descriptionCount = descriptionInput.value.trim().split(/\s+/).filter(Boolean).length;
+    const missionCount = missionInput.value.trim().split(/\s+/).filter(Boolean).length;
+    const objectivesCount = objectivesInput.value.trim().split(/\s+/).filter(Boolean).length;
+
+    // Adjust these min/max requirements as needed
+    const titleValid = titleCount >= 1 && titleCount <= 20;
+    const descriptionValid = descriptionCount >= 1 && descriptionCount <= 250;
+    const missionValid = missionCount <= 70;  // optional min check
+    const objectivesValid = objectivesCount <= 150;  // optional min check
+
+    const categoriesValid = selectedCategories.length >= 1 && selectedCategories.length <= 5;
+    const skillsValid = selectedSkills.size >= 1;
+    const languagesValid = selectedLanguages.length >= 1;
+
+    if (
+      titleValid &&
+      descriptionValid &&
+      missionValid &&
+      objectivesValid &&
+      categoriesValid &&
+      skillsValid &&
+      languagesValid
+    ) {
       submitButton.disabled = false;
       submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+    } else {
+      submitButton.disabled = true;
+      submitButton.classList.add('opacity-50', 'cursor-not-allowed');
     }
   }
 
-  // Title word counter event
-  titleInput.addEventListener('input', function() {
-    updateCounter(titleInput, titleCounter, 20, titleError);
-  });
-
-  // Description word counter event
-  descriptionInput.addEventListener('input', function() {
-    updateCounter(descriptionInput, descriptionCounter, 250, descriptionError);
-  });
-
-  // Mission word counter event
+  // ---------------------------
+  // Event Listeners
+  // ---------------------------
+  // Word counters
+  titleInput.addEventListener('input', () => updateCounter(titleInput, titleCounter, 20, titleError));
+  descriptionInput.addEventListener('input', () => updateCounter(descriptionInput, descriptionCounter, 250, descriptionError));
   if(missionInput) {
-    missionInput.addEventListener('input', function() {
-      updateCounter(missionInput, missionCounter, 70, missionError);
-    });
+    missionInput.addEventListener('input', () => updateCounter(missionInput, missionCounter, 70, missionError));
   }
-
-  // Objectives word counter event
   if(objectivesInput) {
-    objectivesInput.addEventListener('input', function() {
-      updateCounter(objectivesInput, objectivesCounter, 150, objectivesError);
-    });
+    objectivesInput.addEventListener('input', () => updateCounter(objectivesInput, objectivesCounter, 150, objectivesError));
   }
 
-  // Categories selection logic
+  // Categories
   const categoryButtons = document.querySelectorAll('#categories-buttons button');
-  const categoriesHidden = document.getElementById('categories-hidden');
-  let selectedCategories = [];
   categoryButtons.forEach(button => {
     button.addEventListener('click', function() {
       const categoryId = button.getAttribute('data-id');
@@ -371,30 +554,31 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
       categoriesHidden.value = selectedCategories.join(',');
+      checkFormValidity();
     });
   });
 
-  // Skills selection logic
-  const skillItems = document.querySelectorAll('.skill-item');
-  skillItems.forEach(item => {
+  // Skills (collapsible structure)
+  allSkillItems.forEach(item => {
     item.addEventListener('click', function() {
       const skillId = item.getAttribute('data-skill-id');
       if (selectedSkills.has(skillId)) {
+        // Already selected => remove
         selectedSkills.delete(skillId);
         item.classList.remove('bg-blue-50', 'text-blue-700');
       } else {
+        // Add new
         selectedSkills.add(skillId);
         item.classList.add('bg-blue-50', 'text-blue-700');
       }
       skillsHidden.value = Array.from(selectedSkills).join(',');
+      updateSelectedSkillsContainer();
       checkSkillsValidity();
     });
   });
 
-  // Languages selection logic
+  // Languages
   const languageButtons = document.querySelectorAll('#languages-buttons button');
-  const languagesHidden = document.getElementById('languages-hidden');
-  let selectedLanguages = [];
   languageButtons.forEach(button => {
     button.addEventListener('click', function() {
       const langId = button.getAttribute('data-id');
@@ -408,13 +592,12 @@ document.addEventListener('DOMContentLoaded', function() {
         button.classList.add('bg-blue-100', 'text-blue-700', 'border-blue-200');
       }
       languagesHidden.value = selectedLanguages.join(',');
+      checkFormValidity();
     });
   });
 
-  // Required Roles selection logic
+  // Roles (optional)
   const roleButtons = document.querySelectorAll('#roles-buttons button');
-  const rolesHidden = document.getElementById('roles-hidden');
-  let selectedRoles = [];
   roleButtons.forEach(button => {
     button.addEventListener('click', function() {
       const roleId = button.getAttribute('data-id');
@@ -428,10 +611,11 @@ document.addEventListener('DOMContentLoaded', function() {
         button.classList.add('bg-blue-100', 'text-blue-700', 'border-blue-200');
       }
       rolesHidden.value = selectedRoles.join(',');
+      checkFormValidity();
     });
   });
 
-  // Prevent form submission if validations fail
+  // Final check on form submit
   const form = document.getElementById('project-form');
   form.addEventListener('submit', function(e) {
     checkFormValidity();
@@ -441,7 +625,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Initial check in case of pre-filled values.
+  // Initial load
   checkFormValidity();
 });
 </script>

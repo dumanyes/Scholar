@@ -15,10 +15,10 @@
     <form method="post" action="{% url 'users-edit-profile' %}" enctype="multipart/form-data" id="profile-form">
       {% csrf_token %}
 
-      <!-- Avatar Section -->
+      <!-- Avatar Section with Live Preview -->
       <div class="flex flex-col items-center mb-6">
         <div class="relative">
-          <img class="w-24 h-24 object-cover rounded-full border border-gray-300" 
+          <img id="avatar-preview" class="w-24 h-24 object-cover rounded-full border border-gray-300" 
                src="{{ user.profile.avatar.url }}" 
                alt="Profile Picture" 
                onerror="this.src='/static/images/default-avatar.png'">
@@ -33,22 +33,33 @@
       </div>
 
       <!-- Personal Details -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div>
-          <label class="block text-gray-700">Username</label>
-          {{ user_form.username|add_class:"w-full px-3 py-2 border rounded" }}
-          {% if user_form.username.errors %}
-            <p class="text-red-600 text-sm mt-1">{{ user_form.username.errors|join:", " }}</p>
-          {% endif %}
-        </div>
-        <div>
-          <label class="block text-gray-700">Email</label>
-          {{ user_form.email|add_class:"w-full px-3 py-2 border rounded" }}
-          {% if user_form.email.errors %}
-            <p class="text-red-600 text-sm mt-1">{{ user_form.email.errors|join:", " }}</p>
-          {% endif %}
-        </div>
-      </div>
+      <!-- Personal Details -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+  <div>
+    <label class="block text-gray-700">Username</label>
+    {{ user_form.username|add_class:"w-full px-3 py-2 border rounded" }}
+    {% if user_form.username.errors %}
+      <p class="text-red-600 text-sm mt-1">{{ user_form.username.errors|join:", " }}</p>
+    {% endif %}
+  </div>
+  <div>
+    <label class="block text-gray-700">Email</label>
+    {{ user_form.email|add_class:"w-full px-3 py-2 border rounded" }}
+    {% if user_form.email.errors %}
+      <p class="text-red-600 text-sm mt-1">{{ user_form.email.errors|join:", " }}</p>
+    {% endif %}
+    <!-- Hidden original email -->
+    <input type="hidden" id="original-email" value="{{ user.email }}">
+    <!-- If verification is required, show the verification field -->
+    {% if email_verification_required %}
+    <div class="mt-2">
+      <label class="block text-gray-700">Verification Code</label>
+      <input type="text" name="verification_code" id="verification_code" class="w-full px-3 py-2 border rounded" placeholder="Enter verification code">
+    </div>
+    {% endif %}
+  </div>
+</div>
+
 
       <!-- Professional Details -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -79,62 +90,44 @@
       </div>
 
       <!-- University with Search -->
-      <div class="mb-4">
-  <label class="block text-gray-700">University</label>
-  <select name="university" id="id_university" class="w-full px-3 py-2 border rounded">
-    <option value="">Select a University</option>
-    {% for uni in universities %}
-      <option value="{{ uni.id }}"
-        {% if user.profile.university and user.profile.university.id == uni.id %}selected{% endif %}>
-        {{ uni.name }}
-      </option>
-    {% endfor %}
-  </select>
-  {% if profile_form.university.errors %}
-    <p class="text-red-600 text-sm mt-1">{{ profile_form.university.errors|join:", " }}</p>
-  {% endif %}
-</div>
+      <div class="mb-4 relative">
+        <label class="block text-gray-700">University</label>
+        <input type="text" id="university-search" placeholder="Search University" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <div id="university-hints" class="border border-gray-200 rounded-md bg-white shadow absolute hidden z-10 w-full" style="max-height:200px; overflow-y:auto;"></div>
+        <div id="selected-university" class="mt-3 flex flex-wrap gap-2"></div>
+        <input type="hidden" name="university" id="university-hidden" value="{{ user.profile.university.id|default_if_none:'' }}">
+        {% if profile_form.university.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ profile_form.university.errors|join:", " }}</p>
+        {% endif %}
+      </div>
 
-
-      <!-- Dynamic Location Selection -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <!-- Country with Search -->
-        <div>
+      <!-- Country & City with Search -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 relative">
+        <!-- Country -->
+        <div class="relative">
           <label class="block text-gray-700">Country</label>
-          <input type="text" id="country-search" placeholder="Search Country" class="mb-2 w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <select name="country" id="id_country" class="w-full px-3 py-2 border rounded">
-            <option value="">Select a country</option>
-            {% for country in countries %}
-              <option value="{{ country.id }}"
-                {% if user.profile.country and user.profile.country.id == country.id %}selected{% endif %}>
-                {{ country.name }}
-              </option>
-            {% endfor %}
-          </select>
+          <input type="text" id="country-search" placeholder="Search Country" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <div id="country-hints" class="border border-gray-200 rounded-md bg-white shadow absolute hidden z-10 w-full" style="max-height:200px; overflow-y:auto;"></div>
+          <div id="selected-country" class="mt-3 flex flex-wrap gap-2"></div>
+          <input type="hidden" name="country" id="country-hidden" value="{{ user.profile.country.id|default_if_none:'' }}">
           {% if profile_form.country.errors %}
             <p class="text-red-600 text-sm mt-1">{{ profile_form.country.errors|join:", " }}</p>
           {% endif %}
         </div>
-        <!-- City with Search -->
-        <div>
+        <!-- City -->
+        <div class="relative">
           <label class="block text-gray-700">City</label>
-          <input type="text" id="city-search" placeholder="Search City" class="mb-2 w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <select name="city" id="id_city" class="w-full px-3 py-2 border rounded">
-            <option value="">Select a city</option>
-            {% for city in cities %}
-              <option value="{{ city.id }}" data-country="{{ city.country.id }}"
-                {% if user.profile.city and user.profile.city.id == city.id %}selected{% endif %}>
-                {{ city.name }}
-              </option>
-            {% endfor %}
-          </select>
+          <input type="text" id="city-search" placeholder="Search City" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" disabled>
+          <div id="city-hints" class="border border-gray-200 rounded-md bg-white shadow absolute hidden z-10 w-full" style="max-height:200px; overflow-y:auto;"></div>
+          <div id="selected-city" class="mt-3 flex flex-wrap gap-2"></div>
+          <input type="hidden" name="city" id="city-hidden" value="{{ user.profile.city.id|default_if_none:'' }}">
           {% if profile_form.city.errors %}
             <p class="text-red-600 text-sm mt-1">{{ profile_form.city.errors|join:", " }}</p>
           {% endif %}
         </div>
       </div>
 
-      <!-- Categories Selection (Replaces Interests) -->
+      <!-- Categories Selection -->
       <div class="mb-4">
         <label class="block text-gray-700 font-medium mb-2">Your Categories</label>
         <div id="categories-buttons" class="flex flex-wrap gap-2 mb-2">
@@ -152,12 +145,19 @@
         {% endif %}
       </div>
 
-      <!-- Skills Selection -->
+      <!-- Skills Selection with Search and Removable Tags -->
       <div class="mb-4">
         <label class="block text-gray-700 font-medium mb-2">
           Your Skills (Select at least 1 skill)
         </label>
-        <div class="space-y-2">
+        <!-- Search Bar for Skills -->
+        <input type="text" id="skill-search" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition mb-4" placeholder="Search skills...">
+        <!-- Hints container for skill search (shown below the search bar) -->
+        <div id="skill-hints" class="border border-gray-200 rounded-md bg-white shadow absolute hidden z-10 w-full" style="max-height:200px; overflow-y:auto;"></div>
+        <!-- Display Selected Skills as Tags -->
+        <div id="selected-skills-display" class="mt-3 flex flex-wrap gap-2"></div>
+        <!-- Collapsible list of available skills -->
+        <div class="space-y-2" id="skills-list">
           {% for category in skill_categories %}
             <div class="border border-gray-200 rounded-lg overflow-hidden">
               <details class="group">
@@ -179,7 +179,8 @@
                       <div class="mt-2 space-y-2">
                         {% for skill in subcat.skills.all %}
                           <div class="p-2 rounded-md cursor-pointer transition hover:bg-gray-50 skill-item"
-                               data-skill-id="{{ skill.id }}" data-skill-name="{{ skill.name }}">
+                               data-skill-id="{{ skill.id }}"
+                               data-skill-name="{{ skill.name }}">
                             {{ skill.name }}
                           </div>
                         {% endfor %}
@@ -192,8 +193,6 @@
           {% endfor %}
         </div>
         <input type="hidden" name="skills" id="skills-hidden" value="{{ profile_form.initial.skills|default:"" }}">
-        <!-- Selected Skills Display -->
-        <div id="selected-skills-display" class="mt-3 flex flex-wrap gap-2"></div>
         {% if profile_form.skills.errors %}
           <p class="text-red-600 text-sm mt-1">{{ profile_form.skills.errors|join:", " }}</p>
         {% endif %}
@@ -247,63 +246,106 @@
 <!-- JavaScript Section -->
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  const saveButton = document.getElementById('save-button');
-
-  // --- Categories Selection ---
-  // --- Categories Selection ---
-const categoryButtons = document.querySelectorAll('#categories-buttons button');
-const categoriesHidden = document.getElementById('categories-hidden');
-// Read initial value from the hidden field (it should be set by the form's __init__)
-let selectedCategories = categoriesHidden.value ? categoriesHidden.value.split(",").filter(v => v) : [];
-
-// On page load, update the UI for already selected categories:
-selectedCategories.forEach(id => {
-  const btn = document.querySelector(`#categories-buttons button[data-id="${id}"]`);
-  if (btn) {
-    btn.classList.remove('bg-gray-50','text-gray-700','border-gray-200');
-    btn.classList.add('bg-blue-100','text-blue-700','border-blue-200');
+  // ---------------------------
+  // Live Preview for Avatar
+  // ---------------------------
+  const avatarInput = document.querySelector('input[type="file"][name="avatar"]');
+  const avatarPreview = document.getElementById("avatar-preview");
+  if (avatarInput) {
+    avatarInput.addEventListener("change", function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          avatarPreview.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
   }
-});
 
-// Add click event listeners
-categoryButtons.forEach(button => {
-  button.addEventListener('click', function() {
-    const id = button.getAttribute('data-id');
-    if (selectedCategories.includes(id)) {
-      // Remove the selection
-      selectedCategories = selectedCategories.filter(cid => cid !== id);
-      button.classList.remove('bg-blue-100','text-blue-700','border-blue-200');
-      button.classList.add('bg-gray-50','text-gray-700','border-gray-200');
-    } else {
-      // Add the selection
-      selectedCategories.push(id);
-      button.classList.remove('bg-gray-50','text-gray-700','border-gray-200');
-      button.classList.add('bg-blue-100','text-blue-700','border-blue-200');
+  // ---------------------------
+  // Email Verification Check
+  // ---------------------------
+  const emailInput = document.querySelector('input[name="email"]');
+  const originalEmail = document.getElementById('original-email');
+  const verificationInput = document.getElementById('verification_code'); // may not exist if not required
+  function checkEmailVerification() {
+    if (emailInput.value !== originalEmail.value) {
+      // If email changed, require non-empty verification code
+      if (!verificationInput || verificationInput.value.trim() === "") {
+        return false;
+      }
     }
-    categoriesHidden.value = selectedCategories.join(",");
+    return true;
+  }
+
+  emailInput.addEventListener("input", function() {
+    checkFormValidity();
   });
-});
+  if (verificationInput) {
+    verificationInput.addEventListener("input", function() {
+      checkFormValidity();
+    });
+  }
 
+  // ---------------------------
+  // 1) Categories Selection
+  // ---------------------------
+  const categoryButtons = document.querySelectorAll('#categories-buttons button');
+  const categoriesHidden = document.getElementById('categories-hidden');
+  let selectedCategories = categoriesHidden.value ? categoriesHidden.value.split(",").filter(v => v) : [];
+  selectedCategories.forEach(id => {
+    const btn = document.querySelector(`#categories-buttons button[data-id="${id}"]`);
+    if (btn) {
+      btn.classList.remove('bg-gray-50','text-gray-700','border-gray-200');
+      btn.classList.add('bg-blue-100','text-blue-700','border-blue-200');
+    }
+  });
+  categoryButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const id = button.getAttribute('data-id');
+      if (selectedCategories.includes(id)) {
+        selectedCategories = selectedCategories.filter(cid => cid !== id);
+        button.classList.remove('bg-blue-100','text-blue-700','border-blue-200');
+        button.classList.add('bg-gray-50','text-gray-700','border-gray-200');
+      } else {
+        selectedCategories.push(id);
+        button.classList.remove('bg-gray-50','text-gray-700','border-gray-200');
+        button.classList.add('bg-blue-100','text-blue-700','border-blue-200');
+      }
+      categoriesHidden.value = selectedCategories.join(",");
+    });
+  });
 
-  // --- Skills Selection & Display with Removable Tags ---
+  // ---------------------------
+  // 2) Skills Selection with Search & Removable Tags
+  // ---------------------------
   const skillsHidden = document.getElementById('skills-hidden');
-  let selectedSkills = skillsHidden.value ? skillsHidden.value.split(",") : [];
+  let selectedSkills = skillsHidden.value ? skillsHidden.value.split(",").filter(Boolean) : [];
   const skillItems = document.querySelectorAll('.skill-item');
   const selectedSkillsDisplay = document.getElementById('selected-skills-display');
 
+  selectedSkills.forEach(id => {
+    const el = document.querySelector(`.skill-item[data-skill-id="${id}"]`);
+    if (el) {
+      el.classList.add('bg-blue-50','text-blue-700');
+    }
+  });
   function updateSelectedSkillsDisplay() {
     selectedSkillsDisplay.innerHTML = "";
     selectedSkills.forEach(skillId => {
-      const skillElement = document.querySelector(`.skill-item[data-skill-id="${skillId}"]`);
-      if (skillElement) {
-        const skillName = skillElement.getAttribute('data-skill-name');
+      const skillElem = document.querySelector(`.skill-item[data-skill-id="${skillId}"]`);
+      if (skillElem) {
+        const skillName = skillElem.getAttribute('data-skill-name');
         const tag = document.createElement('span');
         tag.className = "inline-flex items-center bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm cursor-pointer";
-        tag.textContent = skillName;
+        tag.textContent = skillName + " ×";
         tag.addEventListener('click', () => {
           selectedSkills = selectedSkills.filter(id => id !== skillId);
           skillsHidden.value = selectedSkills.join(",");
-          skillElement.classList.remove('bg-blue-50','text-blue-700');
+          const skillItem = document.querySelector(`.skill-item[data-skill-id="${skillId}"]`);
+          if (skillItem) skillItem.classList.remove('bg-blue-50','text-blue-700');
           updateSelectedSkillsDisplay();
           checkFormValidity();
         });
@@ -311,12 +353,6 @@ categoryButtons.forEach(button => {
       }
     });
   }
-  selectedSkills.forEach(id => {
-    const el = document.querySelector(`.skill-item[data-skill-id="${id}"]`);
-    if (el) {
-      el.classList.add('bg-blue-50','text-blue-700');
-    }
-  });
   updateSelectedSkillsDisplay();
 
   skillItems.forEach(item => {
@@ -335,40 +371,308 @@ categoryButtons.forEach(button => {
     });
   });
 
-  // --- Dynamic Location: Country and City Filtering ---
-  const countrySearch = document.getElementById('country-search');
-  const countrySelect = document.getElementById('id_country');
-  const citySearch = document.getElementById('city-search');
-  const citySelect = document.getElementById('id_city');
+  // Skill Search & Hints
+  const skillSearchInput = document.getElementById('skill-search');
+  const skillHints = document.getElementById('skill-hints');
+  let allSkillsData = [];
+  skillItems.forEach(item => {
+    allSkillsData.push({
+      id: item.dataset.skillId,
+      name: item.dataset.skillName
+    });
+  });
+  function showSkillHints(query) {
+    const matched = allSkillsData.filter(s =>
+      s.name.toLowerCase().includes(query.toLowerCase())
+    );
+    if (!query || matched.length === 0) {
+      skillHints.innerHTML = '';
+      skillHints.classList.add('hidden');
+      return;
+    }
+    let html = '';
+    matched.forEach(skill => {
+      html += `
+        <div class="p-2 hover:bg-gray-100 cursor-pointer" data-hint-id="${skill.id}" data-hint-name="${skill.name}">
+          ${skill.name}
+        </div>
+      `;
+    });
+    skillHints.innerHTML = html;
+    skillHints.classList.remove('hidden');
+  }
+  skillSearchInput.addEventListener('input', function() {
+    const query = skillSearchInput.value.trim();
+    showSkillHints(query);
+  });
+  skillHints.addEventListener('click', function(e) {
+    const target = e.target.closest('div[data-hint-id]');
+    if (!target) return;
+    const skillId = target.dataset.hintId;
+    if (selectedSkills.includes(skillId)) {
+      selectedSkills = selectedSkills.filter(id => id !== skillId);
+      const skillItem = document.querySelector(`.skill-item[data-skill-id="${skillId}"]`);
+      if (skillItem) skillItem.classList.remove('bg-blue-50','text-blue-700');
+    } else {
+      selectedSkills.push(skillId);
+      const skillItem = document.querySelector(`.skill-item[data-skill-id="${skillId}"]`);
+      if (skillItem) skillItem.classList.add('bg-blue-50','text-blue-700');
+    }
+    skillsHidden.value = selectedSkills.join(",");
+    updateSelectedSkillsDisplay();
+    checkFormValidity();
+    skillHints.classList.add('hidden');
+  });
+  document.addEventListener('click', function(e) {
+    if (!skillHints.contains(e.target) && e.target !== skillSearchInput) {
+      skillHints.classList.add('hidden');
+    }
+  });
 
-  countrySearch.addEventListener('keyup', function() {
-    const filter = countrySearch.value.toLowerCase();
-    Array.from(countrySelect.options).forEach(option => {
-      const text = option.text.toLowerCase();
-      option.style.display = text.includes(filter) ? '' : 'none';
+  // ---------------------------
+  // 3) University Search & Single Selection
+  // ---------------------------
+  const universityHidden = document.getElementById('university-hidden');
+  const selectedUniversityContainer = document.getElementById('selected-university');
+  const universitySearchInput = document.getElementById('university-search');
+  const universityHints = document.getElementById('university-hints');
+  let allUniversities = [
+    {% for uni in universities %}
+      { id: "{{ uni.id }}", name: "{{ uni.name|escapejs }}" },
+    {% endfor %}
+  ];
+  function updateUniversityTag() {
+    selectedUniversityContainer.innerHTML = '';
+    const currentId = universityHidden.value;
+    if (!currentId) return;
+    const matched = allUniversities.find(u => u.id === currentId);
+    if (!matched) return;
+    const tag = document.createElement('span');
+    tag.className = 'inline-flex items-center bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm cursor-pointer';
+    tag.textContent = matched.name + " ×";
+    tag.addEventListener('click', function() {
+      universityHidden.value = '';
+      selectedUniversityContainer.innerHTML = '';
+      checkFormValidity();
+    });
+    selectedUniversityContainer.appendChild(tag);
+  }
+  updateUniversityTag();
+  function showUniversityHints(query) {
+    const matched = allUniversities.filter(u =>
+      u.name.toLowerCase().includes(query.toLowerCase())
+    );
+    if (!query || matched.length === 0) {
+      universityHints.innerHTML = '';
+      universityHints.classList.add('hidden');
+      return;
+    }
+    let html = '';
+    matched.forEach(u => {
+      html += `
+        <div class="p-2 hover:bg-gray-100 cursor-pointer" data-uni-id="${u.id}" data-uni-name="${u.name}">
+          ${u.name}
+        </div>
+      `;
+    });
+    universityHints.innerHTML = html;
+    universityHints.classList.remove('hidden');
+  }
+  universitySearchInput.addEventListener('input', function() {
+    const query = universitySearchInput.value.trim();
+    showUniversityHints(query);
+  });
+  universityHints.addEventListener('click', function(e) {
+    const target = e.target.closest('div[data-uni-id]');
+    if (!target) return;
+    const uniId = target.dataset.uniId;
+    universityHidden.value = uniId;
+    updateUniversityTag();
+    universityHints.classList.add('hidden');
+    checkFormValidity();
+  });
+  document.addEventListener('click', function(e) {
+    if (!universityHints.contains(e.target) && e.target !== universitySearchInput) {
+      universityHints.classList.add('hidden');
+    }
+  });
+
+  // ---------------------------
+  // 4) Country & City Search with Filtering
+  // ---------------------------
+  const countryHidden = document.getElementById('country-hidden');
+  const selectedCountryContainer = document.getElementById('selected-country');
+  const countrySearch = document.getElementById('country-search');
+  const countryHints = document.getElementById('country-hints');
+  let allCountries = [
+    {% for c in countries %}
+      { id: "{{ c.id }}", name: "{{ c.name|escapejs }}" },
+    {% endfor %}
+  ];
+  function updateCountryTag() {
+    selectedCountryContainer.innerHTML = '';
+    const currentId = countryHidden.value;
+    if (!currentId) return;
+    const matched = allCountries.find(c => c.id === currentId);
+    if (!matched) return;
+    const tag = document.createElement('span');
+    tag.className = 'inline-flex items-center bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm cursor-pointer';
+    tag.textContent = matched.name + " ×";
+    tag.addEventListener('click', function() {
+      countryHidden.value = '';
+      selectedCountryContainer.innerHTML = '';
+      document.getElementById('city-search').disabled = true;
+      cityHidden.value = '';
+      updateCityTag();
+      checkFormValidity();
+    });
+    selectedCountryContainer.appendChild(tag);
+  }
+  updateCountryTag();
+  function showCountryHints(query) {
+    const matched = allCountries.filter(c =>
+      c.name.toLowerCase().includes(query.toLowerCase())
+    );
+    if (!query || matched.length === 0) {
+      countryHints.innerHTML = '';
+      countryHints.classList.add('hidden');
+      return;
+    }
+    let html = '';
+    matched.forEach(c => {
+      html += `
+        <div class="p-2 hover:bg-gray-100 cursor-pointer" data-country-id="${c.id}" data-country-name="${c.name}">
+          ${c.name}
+        </div>
+      `;
+    });
+    countryHints.innerHTML = html;
+    countryHints.classList.remove('hidden');
+  }
+  countrySearch.addEventListener('input', function() {
+    const query = countrySearch.value.trim();
+    showCountryHints(query);
+  });
+  countryHints.addEventListener('click', function(e) {
+    const target = e.target.closest('div[data-country-id]');
+    if (!target) return;
+    const cId = target.dataset.countryId;
+    countryHidden.value = cId;
+    updateCountryTag();
+    countryHints.classList.add('hidden');
+    document.getElementById('city-search').disabled = false;
+    checkFormValidity();
+  });
+  document.addEventListener('click', function(e) {
+    if (!countryHints.contains(e.target) && e.target !== countrySearch) {
+      countryHints.classList.add('hidden');
+    }
+  });
+
+  // City Search - only show cities that belong to the selected country.
+  const cityHidden = document.getElementById('city-hidden');
+  const selectedCityContainer = document.getElementById('selected-city');
+  const citySearchInput = document.getElementById('city-search');
+  const cityHints = document.getElementById('city-hints');
+  let allCities = [
+    {% for ct in cities %}
+      { id: "{{ ct.id }}", name: "{{ ct.name|escapejs }}", country: "{{ ct.country.id }}" },
+    {% endfor %}
+  ];
+  function updateCityTag() {
+    selectedCityContainer.innerHTML = '';
+    const currentId = cityHidden.value;
+    if (!currentId) return;
+    const matched = allCities.find(ct => ct.id === currentId);
+    if (!matched) return;
+    const tag = document.createElement('span');
+    tag.className = 'inline-flex items-center bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm cursor-pointer';
+    tag.textContent = matched.name + " ×";
+    tag.addEventListener('click', function() {
+      cityHidden.value = '';
+      selectedCityContainer.innerHTML = '';
+      checkFormValidity();
+    });
+    selectedCityContainer.appendChild(tag);
+  }
+  updateCityTag();
+  function showCityHints(query) {
+    const selectedCountryId = countryHidden.value;
+    const matched = allCities.filter(ct =>
+      (!selectedCountryId || ct.country === selectedCountryId) &&
+      ct.name.toLowerCase().includes(query.toLowerCase())
+    );
+    if (!query || matched.length === 0) {
+      cityHints.innerHTML = '';
+      cityHints.classList.add('hidden');
+      return;
+    }
+    let html = '';
+    matched.forEach(ct => {
+      html += `
+        <div class="p-2 hover:bg-gray-100 cursor-pointer" data-city-id="${ct.id}" data-city-name="${ct.name}">
+          ${ct.name}
+        </div>
+      `;
+    });
+    cityHints.innerHTML = html;
+    cityHints.classList.remove('hidden');
+  }
+  citySearchInput.addEventListener('input', function() {
+    const query = citySearchInput.value.trim();
+    showCityHints(query);
+  });
+  cityHints.addEventListener('click', function(e) {
+    const target = e.target.closest('div[data-city-id]');
+    if (!target) return;
+    const cityId = target.dataset.cityId;
+    cityHidden.value = cityId;
+    updateCityTag();
+    cityHints.classList.add('hidden');
+    checkFormValidity();
+  });
+  document.addEventListener('click', function(e) {
+    if (!cityHints.contains(e.target) && e.target !== citySearchInput) {
+      cityHints.classList.add('hidden');
+    }
+  });
+
+  // ---------------------------
+  // 5) Roles (Optional)
+  // ---------------------------
+  const roleButtons = document.querySelectorAll('#roles-buttons button');
+  const rolesHidden = document.getElementById('roles-hidden');
+  let selectedRoles = rolesHidden.value ? rolesHidden.value.split(",").filter(Boolean) : [];
+  roleButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const roleId = button.getAttribute('data-id');
+      if (selectedRoles.includes(roleId)) {
+        selectedRoles = selectedRoles.filter(id => id !== roleId);
+        button.classList.remove('bg-blue-100','text-blue-700','border-blue-200');
+        button.classList.add('bg-gray-50','text-gray-700','border-gray-200');
+      } else {
+        selectedRoles.push(roleId);
+        button.classList.remove('bg-gray-50','text-gray-700','border-gray-200');
+        button.classList.add('bg-blue-100','text-blue-700','border-blue-200');
+      }
+      rolesHidden.value = selectedRoles.join(",");
+      checkFormValidity();
     });
   });
 
-  function filterCities() {
-    const selectedCountryId = countrySelect.value;
-    const filter = citySearch.value.toLowerCase();
-    Array.from(citySelect.options).forEach(option => {
-      const optionCountry = option.getAttribute('data-country');
-      const text = option.text.toLowerCase();
-      if ((selectedCountryId === "" || optionCountry === selectedCountryId) && text.includes(filter)) {
-        option.style.display = '';
-      } else {
-        option.style.display = 'none';
-      }
-    });
-  }
-  countrySelect.addEventListener('change', filterCities);
-  citySearch.addEventListener('keyup', filterCities);
-
-  // --- Form Validation: Disable Save if Required Fields are Missing ---
+  // ---------------------------
+  // 6) Form Validation including Email Verification Check
+  // ---------------------------
+  const saveButton = document.getElementById('save-button');
   function checkFormValidity() {
-    // Require at least one skill selected.
-    if (selectedSkills.length < 1) {
+    // For simplicity, we require at least one skill.
+    let skillsValid = selectedSkills.length >= 1;
+    // Also, if email changed, require verification code to be non-empty.
+    let emailValid = true;
+    if (emailInput.value !== originalEmail.value) {
+      emailValid = verificationInput && verificationInput.value.trim() !== "";
+    }
+    if (!skillsValid || !emailValid) {
       saveButton.disabled = true;
       saveButton.classList.add('opacity-50', 'cursor-not-allowed');
     } else {
@@ -378,7 +682,9 @@ categoryButtons.forEach(button => {
   }
   checkFormValidity();
 
-  // Prevent form submission if button is disabled.
+  // ---------------------------
+  // 7) Final Form Submit Check
+  // ---------------------------
   const profileForm = document.getElementById('profile-form');
   profileForm.addEventListener('submit', function(e) {
     checkFormValidity();

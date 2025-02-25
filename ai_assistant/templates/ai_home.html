@@ -1,0 +1,441 @@
+{% extends "users/base.html" %}
+
+{% block content %}
+  <div class="app-container bg-gray-50 rounded-lg shadow-lg overflow-hidden h-[100vh]">
+    <!-- Chat Header -->
+    <header class="chat-header p-4 text-white flex items-center bg-gradient-to-r from-indigo-600 to-indigo-800 rounded-t-lg">
+      <div class="w-10 h-10 rounded-full bg-indigo-400 flex items-center justify-center mr-3">
+        <i class="fas fa-robot text-white"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold">Gemini Flash Assistant</h1>
+        <p class="text-xs opacity-80">Powered by Google Gemini 2.0</p>
+      </div>
+      <div class="ml-auto flex space-x-3">
+        <button class="text-white opacity-80 hover:opacity-100 transition-opacity">
+          <i class="fas fa-volume-up"></i>
+        </button>
+        <button class="text-white opacity-80 hover:opacity-100 transition-opacity">
+          <i class="fas fa-cog"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Chat Area -->
+    <div id="chat-container" class="chat-area px-4 md:px-8 lg:px-16 bg-gray-50 h-[50vh] overflow-y-auto">
+      <!-- Welcome message -->
+      <div class="flex w-full items-start mb-6 pt-4">
+        <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center mr-3 flex-shrink-0">
+          <i class="fas fa-robot text-white"></i>
+        </div>
+        <div class="chat-bubble-assistant p-4">
+          <div class="markdown-content">
+            <p>👋 Hello! I'm your AI assistant powered by Google Gemini 2.0 Flash. How can I help you today?</p>
+            <p>You can ask me questions, request information, or share an image for analysis.</p>
+          </div>
+          <div class="status-indicator">
+            <span>{{ current_time }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading indicator within chat area -->
+      <div id="loading" class="flex justify-center my-4 hidden">
+        <div class="flex items-center space-x-2 bg-gray-800 bg-opacity-70 px-4 py-2 rounded-full">
+          <div class="loader ease-linear rounded-full border-2 border-t-2 border-gray-200 h-5 w-5"></div>
+          <span class="text-white text-sm">Thinking...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Image preview area -->
+    <div id="image-preview-container" class="px-4 md:px-8 lg:px-16 hidden">
+      <div class="preview-container">
+        <img id="image-preview" class="image-preview" src="" alt="Preview">
+        <div class="remove-image" id="remove-image">
+          <i class="fas fa-times"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Input Area -->
+    <div class="chat-input-area px-4 md:px-8 lg:px-16 py-4 bg-white border-t border-gray-200">
+      <div class="input-container p-2 relative">
+        <textarea id="user-message" class="w-full border-0 bg-transparent px-4 py-3 focus:outline-none resize-none" placeholder="Type your message..." rows="1"></textarea>
+        <input type="file" id="user-image" accept="image/*" class="hidden">
+        <button type="button" id="attachment-button" class="attachment-button">
+          <i class="fas fa-paperclip"></i>
+        </button>
+        <button type="submit" id="send-button" class="send-button bg-indigo-600 text-white hover:bg-indigo-700">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+
+      <!-- Suggested quick responses -->
+      <div class="flex flex-wrap gap-2 mt-3">
+        <button class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm hover:bg-indigo-200 transition-colors">
+          Tell me a fact
+        </button>
+        <button class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm hover:bg-indigo-200 transition-colors">
+          Help with my research
+        </button>
+        <button class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm hover:bg-indigo-200 transition-colors">
+          Analyze this image
+        </button>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_scripts %}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    .chat-bubble-user {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+      border-radius: 18px 18px 0 18px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      max-width: 80%;
+      margin-left: auto;
+      animation: fadeIn 0.3s ease-out;
+    }
+    footer {
+      display: none !important;
+    }
+
+    .chat-bubble-assistant {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      border-radius: 18px 18px 18px 0;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      max-width: 80%;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .loader {
+      border-top-color: #3b82f6;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .input-container {
+      position: relative;
+      border-radius: 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      background-color: #f9fafb;
+    }
+
+    .input-container:focus-within {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    #user-message {
+      border-radius: 24px;
+      padding-right: 90px;
+      transition: all 0.2s;
+      min-height: 50px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    .send-button {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      border-radius: 50%;
+      height: 40px;
+      width: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .send-button:hover {
+      transform: scale(1.05);
+    }
+
+    .attachment-button {
+      position: absolute;
+      right: 56px;
+      bottom: 8px;
+      border-radius: 50%;
+      height: 40px;
+      width: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      background-color: #f3f4f6;
+      color: #4b5563;
+    }
+
+    .attachment-button:hover {
+      background-color: #e5e7eb;
+    }
+
+    .image-preview {
+      max-height: 200px;
+      border-radius: 12px;
+      border: 2px solid #e5e7eb;
+      object-fit: contain;
+    }
+
+    .preview-container {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 0.5rem;
+    }
+
+    .remove-image {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background-color: #ef4444;
+      color: white;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .status-indicator {
+      font-size: 0.7rem;
+      color: rgba(255, 255, 255, 0.7);
+      margin-top: 0.25rem;
+      text-align: right;
+    }
+
+    .markdown-content ul, .markdown-content ol {
+      padding-left: 1.5rem;
+      margin: 0.5rem 0;
+    }
+
+    .markdown-content p {
+      margin-bottom: 0.5rem;
+    }
+
+    .markdown-content a {
+      color: #d1fae5;
+      text-decoration: underline;
+    }
+
+    /* Code block styling */
+    .markdown-content pre {
+      background-color: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      padding: 1rem;
+      overflow-x: auto;
+      margin: 0.5rem 0;
+    }
+
+    .markdown-content code {
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+  <script>
+    const chatContainer = document.getElementById('chat-container');
+    const userMessageInput = document.getElementById('user-message');
+    const userImageInput = document.getElementById('user-image');
+    const attachmentButton = document.getElementById('attachment-button');
+    const sendButton = document.getElementById('send-button');
+    const loadingIndicator = document.getElementById('loading');
+    const imagePreviewContainer = document.getElementById('image-preview-container');
+    const imagePreview = document.getElementById('image-preview');
+    const removeImageButton = document.getElementById('remove-image');
+
+    // Variable to store image data as a base64 URL
+    let selectedImageDataUrl = null;
+
+    // Auto-resize textarea as user types
+    userMessageInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+      if (this.scrollHeight > 120) {
+        this.style.overflowY = 'auto';
+      } else {
+        this.style.overflowY = 'hidden';
+      }
+    });
+
+    // Handle image selection
+    userImageInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          selectedImageDataUrl = event.target.result;
+          // Show preview
+          imagePreview.src = selectedImageDataUrl;
+          imagePreviewContainer.classList.remove('hidden');
+        }
+        reader.readAsDataURL(file);
+      } else {
+        selectedImageDataUrl = null;
+        imagePreviewContainer.classList.add('hidden');
+      }
+    });
+
+    // Handle attachment button click
+    attachmentButton.addEventListener('click', function() {
+      userImageInput.click();
+    });
+
+    // Handle remove image button click
+    removeImageButton.addEventListener('click', function() {
+      selectedImageDataUrl = null;
+      userImageInput.value = '';
+      imagePreviewContainer.classList.add('hidden');
+    });
+
+    // Helper function to format current time
+    function getCurrentTime() {
+      const now = new Date();
+      return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Helper function to add a chat message bubble
+    function addMessage(message, sender, imageData = null) {
+      const messageDiv = document.createElement('div');
+      messageDiv.classList.add('flex', 'w-full', 'items-start', 'mb-6');
+
+      const time = getCurrentTime();
+
+      if (sender === 'assistant') {
+        // Assistant messages
+        const content = marked.parse(message);
+        messageDiv.innerHTML = `
+          <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center mr-3 flex-shrink-0">
+            <i class="fas fa-robot text-white"></i>
+          </div>
+          <div class="chat-bubble-assistant p-4">
+            <div class="markdown-content">${content}</div>
+            <div class="status-indicator">
+              <span>${time}</span>
+            </div>
+          </div>
+        `;
+      } else {
+        // User messages
+        let contentHTML = '';
+        if (message) {
+          contentHTML += `<p>${message}</p>`;
+        }
+        if (imageData) {
+          contentHTML += `<img src="${imageData}" class="mt-2 rounded-lg max-w-full max-h-48" alt="Sent image">`;
+        }
+        messageDiv.innerHTML = `
+          <div class="ml-auto flex items-end">
+            <div class="chat-bubble-user p-4">
+              ${contentHTML}
+              <div class="status-indicator">
+                <span>${time}</span>
+                <i class="fas fa-check-double ml-1"></i>
+              </div>
+            </div>
+            <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center ml-3 flex-shrink-0">
+              <i class="fas fa-user text-white"></i>
+            </div>
+          </div>
+        `;
+      }
+
+      chatContainer.appendChild(messageDiv);
+      // Scroll to the latest message
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // Function to send a message
+    function sendMessage() {
+      const message = userMessageInput.value.trim();
+      // Allow sending if message or image is present
+      if (!message && !selectedImageDataUrl) return;
+
+      // Display user's message with image if available
+      addMessage(message, 'user', selectedImageDataUrl);
+
+      // Reset input fields and preview
+      userMessageInput.value = '';
+      userMessageInput.style.height = 'auto';
+      imagePreviewContainer.classList.add('hidden');
+
+      // Store image data for the API call
+      const imageDataForAPI = selectedImageDataUrl;
+      selectedImageDataUrl = null;
+
+      // Show loading indicator
+      loadingIndicator.classList.remove('hidden');
+
+      // Build request parameters for the Django backend
+      const formData = new FormData();
+      if (message) {
+        formData.append('message', message);
+      }
+      if (imageDataForAPI) {
+        formData.append('image_url', imageDataForAPI);
+      }
+      // Add CSRF token
+      formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+      // Send to Django backend
+      fetch("{% url 'ai_assistant:gemini_flash_chat' %}", {
+        method: "POST",
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        loadingIndicator.classList.add('hidden');
+
+        if (data.error) {
+          addMessage("Error: " + data.error, 'assistant');
+        } else if (data.choices && data.choices[0] && data.choices[0].message) {
+          // Process OpenRouter/Gemini response format
+          const assistantMsg = data.choices[0].message.content;
+          addMessage(assistantMsg, 'assistant');
+        } else {
+          addMessage("Unexpected response format received.", 'assistant');
+        }
+      })
+      .catch(error => {
+        loadingIndicator.classList.add('hidden');
+        addMessage("Network error: " + error.message, 'assistant');
+        console.error("Error:", error);
+      });
+    }
+
+    // Event listeners
+    sendButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      sendMessage();
+    });
+
+    userMessageInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Quick response buttons
+    document.querySelectorAll('.flex.flex-wrap.gap-2.mt-3 button').forEach(button => {
+      button.addEventListener('click', function() {
+        userMessageInput.value = this.textContent.trim();
+        sendMessage();
+      });
+    });
+  </script>
+{% endblock %}

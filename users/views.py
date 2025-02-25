@@ -63,9 +63,20 @@ from projects.models import Category, SkillsCategory, Skill
 from cities_light.models import Country, City
 from users.models import University  # Adjust the import if your University model is located elsewhere
 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views import View
+from django.contrib import messages
+from django.core.mail import send_mail
+from django.conf import settings
+from random import randint
+from projects.models import Skill, Category, SkillsCategory
+from cities_light.models import Country, City
+from users.models import University
+from .forms import UpdateUserForm, UpdateProfileForm
+
 class EditProfileView(View):
     template_name = 'users/edit_profile.html'
-    min_selections = 5  # minimum required skills
+    min_selections = 1  # minimum required skills
 
     def get(self, request):
         user_form = UpdateUserForm(instance=request.user)
@@ -75,10 +86,12 @@ class EditProfileView(View):
             'profile_form': profile_form,
             'available_categories': Category.objects.all(),
             'skill_categories': SkillsCategory.objects.prefetch_related('subcategories', 'subcategories__skills').all(),
-            'countries': Country.objects.all(),  # from cities_light
-            'cities': City.objects.all(),        # from cities_light
+            'countries': Country.objects.all(),
+            'cities': City.objects.all(),
             'universities': University.objects.all(),
             'min_selections': self.min_selections,
+            # When not in email-verification mode, no need to show the code input.
+            'email_verification_required': False,
         }
         return render(request, self.template_name, context)
 
@@ -86,34 +99,80 @@ class EditProfileView(View):
         user_form = UpdateUserForm(request.POST, instance=request.user)
         profile_form = UpdateProfileForm(request.POST, request.FILES, instance=request.user.profile)
         if user_form.is_valid() and profile_form.is_valid():
+            new_email = user_form.cleaned_data.get('email')
+            old_email = request.user.email
+
+            if new_email != old_email:
+                verification_code = request.POST.get('verification_code')
+                expected_code = request.session.get('email_verification_code')
+                if not expected_code:
+                    # Generate and send verification code.
+                    code = str(randint(100000, 999999))
+                    request.session['email_verification_code'] = code
+                    send_mail("Email Verification",
+                              f"Your verification code is: {code}",
+                              settings.DEFAULT_FROM_EMAIL,
+                              [new_email])
+                    messages.info(request,
+                        "A verification code has been sent to your new email. Please enter it to confirm the change.")
+                    context = {
+                        'user_form': user_form,
+                        'profile_form': profile_form,
+                        'available_categories': Category.objects.all(),
+                        'skill_categories': SkillsCategory.objects.prefetch_related('subcategories', 'subcategories__skills').all(),
+                        'countries': Country.objects.all(),
+                        'cities': City.objects.all(),
+                        'universities': University.objects.all(),
+                        'min_selections': self.min_selections,
+                        'email_verification_required': True,
+                    }
+                    return render(request, self.template_name, context)
+                elif verification_code != expected_code:
+                    messages.error(request, "Verification code is incorrect.")
+                    context = {
+                        'user_form': user_form,
+                        'profile_form': profile_form,
+                        'available_categories': Category.objects.all(),
+                        'skill_categories': SkillsCategory.objects.prefetch_related('subcategories', 'subcategories__skills').all(),
+                        'countries': Country.objects.all(),
+                        'cities': City.objects.all(),
+                        'universities': University.objects.all(),
+                        'min_selections': self.min_selections,
+                        'email_verification_required': True,
+                    }
+                    return render(request, self.template_name, context)
+            # Save user and profile
             user = user_form.save()
             profile = profile_form.save(commit=False)
-
-            # Process location fields (as before)
+            # Process location fields.
             country_id = request.POST.get('country')
             city_id = request.POST.get('city')
-            if country_id:
-                profile.country = Country.objects.filter(id=country_id).first()
-            else:
-                profile.country = None
-            if city_id:
-                profile.city = City.objects.filter(id=city_id).first()
-            else:
-                profile.city = None
+            profile.country = Country.objects.filter(id=country_id).first() if country_id else None
+            profile.city = City.objects.filter(id=city_id).first() if city_id else None
 
-            # Process skills
+            # Process skills.
             skills_ids = request.POST.get('skills', '')
             if skills_ids:
                 skill_ids = [s for s in skills_ids.split(",") if s]
                 skills = Skill.objects.filter(id__in=skill_ids)
                 if skills.count() < 1:
                     messages.error(request, 'Please select at least 1 skill.')
-                    return self.get(request)
+                    context = {
+                        'user_form': user_form,
+                        'profile_form': profile_form,
+                        'available_categories': Category.objects.all(),
+                        'skill_categories': SkillsCategory.objects.prefetch_related('subcategories', 'subcategories__skills').all(),
+                        'countries': Country.objects.all(),
+                        'cities': City.objects.all(),
+                        'universities': University.objects.all(),
+                        'min_selections': self.min_selections,
+                    }
+                    return render(request, self.template_name, context)
                 profile.skills.set(skills)
             else:
                 profile.skills.clear()
 
-            # Process categories
+            # Process categories.
             categories_ids = request.POST.get('categories', '')
             if categories_ids:
                 selected_categories = [int(cid) for cid in categories_ids.split(",") if cid]
@@ -122,10 +181,11 @@ class EditProfileView(View):
                 profile.categories.clear()
 
             profile.save()
-            messages.success(request, 'Profile updated successfully!')
+            profile_form.save_m2m()  # Save many-to-many relationships
+            messages.success(request, "Profile updated successfully!")
             return redirect('users-profile')
         else:
-            messages.error(request, 'Please correct the errors below.')
+            messages.error(request, "Please correct the errors below.")
         context = {
             'user_form': user_form,
             'profile_form': profile_form,
@@ -137,6 +197,7 @@ class EditProfileView(View):
             'min_selections': self.min_selections,
         }
         return render(request, self.template_name, context)
+
 
 
 logger = logging.getLogger(__name__)
