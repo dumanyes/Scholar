@@ -37,4 +37,6 @@ urlpatterns = [
 
     path('profile/<str:username>/', user_profile, name='project-user-profile'),
 
+
 ]
+

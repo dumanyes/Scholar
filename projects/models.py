@@ -348,4 +348,5 @@ class ChatMessage(models.Model):
         ordering = ['timestamp']
 
     def __str__(self):
-        return f"Message from {self.sender.username} at {self.timestamp}"
+        # Either remove the method entirely or just return the raw content
+        return self.content

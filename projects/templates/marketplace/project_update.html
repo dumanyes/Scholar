@@ -3,7 +3,9 @@
 
 {% block content %}
 <div class="max-w-3xl mx-auto p-8">
-  <h1 class="text-2xl font-bold mb-6">Update Project</h1>
+  <h1 class="text-2xl font-bold mb-6">
+    {% if object %}Update Project{% else %}Create Project{% endif %}
+  </h1>
   <form method="post" class="space-y-8" id="project-form">
     {% csrf_token %}
 
@@ -19,10 +21,17 @@
     <div class="space-y-6">
       <!-- Title Section -->
       <div>
-        <label for="project-title" class="block text-sm font-medium text-gray-700 mb-2">Project Title</label>
-        <input id="project-title" type="text" name="title" value="{{ form.title.value|default_if_none:'' }}"
-               class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-               placeholder="Enter project title" />
+        <label for="project-title" class="block text-sm font-medium text-gray-700 mb-2">
+          Project Title
+        </label>
+        <input
+          id="project-title"
+          type="text"
+          name="title"
+          value="{{ form.title.value|default_if_none:'' }}"
+          class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+          placeholder="Enter project title"
+        />
         <div id="title-counter" class="mt-1 text-sm text-gray-500">0/20 words</div>
         {% if form.title.errors %}
           <div class="text-red-600 text-sm mt-1">
@@ -37,10 +46,15 @@
 
       <!-- Description Section -->
       <div>
-        <label for="project-description" class="block text-sm font-medium text-gray-700 mb-2">Project Description</label>
-        <textarea id="project-description" name="description"
-                  class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition min-h-[120px]"
-                  placeholder="Describe your project">{{ form.description.value|default_if_none:'' }}</textarea>
+        <label for="project-description" class="block text-sm font-medium text-gray-700 mb-2">
+          Project Description
+        </label>
+        <textarea
+          id="project-description"
+          name="description"
+          class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition min-h-[120px]"
+          placeholder="Describe your project"
+        >{{ form.description.value|default_if_none:'' }}</textarea>
         <div id="description-counter" class="mt-1 text-sm text-gray-500">0/250 words</div>
         {% if form.description.errors %}
           <div class="text-red-600 text-sm mt-1">
@@ -55,10 +69,15 @@
 
       <!-- Project Mission Section -->
       <div>
-        <label for="project-mission" class="block text-sm font-medium text-gray-700 mb-2">Project Mission (max 70 words)</label>
-        <textarea id="project-mission" name="project_mission"
-                  class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition min-h-[80px]"
-                  placeholder="Describe the mission of your project">{{ form.project_mission.value|default_if_none:'' }}</textarea>
+        <label for="project-mission" class="block text-sm font-medium text-gray-700 mb-2">
+          Project Mission (max 70 words)
+        </label>
+        <textarea
+          id="project-mission"
+          name="project_mission"
+          class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition min-h-[80px]"
+          placeholder="Describe the mission of your project"
+        >{{ form.project_mission.value|default_if_none:'' }}</textarea>
         <div id="mission-counter" class="mt-1 text-sm text-gray-500">0/70 words</div>
         {% if form.project_mission.errors %}
           <div class="text-red-600 text-sm mt-1">
@@ -73,10 +92,15 @@
 
       <!-- Project Objectives Section -->
       <div>
-        <label for="project-objectives" class="block text-sm font-medium text-gray-700 mb-2">Project Objectives (max 150 words)</label>
-        <textarea id="project-objectives" name="project_objectives"
-                  class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition min-h-[80px]"
-                  placeholder="Outline the objectives and scope">{{ form.project_objectives.value|default_if_none:'' }}</textarea>
+        <label for="project-objectives" class="block text-sm font-medium text-gray-700 mb-2">
+          Project Objectives (max 150 words)
+        </label>
+        <textarea
+          id="project-objectives"
+          name="project_objectives"
+          class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition min-h-[80px]"
+          placeholder="Outline the objectives and scope"
+        >{{ form.project_objectives.value|default_if_none:'' }}</textarea>
         <div id="objectives-counter" class="mt-1 text-sm text-gray-500">0/150 words</div>
         {% if form.project_objectives.errors %}
           <div class="text-red-600 text-sm mt-1">
@@ -91,10 +115,17 @@
 
       <!-- Project Link Section (optional) -->
       <div>
-        <label for="project-link" class="block text-sm font-medium text-gray-700 mb-2">Project Link (optional)</label>
-        <input id="project-link" type="url" name="project_link" value="{{ form.project_link.value|default_if_none:'' }}"
-               class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-               placeholder="Enter project link" />
+        <label for="project-link" class="block text-sm font-medium text-gray-700 mb-2">
+          Project Link (optional)
+        </label>
+        <input
+          id="project-link"
+          type="url"
+          name="project_link"
+          value="{{ form.project_link.value|default_if_none:'' }}"
+          class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+          placeholder="Enter project link"
+        />
         {% if form.project_link.errors %}
           <div class="text-red-600 text-sm mt-1">
             {% for error in form.project_link.errors %}
@@ -106,12 +137,16 @@
 
       <!-- Categories Section -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Project Categories (max 5)</label>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Project Categories (max 5)
+        </label>
         <div id="categories-buttons" class="flex flex-wrap gap-2 mb-4">
           {% for category in available_categories %}
-            <button type="button"
-                    class="px-4 py-2 rounded-full text-sm transition border bg-gray-50 text-gray-700 border-gray-200"
-                    data-id="{{ category.id }}">
+            <button
+              type="button"
+              class="px-4 py-2 rounded-full text-sm transition border bg-gray-50 text-gray-700 border-gray-200"
+              data-id="{{ category.id }}"
+            >
               {{ category.name }}
             </button>
           {% endfor %}
@@ -126,10 +161,30 @@
         {% endif %}
       </div>
 
-      <!-- Skills Section -->
+      <!-- Skills Section with Search and Selected Skills Display -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Required Skills</label>
-        <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Required Skills
+        </label>
+        <!-- Search Bar for Skills -->
+        <input
+          type="text"
+          id="skill-search"
+          class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition mb-4"
+          placeholder="Search skills..."
+        />
+        <!-- Container for auto-suggest hints (shown below the search bar) -->
+        <div
+          id="skill-hints"
+          class="border border-gray-200 rounded-md bg-white shadow absolute hidden z-10"
+          style="max-height: 200px; overflow-y: auto;"
+        ></div>
+
+        <!-- Display Selected Skills as Tags -->
+        <div id="selected-skills-container" class="mb-4 flex flex-wrap gap-2"></div>
+
+        <!-- Original Collapsible Skills Structure (not filtered by search) -->
+        <div class="space-y-2" id="skills-list">
           {% for category in skill_categories %}
             <div class="border border-gray-200 rounded-lg overflow-hidden">
               <details class="group">
@@ -150,8 +205,11 @@
                       </summary>
                       <div class="mt-2 space-y-2">
                         {% for skill in subcat.skills.all %}
-                          <div class="p-2 rounded-md cursor-pointer transition hover:bg-gray-50 skill-item"
-                               data-skill-id="{{ skill.id }}">
+                          <div
+                            class="p-2 rounded-md cursor-pointer transition hover:bg-gray-50 skill-item"
+                            data-skill-id="{{ skill.id }}"
+                            data-skill-name="{{ skill.name }}"
+                          >
                             {{ skill.name }}
                           </div>
                         {% endfor %}
@@ -163,6 +221,8 @@
             </div>
           {% endfor %}
         </div>
+
+        <!-- Hidden field to store comma-separated skill IDs -->
         <input type="hidden" name="skills_required" id="skills_required" value="{{ selected_skills }}">
         {% if form.errors.skills_required %}
           <div class="text-red-600 text-sm mt-1">
@@ -177,27 +237,36 @@
 
       <!-- Languages Section -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Project Languages</label>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Project Languages
+        </label>
         <div id="languages-buttons" class="flex flex-wrap gap-2 mb-4">
           {% for language in languages %}
-            <button type="button"
-                    class="px-4 py-2 rounded-full text-sm transition border bg-gray-50 text-gray-700 border-gray-200"
-                    data-id="{{ language.id }}">
+            <button
+              type="button"
+              class="px-4 py-2 rounded-full text-sm transition border bg-gray-50 text-gray-700 border-gray-200"
+              data-id="{{ language.id }}"
+            >
               {{ language.name }}
             </button>
           {% endfor %}
         </div>
         <input type="hidden" name="languages" id="languages-hidden" value="{{ selected_languages }}">
+        <div id="languages-error" class="text-red-600 text-sm mt-1"></div>
       </div>
 
       <!-- Required Roles Section -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Required Roles</label>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Required Roles
+        </label>
         <div id="roles-buttons" class="flex flex-wrap gap-2 mb-4">
           {% for role in required_roles %}
-            <button type="button"
-                    class="px-4 py-2 rounded-full text-sm transition border bg-gray-50 text-gray-700 border-gray-200"
-                    data-id="{{ role.id }}">
+            <button
+              type="button"
+              class="px-4 py-2 rounded-full text-sm transition border bg-gray-50 text-gray-700 border-gray-200"
+              data-id="{{ role.id }}"
+            >
               {{ role.name }}
             </button>
           {% endfor %}
@@ -207,115 +276,83 @@
     </div>
 
     <!-- Submit Button -->
-    <button type="submit" id="submit-button"
-            class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition font-medium">
-      Update Project
+    <button
+      type="submit"
+      id="submit-button"
+      class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition font-medium"
+    >
+      {% if object %}Update Project{% else %}Create Project{% endif %}
     </button>
   </form>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // ---------------------------
+  // Global References & Initial State
+  // ---------------------------
   const submitButton = document.getElementById('submit-button');
 
-  // Title elements
+  // Text fields and their counters
   const titleInput = document.getElementById('project-title');
   const titleCounter = document.getElementById('title-counter');
   const titleError = document.getElementById('title-error');
 
-  // Description elements
   const descriptionInput = document.getElementById('project-description');
   const descriptionCounter = document.getElementById('description-counter');
   const descriptionError = document.getElementById('description-error');
 
-  // Mission elements
   const missionInput = document.getElementById('project-mission');
   const missionCounter = document.getElementById('mission-counter');
   const missionError = document.getElementById('mission-error');
 
-  // Objectives elements
   const objectivesInput = document.getElementById('project-objectives');
   const objectivesCounter = document.getElementById('objectives-counter');
   const objectivesError = document.getElementById('objectives-error');
 
-  // Skills elements
-  const skillsError = document.getElementById('skills-error');
+  // Hidden inputs for selections
   const skillsHidden = document.getElementById('skills_required');
-  let selectedSkills = new Set();
-  // Preselect skills from context list.
-  {% if selected_skills_list %}
-    {% for sid in selected_skills_list %}
-      selectedSkills.add("{{ sid }}");
-    {% endfor %}
-  {% endif %}
-  // Apply initial styling to preselected skills.
-  document.querySelectorAll('.skill-item').forEach(item => {
-      const skillId = item.getAttribute('data-skill-id');
-      if (selectedSkills.has(skillId)) {
-          item.classList.add('bg-blue-50', 'text-blue-700');
-      }
-  });
-
-  // Utility function to update word counters and show error messages
-  function updateCounter(inputElement, counterElement, maxWords, errorElement) {
-    const words = inputElement.value.trim().split(/\s+/).filter(word => word.length > 0);
-    const count = words.length;
-    counterElement.textContent = count + '/' + maxWords + ' words';
-    if (count > maxWords) {
-      counterElement.classList.remove('text-gray-500');
-      counterElement.classList.add('text-pink-600');
-      errorElement.textContent = 'Too many words!';
-    } else {
-      counterElement.classList.remove('text-pink-600');
-      counterElement.classList.add('text-gray-500');
-      errorElement.textContent = '';
-    }
-    checkFormValidity();
-  }
-
-  // Check skills validity
-  function checkSkillsValidity() {
-    if (selectedSkills.size < 5) {
-      skillsError.textContent = 'Please select at least 5 skills.';
-    } else {
-      skillsError.textContent = '';
-    }
-    checkFormValidity();
-  }
-
-  // Overall form validity check
-  function checkFormValidity() {
-    const titleWords = titleInput.value.trim().split(/\s+/).filter(w => w.length > 0).length;
-    const descriptionWords = descriptionInput.value.trim().split(/\s+/).filter(w => w.length > 0).length;
-    const skillsValid = (selectedSkills.size >= 5);
-    if (titleWords > 20 || descriptionWords > 250 || !skillsValid) {
-      submitButton.disabled = true;
-      submitButton.classList.add('opacity-50', 'cursor-not-allowed');
-    } else {
-      submitButton.disabled = false;
-      submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
-    }
-  }
-
-  // Update counters on load so that they reflect pre-filled values.
-  updateCounter(titleInput, titleCounter, 20, titleError);
-  updateCounter(descriptionInput, descriptionCounter, 250, descriptionError);
-  if(missionInput) {
-    updateCounter(missionInput, missionCounter, 70, missionError);
-  }
-  if(objectivesInput) {
-    updateCounter(objectivesInput, objectivesCounter, 150, objectivesError);
-  }
-
-  // Categories selection logic
-  const categoryButtons = document.querySelectorAll('#categories-buttons button');
+  const languagesHidden = document.getElementById('languages-hidden');
   const categoriesHidden = document.getElementById('categories-hidden');
+  const rolesHidden = document.getElementById('roles-hidden');
+
+  // Error message elements
+  const skillsError = document.getElementById('skills-error');
+  const languagesError = document.getElementById('languages-error');
+
+  // Global state for selections (pre-populated from context)
   let selectedCategories = [];
   {% if selected_categories_list %}
     {% for cid in selected_categories_list %}
       selectedCategories.push("{{ cid }}");
     {% endfor %}
   {% endif %}
+
+  let selectedSkills = new Set();
+  {% if selected_skills_list %}
+    {% for sid in selected_skills_list %}
+      selectedSkills.add("{{ sid }}");
+    {% endfor %}
+  {% endif %}
+
+  let selectedLanguages = [];
+  {% if selected_languages_list %}
+    {% for lid in selected_languages_list %}
+      selectedLanguages.push("{{ lid }}");
+    {% endfor %}
+  {% endif %}
+
+  let selectedRoles = [];
+  {% if selected_required_roles_list %}
+    {% for rid in selected_required_roles_list %}
+      selectedRoles.push("{{ rid }}");
+    {% endfor %}
+  {% endif %}
+
+  // ---------------------------
+  // Update UI for Pre-Selected Categories
+  // ---------------------------
+  const categoryButtons = document.querySelectorAll('#categories-buttons button');
   categoryButtons.forEach(button => {
     const catId = button.getAttribute('data-id');
     if (selectedCategories.includes(catId)) {
@@ -338,12 +375,120 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
       categoriesHidden.value = selectedCategories.join(',');
+      checkFormValidity();
     });
   });
 
-  // Skills selection logic
-  const skillItems = document.querySelectorAll('.skill-item');
-  skillItems.forEach(item => {
+  // ---------------------------
+  // Skills: Search, Auto-Suggest, and Selection
+  // ---------------------------
+  const skillSearchInput = document.getElementById('skill-search');
+  const skillHints = document.getElementById('skill-hints');
+  const allSkillItems = document.querySelectorAll('.skill-item');
+  const selectedSkillsContainer = document.getElementById('selected-skills-container');
+
+  let allSkillsData = [];
+  allSkillItems.forEach(item => {
+    allSkillsData.push({
+      id: item.dataset.skillId,
+      name: item.dataset.skillName
+    });
+  });
+
+  // Apply initial styling to preselected skills
+  allSkillItems.forEach(item => {
+    const skillId = item.getAttribute('data-skill-id');
+    if (selectedSkills.has(skillId)) {
+      item.classList.add('bg-blue-50', 'text-blue-700');
+    }
+  });
+
+  function updateSelectedSkillsContainer() {
+    selectedSkillsContainer.innerHTML = '';
+    selectedSkills.forEach(skillId => {
+      const skillElem = document.querySelector(`.skill-item[data-skill-id="${skillId}"]`);
+      if (skillElem) {
+        const skillName = skillElem.getAttribute('data-skill-name');
+        const tag = document.createElement('span');
+        tag.className = 'bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm cursor-pointer';
+        tag.textContent = skillName + ' ×';
+        tag.setAttribute('data-skill-id', skillId);
+        tag.addEventListener('click', function() {
+          selectedSkills.delete(skillId);
+          skillsHidden.value = Array.from(selectedSkills).join(',');
+          const skillItem = document.querySelector(`.skill-item[data-skill-id="${skillId}"]`);
+          if (skillItem) {
+            skillItem.classList.remove('bg-blue-50', 'text-blue-700');
+          }
+          updateSelectedSkillsContainer();
+          checkSkillsValidity();
+        });
+        selectedSkillsContainer.appendChild(tag);
+      }
+    });
+  }
+
+  function showSkillHints(query) {
+    const matched = allSkillsData.filter(s =>
+      s.name.toLowerCase().includes(query.toLowerCase())
+    );
+    if (!query || matched.length === 0) {
+      skillHints.innerHTML = '';
+      skillHints.classList.add('hidden');
+      return;
+    }
+    let html = '';
+    matched.forEach(skill => {
+      html += `
+        <div
+          class="p-2 hover:bg-gray-100 cursor-pointer"
+          data-hint-id="${skill.id}"
+          data-hint-name="${skill.name}"
+        >
+          ${skill.name}
+        </div>
+      `;
+    });
+    skillHints.innerHTML = html;
+    skillHints.classList.remove('hidden');
+  }
+
+  skillSearchInput.addEventListener('input', function() {
+    const query = skillSearchInput.value.trim();
+    showSkillHints(query);
+  });
+
+  skillHints.addEventListener('click', function(e) {
+    const target = e.target.closest('div[data-hint-id]');
+    if (!target) return;
+    const skillId = target.dataset.hintId;
+    if (selectedSkills.has(skillId)) {
+      selectedSkills.delete(skillId);
+      const skillItem = document.querySelector(`.skill-item[data-skill-id="${skillId}"]`);
+      if (skillItem) {
+        skillItem.classList.remove('bg-blue-50', 'text-blue-700');
+      }
+    } else {
+      selectedSkills.add(skillId);
+      const skillItem = document.querySelector(`.skill-item[data-skill-id="${skillId}"]`);
+      if (skillItem) {
+        skillItem.classList.add('bg-blue-50', 'text-blue-700');
+      }
+    }
+    skillsHidden.value = Array.from(selectedSkills).join(',');
+    updateSelectedSkillsContainer();
+    checkSkillsValidity();
+    skillHints.innerHTML = '';
+    skillHints.classList.add('hidden');
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!skillHints.contains(e.target) && e.target !== skillSearchInput) {
+      skillHints.classList.add('hidden');
+    }
+  });
+
+  allSkillItems.forEach(item => {
     item.addEventListener('click', function() {
       const skillId = item.getAttribute('data-skill-id');
       if (selectedSkills.has(skillId)) {
@@ -354,25 +499,79 @@ document.addEventListener('DOMContentLoaded', function() {
         item.classList.add('bg-blue-50', 'text-blue-700');
       }
       skillsHidden.value = Array.from(selectedSkills).join(',');
+      updateSelectedSkillsContainer();
       checkSkillsValidity();
     });
   });
 
-  // Languages selection logic
-  const languageButtons = document.querySelectorAll('#languages-buttons button');
-  const languagesHidden = document.getElementById('languages-hidden');
-  let selectedLanguages = [];
-  {% if selected_languages_list %}
-    {% for lid in selected_languages_list %}
-      selectedLanguages.push("{{ lid }}");
-    {% endfor %}
-  {% endif %}
-  languageButtons.forEach(button => {
-    const langId = button.getAttribute('data-id');
-    if (selectedLanguages.includes(langId)) {
-      button.classList.remove('bg-gray-50', 'text-gray-700', 'border-gray-200');
-      button.classList.add('bg-blue-100', 'text-blue-700', 'border-blue-200');
+  function checkSkillsValidity() {
+    if (selectedSkills.size < 1) {
+      skillsError.textContent = 'Please select at least 1 skill.';
+    } else {
+      skillsError.textContent = '';
     }
+    checkFormValidity();
+  }
+
+  // ---------------------------
+  // Word Counter Logic
+  // ---------------------------
+  function updateCounter(inputElement, counterElement, maxWords, errorElement) {
+    const words = inputElement.value.trim().split(/\s+/).filter(word => word.length > 0);
+    const count = words.length;
+    counterElement.textContent = count + '/' + maxWords + ' words';
+    if (count > maxWords) {
+      counterElement.classList.remove('text-gray-500');
+      counterElement.classList.add('text-pink-600');
+      errorElement.textContent = 'Too many words!';
+    } else {
+      counterElement.classList.remove('text-pink-600');
+      counterElement.classList.add('text-gray-500');
+      errorElement.textContent = '';
+    }
+    checkFormValidity();
+  }
+
+  // ---------------------------
+  // Overall Form Validation
+  // ---------------------------
+  function checkFormValidity() {
+    const titleCount = titleInput.value.trim().split(/\s+/).filter(Boolean).length;
+    const descriptionCount = descriptionInput.value.trim().split(/\s+/).filter(Boolean).length;
+    const missionCount = missionInput.value.trim().split(/\s+/).filter(Boolean).length;
+    const objectivesCount = objectivesInput.value.trim().split(/\s+/).filter(Boolean).length;
+
+    const titleValid = titleCount >= 1 && titleCount <= 20;
+    const descriptionValid = descriptionCount >= 1 && descriptionCount <= 250;
+    const missionValid = missionCount <= 70;
+    const objectivesValid = objectivesCount <= 150;
+
+    const categoriesValid = selectedCategories.length >= 1 && selectedCategories.length <= 5;
+    const skillsValid = selectedSkills.size >= 1;
+    const languagesValid = selectedLanguages.length >= 1;
+
+    if (
+      titleValid &&
+      descriptionValid &&
+      missionValid &&
+      objectivesValid &&
+      categoriesValid &&
+      skillsValid &&
+      languagesValid
+    ) {
+      submitButton.disabled = false;
+      submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+    } else {
+      submitButton.disabled = true;
+      submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+  }
+
+  // ---------------------------
+  // Languages Selection Logic
+  // ---------------------------
+  const languageButtons = document.querySelectorAll('#languages-buttons button');
+  languageButtons.forEach(button => {
     button.addEventListener('click', function() {
       const langId = button.getAttribute('data-id');
       if (selectedLanguages.includes(langId)) {
@@ -385,24 +584,15 @@ document.addEventListener('DOMContentLoaded', function() {
         button.classList.add('bg-blue-100', 'text-blue-700', 'border-blue-200');
       }
       languagesHidden.value = selectedLanguages.join(',');
+      checkFormValidity();
     });
   });
 
-  // Required Roles selection logic
+  // ---------------------------
+  // Required Roles Selection Logic
+  // ---------------------------
   const roleButtons = document.querySelectorAll('#roles-buttons button');
-  const rolesHidden = document.getElementById('roles-hidden');
-  let selectedRoles = [];
-  {% if selected_required_roles_list %}
-    {% for rid in selected_required_roles_list %}
-      selectedRoles.push("{{ rid }}");
-    {% endfor %}
-  {% endif %}
   roleButtons.forEach(button => {
-    const roleId = button.getAttribute('data-id');
-    if (selectedRoles.includes(roleId)) {
-      button.classList.remove('bg-gray-50', 'text-gray-700', 'border-gray-200');
-      button.classList.add('bg-blue-100', 'text-blue-700', 'border-blue-200');
-    }
     button.addEventListener('click', function() {
       const roleId = button.getAttribute('data-id');
       if (selectedRoles.includes(roleId)) {
@@ -415,10 +605,13 @@ document.addEventListener('DOMContentLoaded', function() {
         button.classList.add('bg-blue-100', 'text-blue-700', 'border-blue-200');
       }
       rolesHidden.value = selectedRoles.join(',');
+      checkFormValidity();
     });
   });
 
-  // Prevent form submission if validations fail.
+  // ---------------------------
+  // Final Form Submission Check
+  // ---------------------------
   const form = document.getElementById('project-form');
   form.addEventListener('submit', function(e) {
     checkFormValidity();
@@ -428,7 +621,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Initial check.
+  // ---------------------------
+  // Initial Counters Update (preserve pre-filled values)
+  // ---------------------------
+  updateCounter(titleInput, titleCounter, 20, titleError);
+  updateCounter(descriptionInput, descriptionCounter, 250, descriptionError);
+  if(missionInput) {
+    updateCounter(missionInput, missionCounter, 70, missionError);
+  }
+  if(objectivesInput) {
+    updateCounter(objectivesInput, objectivesCounter, 150, objectivesError);
+  }
+  // Also update the selected skills tags on load.
+  updateSelectedSkillsContainer();
   checkFormValidity();
 });
 </script>

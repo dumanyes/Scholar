@@ -36,13 +36,18 @@
 
   <!-- Messages Container -->
   <div id="message-list" class="flex-1 overflow-y-auto bg-gray-800 px-6 py-4">
-    {% for message in messages %}
+    {% for message in chat_messages %}
       <div class="{% if message.sender == request.user %}ml-auto max-w-[75%] flex flex-col items-end{% else %}mr-auto max-w-[75%]{% endif %} mb-4">
         <div class="flex items-end gap-2">
           {% if message.sender != request.user %}
-            <div class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-xs">
-              {{ message.sender.username|first|upper }}
-            </div>
+            {% if message.sender.profile.avatar %}
+  <img src="{{ message.sender.profile.avatar.url }}" alt="{{ message.sender.username }}" class="w-8 h-8 rounded-full object-cover">
+{% else %}
+  <div class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-xs">
+    {{ message.sender.username|first|upper }}
+  </div>
+{% endif %}
+
           {% endif %}
           <!-- Chat bubble -->
           <div class="{% if message.sender == request.user %}bg-blue-600 text-white rounded-2xl rounded-tr-none{% else %}bg-gray-700 text-gray-100 rounded-2xl rounded-tl-none{% endif %} px-4 py-3 shadow-sm">
@@ -65,7 +70,7 @@
   </div>
 
   <!-- Message Input -->
-  <form method="POST" class="border-t border-gray-700 bg-gray-900 p-4" enctype="multipart/form-data">
+  <form method="POST" class="border-t border-gray-700 bg-gray-900 p-4">
     {% csrf_token %}
     <div class="flex items-center gap-3">
       <textarea name="content" rows="1"
@@ -97,4 +102,58 @@
     }
   });
 </script>
+
+<script>
+  // Open a WebSocket connection for real-time messages.
+  const roomName = "lobby";  // Adjust as needed (or derive from URL/JS variable)
+  const chatSocket = new WebSocket(
+    'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
+  );
+
+  chatSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    console.log("New message:", data.message);
+    // Append the new message to the chat container.
+    const messageList = document.getElementById('message-list');
+    const messageDiv = document.createElement('div');
+    // Determine sender side (if sender is current user, adjust styling accordingly)
+    let senderSideClass = "mr-auto max-w-[75%] mb-4";
+    if (data.sender === "{{ request.user.username }}") {
+      senderSideClass = "ml-auto max-w-[75%] flex flex-col items-end mb-4";
+    }
+    // Build avatar block: if sender_avatar is provided, display image; otherwise fallback.
+    let avatarHTML = "";
+    if (data.sender !== "{{ request.user.username }}") {
+      if (data.sender_avatar) {
+        avatarHTML = `<img src="${data.sender_avatar}" alt="${data.sender}" class="w-8 h-8 rounded-full object-cover">`;
+      } else {
+        avatarHTML = `<div class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-xs">
+                        ${data.sender ? data.sender[0].toUpperCase() : ''}
+                      </div>`;
+      }
+    }
+    messageDiv.className = senderSideClass;
+    messageDiv.innerHTML = `
+      <div class="flex items-end gap-2">
+        ${ avatarHTML }
+        <div class="bg-gray-700 text-gray-100 rounded-2xl rounded-tl-none px-4 py-3 shadow-sm">
+          <p class="text-sm">${data.message}</p>
+        </div>
+      </div>
+      <span class="text-xs text-gray-400 mt-1">${data.timestamp || ''}</span>
+    `;
+    messageList.appendChild(messageDiv);
+    messageList.scrollTop = messageList.scrollHeight;
+  };
+
+  chatSocket.onclose = function(e) {
+    console.error('Chat socket closed unexpectedly');
+  };
+
+  // To send a message using the WebSocket:
+  function sendMessage(message) {
+    chatSocket.send(JSON.stringify({'message': message}));
+  }
+</script>
+
 {% endblock %}

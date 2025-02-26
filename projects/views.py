@@ -22,6 +22,8 @@ from django.db.models import Q, Exists, OuterRef
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView
 from .models import Project, ProjectApplication, Category
+from django.db.models import Q, OuterRef, Subquery, CharField
+
 
 class MarketplaceView(LoginRequiredMixin, ListView):
     model = Project
@@ -44,7 +46,6 @@ class MarketplaceView(LoginRequiredMixin, ListView):
         if skills_param:
             skill_ids = [s.strip() for s in skills_param.split(',') if s.strip()]
             if skill_ids:
-                # Filter projects that have ALL selected skills
                 for skill_id in skill_ids:
                     queryset = queryset.filter(skills_required__id=skill_id)
                 queryset = queryset.distinct()
@@ -59,14 +60,13 @@ class MarketplaceView(LoginRequiredMixin, ListView):
                 Q(project_objectives__icontains=q)
             )
 
-        # Annotate application status
+        # Annotate application status for current user using Subquery
+        app_qs = ProjectApplication.objects.filter(
+            project=OuterRef('pk'),
+            applicant=self.request.user
+        ).values('status')[:1]
         queryset = queryset.annotate(
-            has_applied=Exists(
-                ProjectApplication.objects.filter(
-                    project=OuterRef('pk'),
-                    applicant=self.request.user
-                )
-            )
+            application_status=Subquery(app_qs, output_field=CharField())
         )
 
         # Sorting
@@ -82,10 +82,7 @@ class MarketplaceView(LoginRequiredMixin, ListView):
         if match_sort in ['mostmatcher', 'mostunmatched']:
             projects = list(queryset)
             reverse_sort = (match_sort == 'mostmatcher')
-            projects.sort(
-                key=lambda p: p.get_skill_match(self.request.user),
-                reverse=reverse_sort
-            )
+            projects.sort(key=lambda p: p.get_skill_match(self.request.user), reverse=reverse_sort)
             return projects
 
         return queryset.order_by('-created_at')
@@ -102,6 +99,7 @@ class MarketplaceView(LoginRequiredMixin, ListView):
             'match_sort': self.request.GET.get('match_sort', '')
         })
         return context
+
 
 
 
@@ -130,11 +128,8 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
         elif sort_app == 'most_old':
             applications.sort(key=lambda a: a.applied_at)
         context['sorted_applications'] = applications
-        context['user_skill_ids'] = set()
-        if self.request.user.is_authenticated and hasattr(self.request.user, 'profile'):
-            context['user_skill_ids'] = set(
-                self.request.user.profile.skills.values_list('id', flat=True)
-            )
+        if self.request.user.is_authenticated:
+            context['user_application'] = self.object.applications.filter(applicant=self.request.user).first()
         return context
 
 
@@ -189,15 +184,17 @@ class DeleteApplicationView(LoginRequiredMixin, DeleteView):
 
 @login_required
 def withdraw_application(request, project_id):
-    # Find the application of the current user for the given project.
     application = ProjectApplication.objects.filter(project__id=project_id, applicant=request.user).first()
     if application:
-        application.delete()
-        messages.success(request, "Your application has been withdrawn.")
+        if application.status == 'PENDING':
+            application.delete()
+            messages.success(request, "Your application has been withdrawn.")
+        else:
+            messages.error(request, "You can only withdraw a pending application.")
     else:
         messages.error(request, "You have not applied to this project.")
-    # Redirect to marketplace or project detail as desired.
     return redirect('marketplace')
+
 
 
 class MyProjectsView(LoginRequiredMixin, ListView):
@@ -310,7 +307,7 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
             'subcategories__skills'
         ).all()
         context['available_categories'] = Category.objects.all()
-        context['min_selections'] = 5
+        context['min_selections'] = 1
         context['languages'] = Language.objects.all()
         context['required_roles'] = RequiredRole.objects.all()
         # Prepopulate many-to-many selections both as lists and comma-separated strings
@@ -430,18 +427,23 @@ from django.shortcuts import get_object_or_404, redirect, render
 from .models import User, ChatRoom, ChatMessage
 
 @login_required
+@login_required
 def chat_view(request, user_id):
-    # Get the other user to chat with.
     other_user = get_object_or_404(User, id=user_id)
     current_user = request.user
 
-    # Get or create a chat room for the two users.
-    room = ChatRoom.objects.filter(participants=current_user).filter(participants=other_user).first()
+    # Find or create a room with exactly these two participants
+    rooms = ChatRoom.objects.filter(participants=current_user).filter(participants=other_user)
+    room = None
+    for r in rooms:
+        if r.participants.count() == 2:
+            room = r
+            break
     if not room:
         room = ChatRoom.objects.create()
         room.participants.add(current_user, other_user)
 
-    # Handle new message submission.
+    # If POST, save a new ChatMessage with the typed content
     if request.method == 'POST':
         content = request.POST.get('content', '').strip()
         if content:
@@ -452,36 +454,49 @@ def chat_view(request, user_id):
             )
         return redirect('chat', user_id=user_id)
 
-    # Retrieve all messages in chronological order.
-    messages_qs = room.messages.all().order_by('timestamp')
+    # Retrieve all messages in chronological order
+    chat_messages = room.messages.all().order_by('timestamp')
     context = {
         'room': room,
         'other_user': other_user,
-        'messages': messages_qs,
+        'chat_messages': chat_messages,  # <-- use 'chat_messages' key
     }
     return render(request, 'chat/chat.html', context)
+
 
 @login_required
 def chat_messages(request, user_id):
     """
     Returns a JSON response with all messages for polling.
     This endpoint is used by the chat template's fetch call.
+    It ensures that only the room with exactly the two participants is used.
     """
     other_user = get_object_or_404(User, id=user_id)
     current_user = request.user
 
-    room = ChatRoom.objects.filter(participants=current_user).filter(participants=other_user).first()
+    # Find a room that includes both users and has exactly these two participants.
+    rooms = ChatRoom.objects.filter(participants=current_user).filter(participants=other_user)
+    room = None
+    for r in rooms:
+        if r.participants.count() == 2:
+            room = r
+            break
+
     if not room:
         return JsonResponse({'new_messages': []})
 
     messages_qs = room.messages.all().order_by('timestamp')
     messages_list = []
     for message in messages_qs:
+        avatar_url = ""
+        if hasattr(message.sender, 'profile') and message.sender.profile.avatar:
+            avatar_url = message.sender.profile.avatar.url
         messages_list.append({
             'sender': message.sender.username,
+            'sender_avatar': avatar_url,
             'content': message.content,
             'timestamp': message.timestamp.strftime("%H:%M"),
-            'read': message.read,  # use 'read' because that's the field name in ChatMessage model
+            'read': message.read,
         })
     return JsonResponse({'new_messages': messages_list})
 

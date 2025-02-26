@@ -42,12 +42,26 @@ INSTALLED_APPS = [
     'cities_light',
     'dal',
     'dal_select2',
+    'channels',
 
 
     'projects',
     'ai_assistant',
 
 ]
+
+ASGI_APPLICATION = "user_management.asgi.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+         "BACKEND": "channels_redis.core.RedisChannelLayer",
+         "CONFIG": {
+             "hosts": [("https://scholar-d6c0.onrender.com/")],
+         },
+    },
+}
+
+
 CITIES_LIGHT_TRANSLATION_LANGUAGES = ['en', 'ru']  # Языки для переводов
 CITIES_LIGHT_INCLUDE_COUNTRIES = None  # All countries should be included by default
   # Пустой список означает все страны
@@ -94,7 +108,7 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-DATABASES['default'] = dj_database_url.parse("postgresql://scholar_t_db_01_zzjs_user:HSBY7RS1HV4CmPHVe6f52NHmcCD4OUuL@dpg-cutif3l2ng1s73datefg-a.oregon-postgres.render.com/scholar_t_db_01_zzjs")
+# DATABASES['default'] = dj_database_url.parse("postgresql://scholar_t_db_01_zzjs_user:HSBY7RS1HV4CmPHVe6f52NHmcCD4OUuL@dpg-cutif3l2ng1s73datefg-a.oregon-postgres.render.com/scholar_t_db_01_zzjs")
 
 #new db
 # postgresql://scholar_t_db_01_zzjs_user:HSBY7RS1HV4CmPHVe6f52NHmcCD4OUuL@dpg-cutif3l2ng1s73datefg-a.oregon-postgres.render.com/scholar_t_db_01_zzjs

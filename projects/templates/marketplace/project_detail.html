@@ -339,21 +339,26 @@
                         <span class="font-medium">{{ project.applications.count }}</span>
                     </div>
                     {% if user.is_authenticated and user != project.owner %}
-                    <div>
-                        {% if has_applied %}
-                        <button disabled class="action-btn action-btn-secondary w-full mt-4">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
-                            </svg>
-                            Applied
-                        </button>
-                        {% else %}
-                        <a href="{% url 'apply-project' project.id %}" class="action-btn action-btn-primary w-full mt-4">
-                            Apply Now
-                        </a>
-                        {% endif %}
-                    </div>
-                    {% endif %}
+  <div>
+    {% if user_application %}
+      {% if user_application.status == 'PENDING' %}
+        <a href="{% url 'withdraw-application' project_id=project.id %}" class="action-btn action-btn-secondary w-full mt-4">
+          Withdraw Application (Pending)
+        </a>
+      {% else %}
+        <button disabled class="action-btn action-btn-secondary w-full mt-4">
+          {{ user_application.get_status_display }}
+        </button>
+      {% endif %}
+    {% else %}
+      <a href="{% url 'apply-project' project.id %}" class="action-btn action-btn-primary w-full mt-4">
+        Apply Now
+      </a>
+    {% endif %}
+  </div>
+{% endif %}
+
+
                     {% if project.owner == request.user %}
 <div class="flex flex-col gap-4 mt-4">
     <form action="{% url 'project-toggle' project.pk %}" method="POST">

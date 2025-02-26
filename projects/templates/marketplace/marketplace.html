@@ -178,24 +178,39 @@
             </div>
 
             <!-- Action Buttons -->
-            <div class="flex justify-between items-center">
-                <a href="{% url 'project-detail' pk=project.pk %}"
-                   class="text-gray-900 font-semibold hover:text-blue-600 inline-flex items-center gap-2 transition-colors">
-                    View Details
-                    <i class="fas fa-arrow-right"></i>
-                </a>
-                {% if project.has_applied %}
+          <div class="flex justify-between items-center">
+    <a href="{% url 'project-detail' pk=project.pk %}"
+       class="text-gray-900 font-semibold hover:text-blue-600 inline-flex items-center gap-2 transition-colors">
+        View Details
+        <i class="fas fa-arrow-right"></i>
+    </a>
+    {% if project.owner != request.user %}
+        {% if project.application_status %}
+            {% if project.application_status == 'PENDING' %}
                 <a href="{% url 'withdraw-application' project_id=project.id %}"
                    class="px-6 py-2 rounded-xl font-semibold transition-all bg-red-600 text-white hover:bg-red-700">
                     Withdraw Application
                 </a>
-                {% else %}
-                <a href="{% url 'apply-project' project_id=project.id %}"
+            {% elif project.application_status == 'ACCEPTED' %}
+                <a href="{% url 'chat' user_id=project.owner.id %}"
                    class="px-6 py-2 rounded-xl font-semibold transition-all bg-blue-600 text-white hover:bg-blue-700">
-                    Apply Now
+                    Chat
                 </a>
-                {% endif %}
-            </div>
+            {% else %}
+                <button disabled class="px-6 py-2 rounded-xl font-semibold transition-all bg-gray-400 text-white">
+                    {{ project.application_status|title }}
+                </button>
+            {% endif %}
+        {% else %}
+            <a href="{% url 'apply-project' project_id=project.id %}"
+               class="px-6 py-2 rounded-xl font-semibold transition-all bg-blue-600 text-white hover:bg-blue-700">
+                Apply Now
+            </a>
+        {% endif %}
+    {% endif %}
+</div>
+
+
 
         </div>
         {% empty %}
