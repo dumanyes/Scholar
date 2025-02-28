@@ -326,8 +326,8 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
         # Get the list of selected skill IDs from cleaned_data.
         skill_ids = form.cleaned_data.get('skills_required', [])
         selected_skills = Skill.objects.filter(id__in=skill_ids)
-        if len(selected_skills) < 5:
-            messages.error(self.request, 'Please select at least 5 skills.')
+        if len(selected_skills) < 1:
+            messages.error(self.request, 'Please select at least 1 skills.')
             context = self.get_context_data()
             return self.render_to_response(context)
 
