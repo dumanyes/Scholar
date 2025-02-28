@@ -1,0 +1,41 @@
+{% extends "users/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-white">
+  <!-- Header -->
+  <header class="py-4 border-b border-gray-200">
+    <div class="container mx-auto px-4 flex justify-between items-center">
+      <h1 class="text-2xl font-semibold text-gray-800">Notifications</h1>
+      <a href="{% url 'mark_all_notifications_read' %}" class="text-sm text-blue-600 hover:underline">
+        Mark all as read
+      </a>
+    </div>
+  </header>
+
+  <!-- Notifications List -->
+  <div class="container mx-auto px-4 py-6">
+    <ul class="space-y-2">
+      {% for notification in notifications %}
+      <li class="p-4 {% if not notification.read %}bg-gray-100{% else %}bg-white{% endif %} rounded shadow-sm">
+        <a href="{{ notification.link }}" class="block">
+          <p class="text-gray-700">{{ notification.message }}</p>
+          <span class="text-xs text-gray-400">{{ notification.created_at|date:"M d, Y H:i" }}</span>
+        </a>
+        {% if not notification.read %}
+        <div class="mt-2">
+          <a href="{% url 'mark_notification_read' notification.id %}" class="text-xs text-gray-600 hover:underline">
+            Mark as read
+          </a>
+        </div>
+        {% endif %}
+      </li>
+      {% empty %}
+      <li class="text-center text-gray-500">
+        No notifications.
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

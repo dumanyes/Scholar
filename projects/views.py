@@ -1,7 +1,9 @@
+from urllib import request
 
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.views import View
+from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, UpdateView, DeleteView
 from django.contrib import messages
 
@@ -10,7 +12,7 @@ from django.urls import reverse
 from django.views.generic import CreateView
 
 from .forms import ProjectForm, ProjectApplicationForm
-from .models import Notification, SkillsCategory, Skill, Language, RequiredRole
+from .models import Notification, SkillsCategory, Skill, Language, RequiredRole, ChatFolder, ChatRoom, FavoriteProject
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Exists, OuterRef, Q
@@ -24,6 +26,14 @@ from django.views.generic import ListView
 from .models import Project, ProjectApplication, Category
 from django.db.models import Q, OuterRef, Subquery, CharField
 
+
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import ListView
+from django.db.models import Q, OuterRef, Subquery, CharField, Count
+from django.shortcuts import get_object_or_404
+from .models import Project, ProjectApplication, Category, Notification, ChatRoom, ChatMessage
+# Make sure you import your favorite model (assuming it's in the same app)
+from .models import FavoriteProject
 
 class MarketplaceView(LoginRequiredMixin, ListView):
     model = Project
@@ -41,7 +51,7 @@ class MarketplaceView(LoginRequiredMixin, ListView):
             if cat_ids:
                 queryset = queryset.filter(category__id__in=cat_ids).distinct()
 
-        # Skill filtering (exact match for selected skills)
+        # Skill filtering
         skills_param = self.request.GET.get('skills', '')
         if skills_param:
             skill_ids = [s.strip() for s in skills_param.split(',') if s.strip()]
@@ -50,7 +60,7 @@ class MarketplaceView(LoginRequiredMixin, ListView):
                     queryset = queryset.filter(skills_required__id=skill_id)
                 queryset = queryset.distinct()
 
-        # Text search
+        # Text search filtering
         q = self.request.GET.get('q', '')
         if q:
             queryset = queryset.filter(
@@ -60,7 +70,7 @@ class MarketplaceView(LoginRequiredMixin, ListView):
                 Q(project_objectives__icontains=q)
             )
 
-        # Annotate application status for current user using Subquery
+        # Annotate application status for current user using a Subquery
         app_qs = ProjectApplication.objects.filter(
             project=OuterRef('pk'),
             applicant=self.request.user
@@ -69,7 +79,7 @@ class MarketplaceView(LoginRequiredMixin, ListView):
             application_status=Subquery(app_qs, output_field=CharField())
         )
 
-        # Sorting
+        # Sorting based on time or matching score
         time_sort = self.request.GET.get('time_sort', '')
         match_sort = self.request.GET.get('match_sort', '')
 
@@ -89,16 +99,167 @@ class MarketplaceView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # Unread notifications
+        unread_notifications = Notification.objects.filter(
+            user=self.request.user,
+            read=False
+        ).order_by('-created_at')
+        notifications_count = unread_notifications.count()
+
+        # Unread chat messages count (only messages not sent by the user)
+        unread_chat_count = ChatMessage.objects.filter(
+            room__participants=self.request.user,
+            read=False
+        ).exclude(sender=self.request.user).count()
+
+        # Get favorite project IDs for the current user
+        favorite_ids = self.request.user.favorite_projects.values_list('project_id', flat=True)
+
         context.update({
             'all_categories': Category.objects.all(),
-            'user_skills': set(s.name.lower() for s in self.request.user.profile.skills.all()),
+            'user_skills': {s.name.lower() for s in self.request.user.profile.skills.all()},
             'selected_categories': self.request.GET.get('categories', '').split(','),
             'selected_skills': self.request.GET.get('skills', '').split(','),
             'current_query': self.request.GET.get('q', ''),
             'time_sort': self.request.GET.get('time_sort', ''),
-            'match_sort': self.request.GET.get('match_sort', '')
+            'match_sort': self.request.GET.get('match_sort', ''),
+            'notifications': unread_notifications,
+            'notifications_count': notifications_count,
+            'chat_rooms': ChatRoom.objects.filter(participants=self.request.user).order_by('-created_at'),
+            'unread_chat_count': unread_chat_count,
+            'favorite_ids': list(favorite_ids)
         })
         return context
+
+
+
+
+import json
+from django.http import JsonResponse
+from django.shortcuts import redirect, get_object_or_404, render
+from django.urls import reverse_lazy, reverse
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, View
+from django.contrib.auth.mixins import LoginRequiredMixin
+from .models import ChatRoom, ChatMessage, ChatFolder
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+
+class ChatListView(LoginRequiredMixin, ListView):
+    model = ChatRoom
+    template_name = 'chat/chat_list.html'
+    context_object_name = 'chat_rooms'
+    paginate_by = 10
+
+    def get_queryset(self):
+        return ChatRoom.objects.filter(participants=self.request.user).order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        chat_data = []
+        for room in context['chat_rooms']:
+            other_user = room.participants.exclude(id=user.id).first()
+            last_message = room.messages.last()
+            unread_count = room.messages.filter(read=False).exclude(sender=user).count()
+            chat_data.append({
+                'room': room,
+                'other_user': other_user,
+                'last_message': last_message,
+                'unread_count': unread_count,
+            })
+        context['chat_data'] = chat_data
+        context['chat_folders'] = ChatFolder.objects.filter(user=user)
+        return context
+
+# View to mark all messages in a chat room as read
+class MarkChatReadView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        data = json.loads(request.body)
+        room_id = data.get('room_id')
+        if room_id:
+            room = get_object_or_404(ChatRoom, id=room_id)
+            # Mark messages not sent by the user as read.
+            updated = room.messages.filter(read=False).exclude(sender=request.user).update(read=True)
+            return JsonResponse({'success': True, 'updated': updated})
+        return JsonResponse({'success': False, 'error': 'No room_id provided'})
+
+# Folder Create
+@method_decorator(csrf_exempt, name='dispatch')
+class FolderCreateView(LoginRequiredMixin, CreateView):
+    model = ChatFolder
+    fields = ['name']
+    success_url = reverse_lazy('chat_list')
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        self.object = form.save()
+        return JsonResponse({'success': True, 'folder_id': self.object.id, 'name': self.object.name})
+
+    def form_invalid(self, form):
+        return JsonResponse({'success': False, 'error': form.errors.as_json()})
+
+    def post(self, request, *args, **kwargs):
+        data = json.loads(request.body)
+        form = self.get_form_class()(data)
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+# Folder Update
+class FolderUpdateView(LoginRequiredMixin, UpdateView):
+    model = ChatFolder
+    fields = ['name']
+    template_name = 'chat/folder_form.html'
+    success_url = reverse_lazy('chat_list')
+
+    def get_queryset(self):
+        return ChatFolder.objects.filter(user=self.request.user)
+
+# Folder Delete
+class FolderDeleteView(LoginRequiredMixin, DeleteView):
+    model = ChatFolder
+    template_name = 'chat/folder_confirm_delete.html'
+    success_url = reverse_lazy('chat_list')
+
+    def get_queryset(self):
+        return ChatFolder.objects.filter(user=self.request.user)
+
+# View to add a chat to a folder (via AJAX)
+@csrf_exempt
+def add_chat_to_folder(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        folder_id = data.get('folder_id')
+        chat_id = data.get('chat_id')
+        if folder_id and chat_id:
+            folder = get_object_or_404(ChatFolder, id=folder_id, user=request.user)
+            room = get_object_or_404(ChatRoom, id=chat_id)
+            folder.chats.add(room)
+            return JsonResponse({'success': True})
+    return JsonResponse({'success': False, 'error': 'Invalid data'})
+
+def unread_chat_count(request):
+    if request.user.is_authenticated:
+        count = ChatMessage.objects.filter(
+            room__participants=request.user,
+            read=False
+        ).exclude(sender=request.user).count()
+        return {'unread_chat_count': count}
+    return {'unread_chat_count': 0}
+
+
+
+class NotificationsListView(LoginRequiredMixin, ListView):
+    model = Notification
+    template_name = 'marketplace/notifications_list.html'  # Create this template
+    context_object_name = 'notifications'
+    paginate_by = 10
+
+    def get_queryset(self):
+        # Returns all notifications for the current user, most recent first.
+        return Notification.objects.filter(user=self.request.user).order_by('-created_at')
+
 
 
 
@@ -133,18 +294,15 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
+
 class ApplyProjectView(View):
     def get(self, request, project_id):
         project = get_object_or_404(Project, id=project_id)
-        # If an application already exists, you might want to redirect or inform the user.
         if ProjectApplication.objects.filter(project=project, applicant=request.user).exists():
             messages.info(request, "You have already applied to this project.")
             return redirect('project-detail', pk=project.id)
         form = ProjectApplicationForm()
-        context = {
-            'project': project,
-            'form': form,
-        }
+        context = {'project': project, 'form': form}
         return render(request, 'marketplace/apply_project.html', context)
 
     def post(self, request, project_id):
@@ -163,12 +321,17 @@ class ApplyProjectView(View):
             project.application_count = project.applications.count()
             project.save(update_fields=['application_count'])
             messages.success(request, 'Your application has been submitted successfully!')
+
+            # Create a descriptive notification for the project owner.
+            Notification.objects.create(
+                user=project.owner,
+                message=f"{request.user.username} sent a request to join your project '{project.title}'.",
+                link=reverse('project-detail', kwargs={'pk': project.pk})
+            )
+
             return redirect('project-detail', pk=project.id)
         else:
-            context = {
-                'project': project,
-                'form': form,
-            }
+            context = {'project': project, 'form': form}
             return render(request, 'marketplace/apply_project.html', context)
 
 
@@ -322,6 +485,7 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
         context['selected_required_roles'] = ",".join(context['selected_required_roles_list'])
         return context
 
+
     def form_valid(self, form):
         # Get the list of selected skill IDs from cleaned_data.
         skill_ids = form.cleaned_data.get('skills_required', [])
@@ -360,6 +524,13 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
             self.object.required_roles.set(role_objs)
 
         messages.success(self.request, "Project updated successfully!")
+        accepted_applications = self.object.applications.filter(status='ACCEPTED')
+        for application in accepted_applications:
+            Notification.objects.create(
+                user=application.applicant,
+                message=f"The project '{self.object.title}' has been updated. Please review the latest changes.",
+                link=self.object.get_absolute_url()
+            )
         return redirect(self.object.get_absolute_url())
 
 
@@ -380,6 +551,58 @@ class ProjectToggleView(LoginRequiredMixin, View):
         project.is_active = not project.is_active
         project.save()
         return redirect('my-projects')
+
+
+@login_required
+@require_POST
+def toggle_favorite(request):
+    project_id = request.POST.get('project_id')
+    if not project_id:
+        return JsonResponse({'success': False, 'error': 'No project_id provided'})
+    try:
+        project = Project.objects.get(id=project_id)
+    except Project.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Project not found'})
+
+    favorite, created = FavoriteProject.objects.get_or_create(user=request.user, project=project)
+    if not created:
+        # It was already a favorite, so remove it.
+        favorite.delete()
+        is_favorite = False
+    else:
+        is_favorite = True
+    return JsonResponse({'success': True, 'is_favorite': is_favorite})
+
+
+
+class FavoritesListView(LoginRequiredMixin, ListView):
+    template_name = 'marketplace/favorites.html'
+    context_object_name = 'projects'
+    paginate_by = 10
+
+    def get_queryset(self):
+        # Get all projects the user has favorited
+        queryset = Project.objects.filter(
+            favorited_by__user=self.request.user
+        ).distinct()
+
+        # For each project, fetch the user's application if it exists
+        for project in queryset:
+            user_app = project.applications.filter(applicant=self.request.user).first()
+            project.user_application = user_app  # attach it to the project object
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Retrieve all favorite project IDs for the current user
+        favorite_ids = self.request.user.favorite_projects.values_list('project_id', flat=True)
+        context['favorite_ids'] = list(favorite_ids)
+        context['favorite_page'] = True
+        return context
+
+
+
 
 
 def user_profile(request, username):
@@ -501,3 +724,15 @@ class MyRequestsView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         # Returns all project applications sent by the current user, newest first.
         return ProjectApplication.objects.filter(applicant=self.request.user).order_by('-applied_at')
+
+@login_required
+def mark_notification_read(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.read = True
+    notification.save()
+    return redirect('notifications_list')
+
+@login_required
+def mark_all_notifications_read(request):
+    Notification.objects.filter(user=request.user, read=False).update(read=True)
+    return redirect('notifications_list')

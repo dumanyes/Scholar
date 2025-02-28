@@ -1,6 +1,7 @@
 
 import os
 import requests
+from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.contrib.auth.views import LoginView, PasswordResetView, PasswordChangeView
@@ -8,7 +9,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.auth.decorators import login_required
 from .forms import LoginForm, UpdateUserForm, UpdateProfileForm
 from .models import Profile
-from projects.models import Skill, Interest
+from projects.models import Skill, Interest, Project
 from django.views import View
 from django.contrib import messages
 from django.core.mail import send_mail
@@ -28,9 +29,57 @@ ORCID_CLIENT_ID = os.getenv('ORCID_CLIENT_ID')
 ORCID_CLIENT_SECRET = os.getenv('ORCID_CLIENT_SECRET')
 ORCID_REDIRECT_URI = os.getenv('ORCID_REDIRECT_URI')
 
+from django.db.models import Count
+from django.core.cache import cache
+
+# users/views.py
+import json
+from django.shortcuts import render
+from django.db.models import Count
+from django.db.models.functions import TruncMonth
+from django.contrib.auth.models import User
+from projects.models import Project, Category, Skill
+
 
 def home(request):
-    return render(request, 'users/home.html')
+    total_researchers = User.objects.count()
+    total_projects = Project.objects.filter(is_active=True).count()
+
+    # Top 5 categories by number of projects
+    top_categories = Category.objects.annotate(
+        count=Count('project')
+    ).order_by('-count')[:5]
+
+    # Top 5 most needed skills by number of projects
+    most_needed_skills = Skill.objects.annotate(
+        count=Count('project')
+    ).order_by('-count')[:5]
+
+    # Aggregate monthly new researcher registrations
+    registration_data = User.objects.annotate(
+        month=TruncMonth('date_joined')
+    ).values('month').annotate(count=Count('id')).order_by('month')
+    registration_months = [item['month'].strftime('%b') for item in registration_data]
+    researcher_counts = [item['count'] for item in registration_data]
+
+    # Aggregate monthly project creations
+    project_data = Project.objects.annotate(
+        month=TruncMonth('created_at')
+    ).values('month').annotate(count=Count('id')).order_by('month')
+    project_months = [item['month'].strftime('%b') for item in project_data]
+    project_counts = [item['count'] for item in project_data]
+
+    context = {
+        'total_researchers': total_researchers,
+        'total_projects': total_projects,
+        'top_categories': top_categories,
+        'most_needed_skills': most_needed_skills,
+        'registration_months': json.dumps(registration_months),
+        'researcher_counts': json.dumps(researcher_counts),
+        'project_months': json.dumps(project_months),
+        'project_counts': json.dumps(project_counts),
+    }
+    return render(request, 'users/home.html', context)
 
 
 @login_required

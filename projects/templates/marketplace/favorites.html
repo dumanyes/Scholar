@@ -1,0 +1,165 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% load project_tags %}
+
+{% block title %}My Favorite Projects{% endblock title %}
+
+{% block content %}
+<!-- Tailwind & jQuery -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">My Favorite Projects</h1>
+
+    {% if projects %}
+        <div class="space-y-6">
+            {% for project in projects %}
+            <!-- Project Card -->
+            <div class="bg-white rounded-xl shadow-lg p-6 transition-all duration-200 hover:-translate-y-1">
+                <!-- Top row: Categories and Match Score -->
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <span class="inline-flex items-center px-4 py-1 bg-gray-100 rounded-full text-sm font-medium">
+                            {% for category in project.category.all %}
+                                {{ category.name }}{% if not forloop.last %}, {% endif %}
+                            {% empty %}
+                                No category assigned
+                            {% endfor %}
+                        </span>
+                        {% with match=project|skill_match:user %}
+                        <span class="inline-flex items-center ml-2 px-4 py-1 rounded-full text-sm font-medium
+                            {% if match > 71 %}
+                                bg-green-500 text-white
+                            {% elif match > 41 %}
+                                bg-yellow-500 text-white
+                            {% else %}
+                                bg-pink-500 text-white
+                            {% endif %}
+                            ">
+                            <i class="fas fa-check mr-1"></i> {{ match }}% Match
+                        </span>
+                        {% endwith %}
+                    </div>
+                    <!-- Heart Button -->
+                    <button type="button" onclick="saveProject(event, {{ project.id }})" class="heart-btn focus:outline-none" id="fav-btn-{{ project.id }}">
+                        {% if project.id in favorite_ids %}
+                            <i class="fas fa-heart text-red-500 transition-colors"></i>
+                        {% else %}
+                            <i class="fas fa-heart text-gray-400 hover:text-red-500 transition-colors"></i>
+                        {% endif %}
+                    </button>
+                </div>
+
+                <!-- Avatar, Username, Country and City -->
+                <div class="flex items-center gap-3 mb-4">
+                    {% if project.owner.profile.avatar %}
+                    <a href="{% url 'project-user-profile' project.owner.username %}">
+                        <img src="{{ project.owner.profile.avatar.url }}" alt="{{ project.owner.username }}"
+                             class="w-10 h-10 rounded-full object-cover border border-gray-200">
+                    </a>
+                    {% else %}
+                    <a href="{% url 'project-user-profile' project.owner.username %}"
+                       class="w-10 h-10 rounded-full flex items-center justify-center bg-green-500 text-white font-bold">
+                        {{ project.owner.username|first|upper }}
+                    </a>
+                    {% endif %}
+                    <div>
+                        <a href="{% url 'project-user-profile' project.owner.username %}" class="text-gray-700 font-medium hover:text-blue-600">
+                            @{{ project.owner.username }}
+                        </a>
+                        {% if project.owner.profile.city or project.owner.profile.country %}
+                        <p class="text-xs text-gray-500">
+                            {% if project.owner.profile.city %}{{ project.owner.profile.city }}{% endif %}
+                            {% if project.owner.profile.country %} - {{ project.owner.profile.country }}{% endif %}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Project Title -->
+                <h2 class="text-2xl font-semibold mb-4">{{ project.title }}</h2>
+
+                <!-- Description with a line clamp -->
+                <p class="text-gray-600 mb-4 line-clamp-6">
+                    {{ project.description }}
+                </p>
+
+                <!-- Project Views -->
+                <div class="mb-4 text-sm text-gray-600">
+                    <i class="fas fa-eye mr-1"></i> {{ project.view_count }} Views
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-between items-center">
+                    <a href="{% url 'project-detail' pk=project.pk %}"
+                       class="text-gray-900 font-semibold hover:text-blue-600 inline-flex items-center gap-2 transition-colors">
+                        View Details
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                    {% if project.owner != request.user %}
+                        {% if project.user_application %}
+                            {% if project.user_application.status == 'PENDING' %}
+                                <a href="{% url 'withdraw-application' project_id=project.id %}"
+                                   class="px-6 py-2 rounded-xl font-semibold transition-all bg-red-600 text-white hover:bg-red-700">
+                                    Withdraw Application
+                                </a>
+                            {% elif project.user_application.status == 'ACCEPTED' %}
+                                <a href="{% url 'chat' user_id=project.owner.id %}"
+                                   class="px-6 py-2 rounded-xl font-semibold transition-all bg-blue-600 text-white hover:bg-blue-700">
+                                    Chat
+                                </a>
+                            {% else %}
+                                <button disabled class="px-6 py-2 rounded-xl font-semibold transition-all bg-gray-400 text-white">
+                                    {{ project.user_application.status|title }}
+                                </button>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'apply-project' project_id=project.id %}"
+                               class="px-6 py-2 rounded-xl font-semibold transition-all bg-blue-600 text-white hover:bg-blue-700">
+                                Apply Now
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-12">
+            <i class="fas fa-heart fa-2x mb-3 text-gray-400"></i>
+            <p class="text-gray-500">You have not added any projects to favorites yet.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- JavaScript for Favorite Button -->
+<script>
+function saveProject(e, projectId) {
+    e.preventDefault();
+    $.ajax({
+        type: "POST",
+        url: "{% url 'toggle-favorite' %}",
+        data: {
+            project_id: projectId,
+            csrfmiddlewaretoken: "{{ csrf_token }}"
+        },
+        success: function(response) {
+            if(response.success) {
+                const btnIcon = $("#fav-btn-" + projectId + " i");
+                if(response.is_favorite) {
+                    btnIcon.removeClass("text-gray-400").addClass("text-red-500");
+                } else {
+                    btnIcon.removeClass("text-red-500").addClass("text-gray-400");
+                }
+            } else {
+                alert("Error: " + response.error);
+            }
+        },
+        error: function(xhr, status, error) {
+            alert("An error occurred: " + error);
+        }
+    });
+}
+</script>
+{% endblock content %}

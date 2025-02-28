@@ -126,7 +126,12 @@ class UpdateUserForm(forms.ModelForm):
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        if User.objects.exclude(pk=self.instance.pk).filter(email=email).exists():
+        # If the email wasn't changed, simply return it.
+        if self.instance and self.instance.email.lower() == email.lower():
+            return email
+
+        # Otherwise, check if the new email is already in use.
+        if User.objects.filter(email__iexact=email).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError('This email is already in use.')
         return email
 

@@ -17,6 +17,7 @@ class University(models.Model):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    last_online = models.DateTimeField(blank=True, null=True)
 
     # Basic Information
     orcid_id = models.CharField(max_length=19, blank=True, null=True, unique=True)

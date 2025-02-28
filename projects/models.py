@@ -311,6 +311,17 @@ class ProjectApplication(models.Model):
         """
         return self.project.get_skill_match(self.applicant)
 
+class FavoriteProject(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorite_projects')
+    project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='favorited_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'project')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.project.title}"
+
 
 class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
@@ -350,3 +361,12 @@ class ChatMessage(models.Model):
     def __str__(self):
         # Either remove the method entirely or just return the raw content
         return self.content
+
+
+class ChatFolder(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="chat_folders")
+    name = models.CharField(max_length=100)
+    chats = models.ManyToManyField(ChatRoom, blank=True, related_name="folders")
+
+    def __str__(self):
+        return self.name

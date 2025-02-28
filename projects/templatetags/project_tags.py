@@ -39,4 +39,9 @@ def skill_in_profile(skill, user):
 
     return skill_clean in user_skills_lower
 
+@register.filter
+def other_participant(room, user):
+    """Return the other participant in a 1-on-1 chat."""
+    return room.participants.exclude(id=user.id).first()
+
 

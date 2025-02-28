@@ -79,6 +79,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'users.middleware.UpdateLastOnlineMiddleware',
 ]
 
 ROOT_URLCONF = 'user_management.urls'

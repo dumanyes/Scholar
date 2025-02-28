@@ -13,7 +13,9 @@ from .views import (
     ProjectToggleView,
     user_profile,
     update_application,
-    chat_view, chat_messages, MyRequestsView, DeleteApplicationView, withdraw_application,
+    chat_view, chat_messages, MyRequestsView, DeleteApplicationView, withdraw_application, ChatListView,
+    NotificationsListView, FolderCreateView, FolderDeleteView, FolderUpdateView, MarkChatReadView, add_chat_to_folder,
+    toggle_favorite, FavoritesListView,
 )
 
 urlpatterns = [
@@ -37,5 +39,17 @@ urlpatterns = [
 
     path('profile/<str:username>/', user_profile, name='project-user-profile'),
 
+    path('chats/', ChatListView.as_view(), name='chat_list'),
+    path('notifications/', NotificationsListView.as_view(), name='notifications_list'),
 
+    path('folder/create/', FolderCreateView.as_view(), name='folder_create'),
+    path('folder/<int:pk>/update/', FolderUpdateView.as_view(), name='folder_update'),
+    path('folder/<int:pk>/delete/', FolderDeleteView.as_view(), name='folder_delete'),
+    path('chat/mark_read/', MarkChatReadView.as_view(), name='mark_chat_read'),
+    path('chat/add_to_folder/', add_chat_to_folder, name='add_chat_to_folder'),
+
+    path('notifications/mark/<int:notification_id>/', views.mark_notification_read, name='mark_notification_read'),
+    path('notifications/mark-all/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
+    path('toggle_favorite/', toggle_favorite, name='toggle-favorite'),
+    path('favorites/', FavoritesListView.as_view(), name='favorites'),
 ]
