@@ -105,23 +105,22 @@
 
 <script>
   // Open a WebSocket connection for real-time messages.
-  const roomName = "lobby";  // Adjust as needed (or derive from URL/JS variable)
+  const roomId = "{{ room_id }}";
   const chatSocket = new WebSocket(
-    'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
+    'ws://' + window.location.host + '/ws/chat/' + roomId + '/'
   );
 
   chatSocket.onmessage = function(e) {
     const data = JSON.parse(e.data);
     console.log("New message:", data.message);
-    // Append the new message to the chat container.
     const messageList = document.getElementById('message-list');
     const messageDiv = document.createElement('div');
-    // Determine sender side (if sender is current user, adjust styling accordingly)
+
     let senderSideClass = "mr-auto max-w-[75%] mb-4";
     if (data.sender === "{{ request.user.username }}") {
       senderSideClass = "ml-auto max-w-[75%] flex flex-col items-end mb-4";
     }
-    // Build avatar block: if sender_avatar is provided, display image; otherwise fallback.
+
     let avatarHTML = "";
     if (data.sender !== "{{ request.user.username }}") {
       if (data.sender_avatar) {
@@ -150,10 +149,25 @@
     console.error('Chat socket closed unexpectedly');
   };
 
-  // To send a message using the WebSocket:
-  function sendMessage(message) {
+  // Intercept the form submission to prevent page refresh
+  const chatForm = document.querySelector('form');
+  chatForm.addEventListener('submit', function(e) {
+    e.preventDefault(); // Prevent form submission causing page reload
+
+    // Get the message from the textarea
+    const textarea = document.querySelector('textarea[name="content"]');
+    const message = textarea.value.trim();
+    if (message === "") {
+      return;
+    }
+
+    // Send the message via WebSocket
     chatSocket.send(JSON.stringify({'message': message}));
-  }
+
+    // Clear the textarea after sending
+    textarea.value = '';
+  });
 </script>
+
 
 {% endblock %}

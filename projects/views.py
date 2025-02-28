@@ -443,16 +443,7 @@ def chat_view(request, user_id):
         room = ChatRoom.objects.create()
         room.participants.add(current_user, other_user)
 
-    # If POST, save a new ChatMessage with the typed content
-    if request.method == 'POST':
-        content = request.POST.get('content', '').strip()
-        if content:
-            ChatMessage.objects.create(
-                room=room,
-                sender=current_user,
-                content=content
-            )
-        return redirect('chat', user_id=user_id)
+
 
     # Retrieve all messages in chronological order
     chat_messages = room.messages.all().order_by('timestamp')
@@ -460,6 +451,7 @@ def chat_view(request, user_id):
         'room': room,
         'other_user': other_user,
         'chat_messages': chat_messages,  # <-- use 'chat_messages' key
+        'room_id': room.id,
     }
     return render(request, 'chat/chat.html', context)
 

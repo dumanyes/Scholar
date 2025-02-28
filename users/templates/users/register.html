@@ -54,27 +54,104 @@
 
             {# STEP 0: Personal Info #}
             {% if step == 0 %}
-              <!-- Your personal info fields here -->
               {{ form.non_field_errors }}
               <div class="space-y-4">
-                <!-- First Name, Last Name, Username, Email, Birthdate, Terms -->
-                <!-- (Omitted for brevity, see your original code) -->
+                <div>
+                  {{ form.first_name.label_tag }}
+                  {{ form.first_name|add_class:"block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" }}
+                </div>
+                <div>
+                  {{ form.last_name.label_tag }}
+                  {{ form.last_name|add_class:"block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" }}
+                </div>
+                <div>
+                  {{ form.username.label_tag }}
+                  {{ form.username|add_class:"block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" }}
+                </div>
+                <div>
+                  {{ form.email.label_tag }}
+                  {{ form.email|add_class:"block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" }}
+                </div>
+                <div>
+                  {{ form.birthdate.label_tag }}
+                  {{ form.birthdate|add_class:"block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" }}
+                </div>
+                <div class="flex items-center space-x-2">
+                  {{ form.terms_and_conditions }}
+                  <label for="{{ form.terms_and_conditions.id_for_label }}" class="text-sm text-gray-700 cursor-pointer">
+                    I agree to the
+                    <a href="{% url 'users-terms' %}" class="text-blue-600 hover:text-blue-800 underline">
+                      Terms and Conditions
+                    </a>
+                  </label>
+                </div>
               </div>
             {% endif %}
 
-            {# STEP 1: Verification Code #}
+            {# STEP 1: Email Verification #}
             {% if step == 1 %}
-              <!-- Verification code input -->
               <div class="space-y-4">
-                <!-- (Omitted for brevity, see your original code) -->
+                <label for="verification_code" class="block text-sm font-medium text-gray-700">Verification Code</label>
+                <input
+                  id="verification_code"
+                  name="verification_code"
+                  type="text"
+                  class="block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  placeholder="Enter verification code"
+                >
               </div>
             {% endif %}
 
             {# STEP 2: Password Setup #}
             {% if step == 2 %}
-              <!-- Password fields -->
               <div class="space-y-4">
-                <!-- (Omitted for brevity, see your original code) -->
+                <!-- Password1 Field -->
+                <div>
+                  {{ form.password1.label_tag }}
+                  <div class="relative">
+                    {{ form.password1|add_class:"block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" }}
+                    <button
+                      type="button"
+                      class="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-500 hover:text-gray-700 focus:outline-none toggle-password"
+                      data-target="{{ form.password1.id_for_label }}"
+                      aria-label="Toggle password visibility"
+                    >
+                      <!-- Eye icon (visible when password is hidden) -->
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-open" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      <!-- Eye-slash icon (visible when password is shown) -->
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-closed hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Password2 Field -->
+                <div>
+                  {{ form.password2.label_tag }}
+                  <div class="relative">
+                    {{ form.password2|add_class:"block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" }}
+                    <button
+                      type="button"
+                      class="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-500 hover:text-gray-700 focus:outline-none toggle-password"
+                      data-target="{{ form.password2.id_for_label }}"
+                      aria-label="Toggle password visibility"
+                    >
+                      <!-- Eye icon (visible when password is hidden) -->
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-open" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      <!-- Eye-slash icon (visible when password is shown) -->
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-closed hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               </div>
             {% endif %}
 
@@ -82,10 +159,11 @@
             {% if step == 3 %}
               <!-- Hidden field to store selected skill IDs -->
               <input type="hidden" id="selected_skills" name="selected_skills" value="">
+
               <p class="text-gray-600 text-sm">
                 Select at least {{ min_selections }} skills by clicking a Category, then a Subcategory, and finally a Skill:
               </p>
-              
+
               <!-- Show how many skills are selected -->
               <div id="selected-count" class="text-gray-600 font-medium mb-4"></div>
 
@@ -118,8 +196,7 @@
                             <div class="grid grid-cols-2 gap-2">
                               {% for skill in subcategory.skills.all %}
                                 <!-- Single Skill Item (Clickable) -->
-                                <div class="skill-item cursor-pointer p-2 rounded hover:bg-gray-100"
-                                     data-skill-id="{{ skill.id }}">
+                                <div class="skill-item cursor-pointer p-2 rounded hover:bg-gray-100" data-skill-id="{{ skill.id }}">
                                   <span class="text-sm text-gray-700">{{ skill.name }}</span>
                                 </div>
                               {% endfor %}
@@ -162,15 +239,19 @@
   </div>
 </main>
 
-<!-- Styles to highlight selected skills (optional) -->
+<!-- Optional inline style for selected skills -->
 <style>
-.skill-item.selected {
-  background-color: #dbeafe; /* Light blue highlight */
-  border: 1px solid #3b82f6; /* Blue border */
-}
+  .skill-item.selected {
+    background-color: #dbeafe; /* Light blue highlight */
+    border: 1px solid #3b82f6; /* Blue border */
+  }
 </style>
 
 <script>
+// Ensure that Django variables are rendered as numbers
+const required = {{ min_selections|default:"0" }};
+const currentStep = {{ step|default:"0" }};
+
 document.addEventListener("DOMContentLoaded", function () {
   // Toggle categories
   document.querySelectorAll(".category-header").forEach(header => {
@@ -178,7 +259,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const container = header.closest(".category-container");
       const subcatList = container.querySelector(".subcategories-container");
       subcatList.classList.toggle("hidden");
-      // Toggle arrow
+      // Toggle arrow rotation
       const arrow = header.querySelector(".arrow-icon");
       arrow.classList.toggle("rotate-90");
     });
@@ -190,24 +271,19 @@ document.addEventListener("DOMContentLoaded", function () {
       const container = subHeader.closest(".subcategory-container");
       const skillList = container.querySelector(".skills-container");
       skillList.classList.toggle("hidden");
-      // Toggle arrow
       const arrow = subHeader.querySelector(".arrow-icon");
       arrow.classList.toggle("rotate-90");
     });
   });
 
-  // Track selected skills in an array
+  // Track selected skills
   let selectedSkillIds = [];
 
-  // Clickable skill items
   document.querySelectorAll(".skill-item").forEach(skillDiv => {
     skillDiv.addEventListener("click", () => {
       const skillId = skillDiv.getAttribute("data-skill-id");
-
-      // Toggle selected class
       if (skillDiv.classList.contains("selected")) {
         skillDiv.classList.remove("selected");
-        // Remove from selectedSkillIds
         selectedSkillIds = selectedSkillIds.filter(id => id !== skillId);
       } else {
         skillDiv.classList.add("selected");
@@ -217,10 +293,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Show how many skills are selected
+  // Update selected skills count
   function updateSelectedCount() {
     const selectedCount = selectedSkillIds.length;
-    const required = {{ min_selections }};
     const display = document.getElementById("selected-count");
     if (display) {
       display.textContent = `Selected skills: ${selectedCount}/${required}`;
@@ -230,27 +305,45 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // On form submit, gather selected skill IDs into hidden field
+  // On form submit, set hidden field with selected skills
   const form = document.querySelector("form");
   form.addEventListener("submit", function (event) {
-    if ({{ step }} === 3) {
-      // Put the skill IDs into the hidden input
+    if (currentStep === 3) {
       const hiddenInput = document.getElementById('selected_skills');
       if (hiddenInput) {
         hiddenInput.value = JSON.stringify(selectedSkillIds);
       }
-      // Check minimum
-      if (selectedSkillIds.length < {{ min_selections }}) {
+      if (selectedSkillIds.length < required) {
         event.preventDefault();
-        alert(`Please select at least {{ min_selections }} skills.`);
+        alert(`Please select at least ${required} skills.`);
       }
     }
-
-    // Basic HTML5 validation
     if (!form.checkValidity()) {
       event.preventDefault();
       alert("Please fix the errors in the form before proceeding.");
     }
+  });
+
+  // Toggle password visibility
+  const togglePasswordButtons = document.querySelectorAll('.toggle-password');
+  togglePasswordButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const targetId = this.getAttribute('data-target');
+      const passwordInput = document.getElementById(targetId);
+      if (passwordInput) {
+        const isVisible = passwordInput.type === 'text';
+        passwordInput.type = isVisible ? 'password' : 'text';
+        const openEye = this.querySelector('.eye-open');
+        const closedEye = this.querySelector('.eye-closed');
+        if (isVisible) {
+          openEye.classList.remove('hidden');
+          closedEye.classList.add('hidden');
+        } else {
+          openEye.classList.add('hidden');
+          closedEye.classList.remove('hidden');
+        }
+      }
+    });
   });
 
   // Initialize count display
