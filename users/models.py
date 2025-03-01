@@ -1,3 +1,5 @@
+import os
+
 from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import User
@@ -57,14 +59,32 @@ class Profile(models.Model):
         return f"{self.user.username}'s Profile"
 
     def save(self, *args, **kwargs):
+        # First, save the instance normally.
         super().save(*args, **kwargs)
 
-        if self.avatar:
-            img = Image.open(self.avatar.path)
-            if img.width > 300 or img.height > 300:
-                output_size = (300, 300)
-                img.thumbnail(output_size, Image.ANTIALIAS)  # Maintain quality
-                img.save(self.avatar.path, quality=95)  # Save with high quality
+        # If there is an avatar, get its path.
+        if self.avatar and self.avatar.name:
+            avatar_path = self.avatar.path
+
+            # Check if the file exists before processing
+            if not os.path.exists(avatar_path):
+                # Log the missing file or set to default if necessary
+                print(f"Avatar file not found at: {avatar_path}")
+                # Optionally, set a default image if the file is missing:
+                # self.avatar = 'default.jpg'
+                # super().save(update_fields=['avatar'])
+                return
+
+            try:
+                img = Image.open(avatar_path)
+                # Resize if necessary
+                if img.width > 300 or img.height > 300:
+                    output_size = (300, 300)
+                    img.thumbnail(output_size, Image.ANTIALIAS)
+                    img.save(avatar_path, quality=95)
+            except Exception as e:
+                # Log the error but do not block the save
+                print(f"Error processing avatar image: {e}")
 
     @property
     def location(self):
