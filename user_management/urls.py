@@ -9,7 +9,10 @@ from users.views import CustomLoginView, ResetPasswordView, ChangePasswordView
 from users.forms import LoginForm
 
 urlpatterns = [
+
+    path('grappelli/', include('grappelli.urls')),
     path('admin/', admin.site.urls),
+    path('dashboard/', include('dashboard.urls')),
     path('marketplace/', include('projects.urls')),  # Marketplace routes (projects app)
     path('ai-assistant/', include('ai_assistant.urls', namespace='ai_assistant')),
     path('oauth/', include('social_django.urls', namespace='social')),  # Social auth routes

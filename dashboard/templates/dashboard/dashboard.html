@@ -1,0 +1,18 @@
+{% extends "users/base.html" %}
+
+{% block content %}
+  <h1>Dashboard</h1>
+  <div>
+    <p><strong>Total Users:</strong> {{ total_users }}</p>
+    <p><strong>Total Projects:</strong> {{ total_projects }}</p>
+  </div>
+
+  <h2>Top Categories</h2>
+  <ul>
+    {% for category in top_categories %}
+      <li>{{ category.name }} - {{ category.num_projects }} projects</li>
+    {% empty %}
+      <li>No categories available.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}
