@@ -62,7 +62,8 @@ daphne>=3.0.0
 uvicorn
 uvicorn[standard]
 websockets
-grappelli==4.0.1
+django-grappelli==4.0.1
+
 
 
 
