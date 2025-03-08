@@ -35,7 +35,7 @@ pdfplumber==0.11.5
 Pillow==9.2.0
 progressbar2==4.5.0
 psycopg==3.2.4
-psycopg2==2.9.10
+psycopg2-binary
 pycparser==2.21
 pydantic==2.10.6
 pydantic_core==2.27.2
