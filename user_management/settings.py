@@ -121,7 +121,7 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-DATABASE_URL = "postgresql://postgres:hnzfXICblatumDEsKpTKIYSgunxotHzn@postgres.railway.internal:5432/railway"
+DATABASE_URL = "postgresql://postgres:hnzfXICblatumDEsKpTKIYSgunxotHzn@interchange.proxy.rlwy.net:39796/railway"
 DATABASES = {
     "default": dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
 }
