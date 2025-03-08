@@ -18,7 +18,13 @@ SECRET_KEY = str(os.getenv('SECRET_KEY'))
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    '.vercel.app',    # so subdomains like <project>.vercel.app work
+    'scholar-five.vercel.app',
+    'ScholarHub.kz',
+    # etc.
+]
+
 # ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'scholar-d6c0.onrender.com']
 # 'scholar-d6c0.onrender.com'
 
@@ -115,7 +121,7 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-DATABASES['default'] = dj_database_url.parse("postgresql://scholar_t_db_01_zzjs_user:HSBY7RS1HV4CmPHVe6f52NHmcCD4OUuL@dpg-cutif3l2ng1s73datefg-a.oregon-postgres.render.com/scholar_t_db_01_zzjs")
+# DATABASES['default'] = dj_database_url.parse("postgresql://scholar_t_db_01_zzjs_user:HSBY7RS1HV4CmPHVe6f52NHmcCD4OUuL@dpg-cutif3l2ng1s73datefg-a.oregon-postgres.render.com/scholar_t_db_01_zzjs")
 
 #new db
 # postgresql://scholar_t_db_01_zzjs_user:HSBY7RS1HV4CmPHVe6f52NHmcCD4OUuL@dpg-cutif3l2ng1s73datefg-a.oregon-postgres.render.com/scholar_t_db_01_zzjs
