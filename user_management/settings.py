@@ -20,9 +20,7 @@ SECRET_KEY = str(os.getenv('SECRET_KEY'))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 ALLOWED_HOSTS = [
-    '.vercel.app',    # so subdomains like <project>.vercel.app work
-    'scholar-five.vercel.app',
-    'ScholarHub.kz',
+    "*"
     # etc.
 ]
 
