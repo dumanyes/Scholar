@@ -115,12 +115,26 @@ TEMPLATES = [
 WSGI_APPLICATION = 'user_management.wsgi.application'
 
 # Database
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+db_url = os.environ.get('postgresql://postgres:hnzfXICblatumDEsKpTKIYSgunxotHzn@postgres.railway.internal:5432/railway') or os.environ.get('postgresql://postgres:hnzfXICblatumDEsKpTKIYSgunxotHzn@interchange.proxy.rlwy.net:39796/railway')
+if db_url:
+    DATABASES['default'] = dj_database_url.parse(db_url, conn_max_age=600)
+
+
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 # DATABASES['default'] = dj_database_url.parse("postgresql://scholar_t_db_01_zzjs_user:HSBY7RS1HV4CmPHVe6f52NHmcCD4OUuL@dpg-cutif3l2ng1s73datefg-a.oregon-postgres.render.com/scholar_t_db_01_zzjs")
 
 #new db
