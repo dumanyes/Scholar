@@ -209,3 +209,25 @@ class UpdateProfileForm(forms.ModelForm):
             kwargs['initial'] = initial
         super().__init__(*args, **kwargs)
 
+
+
+class UserDashboardForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['email', 'is_staff', 'is_active']
+
+class ProfileDashboardForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = [
+            'bio', 'birthdate', 'university', 'skills', 'categories',
+            'organization', 'position', 'linkedin', 'github',
+            'google_scholar', 'telegram', 'country', 'city',
+            'reputation', 'is_verified'
+        ]
+        widgets = {
+            'skills': forms.CheckboxSelectMultiple,
+            'categories': forms.CheckboxSelectMultiple,
+        }
+
+

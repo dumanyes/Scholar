@@ -1,0 +1,18 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+  <a href="{% url 'dashboard-projects' %}"
+     class="inline-block mb-4 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
+    ← Back to Projects
+  </a>
+
+  <h1 class="text-2xl font-bold mb-4">Edit Project: {{ project.title }}</h1>
+
+  <form method="POST" class="space-y-4">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Save</button>
+  </form>
+</div>
+{% endblock %}

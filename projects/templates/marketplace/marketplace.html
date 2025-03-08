@@ -37,51 +37,38 @@
               <i class="fas fa-paper-plane mr-2"></i>
               My Requests
           </button>
-      <button type="button" onclick="location.href='{% url 'favorites' %}'"
-    class="inline-flex items-center px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-xl font-semibold transition-all">
-    <i class="fas fa-heart mr-2"></i>
-    Favorites
-</button>
-
-
-  <button type="button" onclick="toggleFilterDialog()"
-          class="inline-flex items-center px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-xl font-semibold transition-all">
-      <i class="fas fa-filter mr-2"></i>
-      Filters
-  </button>
-
-          <!-- Chats Button with realtime unread count badge -->
-          <!-- Chats Button -->
-<button type="button" onclick="location.href='{% url 'chat_list' %}'"
-    class="inline-flex items-center px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-xl font-semibold transition-all relative">
-    <i class="fas fa-comments mr-2"></i> Chats
-    <span id="unread-count-badge" class="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-red-500 text-white rounded-full text-xs w-6 h-6 flex items-center justify-center"
-          style="display: {% if unread_chat_count and unread_chat_count > 0 %}flex{% else %}none{% endif %};">
-          {{ unread_chat_count|default:"0" }}
-    </span>
-</button>
-
-<!-- Notifications Button -->
-<!-- Notifications Button -->
-<button type="button" onclick="location.href='{% url 'notifications_list' %}'"
-    class="inline-flex items-center px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-xl font-semibold transition-all relative">
-    <i class="fas fa-bell mr-2"></i> Notifications
-    <span id="notifications-badge" class="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-red-500 text-white rounded-full text-xs w-6 h-6 flex items-center justify-center"
-          style="display: {% if notifications_count and notifications_count > 0 %}flex{% else %}none{% endif %};">
-          {{ notifications_count|default:"0" }}
-    </span>
-</button>
-
-
+          <button type="button" onclick="location.href='{% url 'favorites' %}'"
+              class="inline-flex items-center px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-xl font-semibold transition-all">
+              <i class="fas fa-heart mr-2"></i>
+              Favorites
+          </button>
           <button type="button" onclick="toggleFilterDialog()"
                   class="inline-flex items-center px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-xl font-semibold transition-all">
               <i class="fas fa-filter mr-2"></i>
               Filters
           </button>
+          <!-- Chats Button -->
+          <button type="button" onclick="location.href='{% url 'chat_list' %}'"
+              class="inline-flex items-center px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-xl font-semibold transition-all relative">
+              <i class="fas fa-comments mr-2"></i> Chats
+              <span id="unread-count-badge" class="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-red-500 text-white rounded-full text-xs w-6 h-6 flex items-center justify-center"
+                    style="display: {% if unread_chat_count and unread_chat_count > 0 %}flex{% else %}none{% endif %};">
+                    {{ unread_chat_count|default:"0" }}
+              </span>
+          </button>
+          <!-- Notifications Button -->
+          <button type="button" onclick="location.href='{% url 'notifications_list' %}'"
+              class="inline-flex items-center px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-xl font-semibold transition-all relative">
+              <i class="fas fa-bell mr-2"></i> Notifications
+              <span id="notifications-badge" class="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-red-500 text-white rounded-full text-xs w-6 h-6 flex items-center justify-center"
+                    style="display: {% if notifications_count and notifications_count > 0 %}flex{% else %}none{% endif %};">
+                    {{ notifications_count|default:"0" }}
+              </span>
+          </button>
       </div>
     </div>
 
-    <!-- Main Search Form (with hidden categories and sort inputs) -->
+    <!-- Main Search Form -->
     <div class="relative max-w-2xl mx-auto mb-8">
         <form id="searchForm" method="GET">
             <input type="hidden" id="timeSort" name="time_sort" value="{{ request.GET.time_sort }}">
@@ -100,7 +87,52 @@
         </form>
     </div>
 
-    <!-- Clickable Category Badges (Main Page) -->
+    <!-- Recommended Projects Section -->
+    {% if recommended_projects %}
+    <div class="mb-12">
+        <h2 class="text-3xl font-bold mb-4">Recommended for You</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for project in recommended_projects %}
+            <div class="bg-white rounded-xl shadow-lg p-6 transition-all duration-200 hover:-translate-y-1">
+                <!-- Categories & Match Score -->
+                <div class="flex items-center justify-between mb-4">
+                    <span class="inline-flex items-center px-4 py-1 bg-gray-100 rounded-full text-sm font-medium">
+                        {% for category in project.category.all %}
+                            {{ category.name }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            No category assigned
+                        {% endfor %}
+                    </span>
+                    {% with match=project|skill_match:user %}
+                    <span class="inline-flex items-center ml-2 px-4 py-1 rounded-full text-sm font-medium
+                        {% if match > 71 %}
+                            bg-green-500 text-white
+                        {% elif match > 41 %}
+                            bg-yellow-500 text-white
+                        {% else %}
+                            bg-pink-500 text-white
+                        {% endif %}">
+                        <i class="fas fa-check mr-1"></i> {{ match }}% Match
+                    </span>
+                    {% endwith %}
+                </div>
+                <!-- Project Title -->
+                <h2 class="text-2xl font-semibold mb-4">{{ project.title }}</h2>
+                <!-- Description -->
+                <p class="text-gray-600 mb-4 line-clamp-6">
+                    {{ project.description }}
+                </p>
+                <!-- View Details Button -->
+                <a href="{% url 'project-detail' pk=project.pk %}" class="text-blue-600 hover:underline">
+                    View Details
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Clickable Category Badges -->
     <div class="flex flex-wrap gap-2 justify-center mb-6">
         <button type="button" onclick="selectAll()" id="cat-all"
            class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-full text-sm font-medium transition">
@@ -162,22 +194,19 @@
                             bg-yellow-500 text-white
                         {% else %}
                             bg-pink-500 text-white
-                        {% endif %}
-                        ">
+                        {% endif %}">
                         <i class="fas fa-check mr-1"></i> {{ match }}% Match
                     </span>
                     {% endwith %}
                 </div>
-                <!-- Save Button as Icon with Animation -->
-                <!-- Save Button as Icon with Animation -->
-<button type="button" onclick="saveProject({{ project.id }})" class="heart-btn focus:outline-none" id="fav-btn-{{ project.id }}">
-    {% if project.id in favorite_ids %}
-        <i class="fas fa-heart text-red-500 transition-colors"></i>
-    {% else %}
-        <i class="fas fa-heart text-gray-400 hover:text-red-500 transition-colors"></i>
-    {% endif %}
-</button>
-
+                <!-- Save Button -->
+                <button type="button" onclick="saveProject({{ project.id }})" class="heart-btn focus:outline-none" id="fav-btn-{{ project.id }}">
+                    {% if project.id in favorite_ids %}
+                        <i class="fas fa-heart text-red-500 transition-colors"></i>
+                    {% else %}
+                        <i class="fas fa-heart text-gray-400 hover:text-red-500 transition-colors"></i>
+                    {% endif %}
+                </button>
             </div>
 
             <!-- Avatar, Username, Country and City -->
@@ -209,7 +238,7 @@
             <!-- Project Title -->
             <h2 class="text-2xl font-semibold mb-4">{{ project.title }}</h2>
 
-            <!-- Description with 6-line clamp -->
+            <!-- Description -->
             <p class="text-gray-600 mb-4 line-clamp-6">
                 {{ project.description }}
             </p>
@@ -260,7 +289,7 @@
         {% endfor %}
     </div>
 
-    <!-- Filter Dialog with Clickable Categories & Skills Selection -->
+    <!-- Filter Dialog (omitted for brevity) -->
     <div class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-50" id="filterDialog">
         <div class="bg-white rounded-2xl w-full max-w-lg p-6 m-4">
             <div class="flex justify-between items-center mb-6">
@@ -270,7 +299,7 @@
                 </button>
             </div>
             <form id="filterForm" method="GET" class="space-y-6">
-                <!-- Clickable Categories in Filter Dialog -->
+                <!-- Filter dialog content (categories, skills, etc.) -->
                 <div>
                     <label class="block text-sm font-medium mb-2">Categories</label>
                     <div id="filter-categories" class="flex flex-wrap gap-2">
@@ -287,7 +316,6 @@
                     </div>
                     <input type="hidden" id="filterSelectedCategories" name="categories" value="{{ request.GET.categories }}">
                 </div>
-                <!-- (Additional filter dialog fields omitted for brevity) -->
                 <div class="flex gap-4">
                     <button type="button" onclick="resetFilterDialog()" class="flex-1 px-6 py-3 bg-red-100 rounded-2xl font-semibold hover:bg-red-200 transition-all">
                         Clear
@@ -304,7 +332,7 @@
     </div>
 </div>
 
-<!-- JavaScript for Main Page Category Selection -->
+<!-- JavaScript for Category Selection and WebSocket Updates -->
 <script>
 let selectedCategories = [];
 document.addEventListener("DOMContentLoaded", function() {
@@ -350,13 +378,9 @@ function selectAll() {
 }
 </script>
 
-<!-- (Filter dialog JavaScript omitted for brevity) -->
-
-<!-- WebSocket connection for Chat List and Notifications updates -->
+<!-- WebSocket and Favorite Project AJAX JavaScript -->
 <script>
-  // Determine the correct protocol for WebSocket connection.
   const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
-  // Open WebSocket connection to your chat list endpoint.
   const chatListSocket = new WebSocket(wsScheme + '://' + window.location.host + '/ws/chat-list/');
 
   chatListSocket.onopen = function() {
@@ -366,7 +390,6 @@ function selectAll() {
   chatListSocket.onmessage = function(e) {
       const data = JSON.parse(e.data);
       console.log("WebSocket message received:", data);
-      // Update unread chat messages badge if provided.
       if (typeof data.unread_count !== 'undefined') {
           const chatBadge = document.getElementById('unread-count-badge');
           if (chatBadge) {
@@ -374,7 +397,6 @@ function selectAll() {
               chatBadge.style.display = data.unread_count > 0 ? 'flex' : 'none';
           }
       }
-      // Update notifications badge if provided.
       if (typeof data.notifications_count !== 'undefined') {
           const notifBadge = document.getElementById('notifications-badge');
           if (notifBadge) {
@@ -387,8 +409,6 @@ function selectAll() {
   chatListSocket.onclose = function(e) {
       console.error("Chat List WebSocket closed unexpectedly");
   };
-
-
 
   function saveProject(projectId) {
     $.ajax({
@@ -415,8 +435,5 @@ function selectAll() {
         }
     });
 }
-
-
 </script>
-
 {% endblock %}

@@ -101,3 +101,31 @@ class ProjectApplicationForm(forms.ModelForm):
     class Meta:
         model = ProjectApplication
         fields = ['message', 'contribution']
+
+
+# projects/forms.py
+
+
+class ProjectDashboardForm(forms.ModelForm):
+    class Meta:
+        model = Project
+        fields = [
+            'title',
+            'description',
+            'project_mission',
+            'project_objectives',
+            'category',
+            'skills_required',
+            'languages',
+            'required_roles',
+            'view_count',
+            'application_count',
+            'is_active',
+        ]
+        widgets = {
+            'category': forms.CheckboxSelectMultiple,
+            'skills_required': forms.CheckboxSelectMultiple,
+            'languages': forms.CheckboxSelectMultiple,
+            'required_roles': forms.CheckboxSelectMultiple,
+        }
+

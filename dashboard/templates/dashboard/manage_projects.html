@@ -1,0 +1,178 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Back Button -->
+    <a href="{% url 'dashboard-home' %}"
+       class="inline-block mb-4 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
+        ← Back to Dashboard
+    </a>
+
+    <h1 class="text-3xl font-bold mb-6">Manage Projects</h1>
+
+    <!-- Filter Form -->
+    <form method="GET" class="mb-6 flex items-center gap-2">
+        <input type="text"
+               name="search"
+               placeholder="Search by title..."
+               value="{{ search_query }}"
+               class="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500">
+        <button type="submit"
+                class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+            Filter
+        </button>
+    </form>
+
+    <!-- Projects Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {% for project in page_obj %}
+        <div class="bg-white rounded-lg shadow p-4 flex flex-col">
+            <!-- Title -->
+            <h2 class="text-xl font-bold mb-2">
+                {{ project.title }}
+            </h2>
+
+            <!-- Description -->
+            <p class="text-gray-700 mb-1">
+                <span class="font-semibold">Description:</span>
+                {{ project.description }}
+            </p>
+
+            <!-- Mission -->
+            <p class="text-gray-700 mb-1">
+                <span class="font-semibold">Mission:</span>
+                {{ project.project_mission|default:"N/A" }}
+            </p>
+
+            <!-- Objectives -->
+            <p class="text-gray-700 mb-1">
+                <span class="font-semibold">Objectives:</span>
+                {{ project.project_objectives|default:"N/A" }}
+            </p>
+
+            <!-- Owner -->
+            <p class="text-gray-700 mb-1">
+                <span class="font-semibold">Owner:</span>
+                {{ project.owner.username }}
+            </p>
+
+            <!-- Created Date -->
+            <p class="text-gray-700 mb-1">
+                <span class="font-semibold">Created:</span>
+                {{ project.created_at|date:"Y-m-d" }}
+            </p>
+
+            <!-- Categories -->
+            <div class="mb-1">
+                <span class="font-semibold">Categories:</span>
+                {% if project.category.all %}
+                    <div class="flex flex-wrap gap-1 mt-1">
+                        {% for cat in project.category.all %}
+                            <span class="inline-block bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">
+                                {{ cat.name }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <span class="text-gray-500">N/A</span>
+                {% endif %}
+            </div>
+
+            <!-- Required Skills -->
+            <div class="mb-1">
+                <span class="font-semibold">Required Skills:</span>
+                {% if project.skills_required.all %}
+                    <div class="flex flex-wrap gap-1 mt-1">
+                        {% for skill in project.skills_required.all %}
+                            <span class="inline-block bg-green-100 text-green-700 text-xs px-2 py-1 rounded">
+                                {{ skill.name }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <span class="text-gray-500">N/A</span>
+                {% endif %}
+            </div>
+
+            <!-- Languages -->
+            <div class="mb-1">
+                <span class="font-semibold">Languages:</span>
+                {% if project.languages.all %}
+                    <div class="flex flex-wrap gap-1 mt-1">
+                        {% for lang in project.languages.all %}
+                            <span class="inline-block bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded">
+                                {{ lang.name }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <span class="text-gray-500">N/A</span>
+                {% endif %}
+            </div>
+
+            <!-- Required Roles -->
+            <div class="mb-1">
+                <span class="font-semibold">Required Roles:</span>
+                {% if project.required_roles.all %}
+                    <div class="flex flex-wrap gap-1 mt-1">
+                        {% for role in project.required_roles.all %}
+                            <span class="inline-block bg-pink-100 text-pink-700 text-xs px-2 py-1 rounded">
+                                {{ role.name }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <span class="text-gray-500">N/A</span>
+                {% endif %}
+            </div>
+
+            <!-- View & Application Counts -->
+            <p class="text-gray-700 mb-1">
+                <span class="font-semibold">View Count:</span>
+                {{ project.view_count }}
+            </p>
+            <p class="text-gray-700 mb-1">
+                <span class="font-semibold">Application Count:</span>
+                {{ project.application_count }}
+            </p>
+            <p class="text-gray-700 mb-2">
+                <span class="font-semibold">Active:</span>
+                {{ project.is_active }}
+            </p>
+
+            <!-- Action Buttons -->
+            <div class="mt-auto pt-2">
+                <a href="{% url 'dashboard-edit-project' project.id %}"
+                   class="inline-block px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600 mr-2">
+                   Edit
+                </a>
+                <a href="{% url 'dashboard-delete-project' project.id %}"
+                   class="inline-block px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+                   onclick="return confirm('Are you sure you want to delete this project?');">
+                   Delete
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-gray-500">No projects found.</p>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="mt-8">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}"
+               class="px-4 py-2 bg-gray-200 rounded mr-2 hover:bg-gray-300">
+               Previous
+            </a>
+        {% endif %}
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}"
+               class="px-4 py-2 bg-gray-200 rounded ml-2 hover:bg-gray-300">
+               Next
+            </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -8,10 +8,13 @@
         <i class="fas fa-robot text-white"></i>
       </div>
       <div>
-        <h1 class="text-xl font-bold">Ai Assistant</h1>
-        <p class="text-xs opacity-80">Powered by Google </p>
+        <h1 class="text-xl font-bold">AI Assistant</h1>
+        <p class="text-xs opacity-80">Powered by Google</p>
       </div>
       <div class="ml-auto flex space-x-3">
+        <a href="{% url 'ai_assistant:new_chat' %}" class="bg-indigo-700 hover:bg-indigo-800 text-white font-bold py-2 px-4 rounded">
+          New Chat
+        </a>
         <button class="text-white opacity-80 hover:opacity-100 transition-opacity">
           <i class="fas fa-volume-up"></i>
         </button>
@@ -23,21 +26,54 @@
 
     <!-- Chat Area -->
     <div id="chat-container" class="chat-area px-4 md:px-8 lg:px-16 bg-gray-50 h-[50vh] overflow-y-auto">
-      <!-- Welcome message -->
-      <div class="flex w-full items-start mb-6 pt-4">
-        <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center mr-3 flex-shrink-0">
-          <i class="fas fa-robot text-white"></i>
-        </div>
-        <div class="chat-bubble-assistant p-4">
-          <div class="markdown-content">
-            <p>👋 Hello! I'm your AI assistant powered by Google. How can I help you today?</p>
-            <p>You can ask me questions, request information, or share an image for analysis.</p>
+      {% if chat_history %}
+        {% for message in chat_history %}
+          {% if message.sender == "assistant" %}
+            <div class="flex w-full items-start mb-6 pt-4">
+              <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center mr-3 flex-shrink-0">
+                <i class="fas fa-robot text-white"></i>
+              </div>
+              <div class="chat-bubble-assistant p-4">
+                <div class="markdown-content">{{ message.content|safe }}</div>
+                <div class="status-indicator">
+                  <span>{{ message.timestamp|date:"h:i A" }}</span>
+                </div>
+              </div>
+            </div>
+          {% else %}
+            <div class="flex w-full items-start mb-6">
+              <div class="ml-auto flex items-end">
+                <div class="chat-bubble-user p-4">
+                  <p>{{ message.content }}</p>
+                  <div class="status-indicator">
+                    <span>{{ message.timestamp|date:"h:i A" }}</span>
+                    <i class="fas fa-check-double ml-1"></i>
+                  </div>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center ml-3 flex-shrink-0">
+                  <i class="fas fa-user text-white"></i>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        <!-- Welcome message when there's no chat history -->
+        <div class="flex w-full items-start mb-6 pt-4">
+          <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center mr-3 flex-shrink-0">
+            <i class="fas fa-robot text-white"></i>
           </div>
-          <div class="status-indicator">
-            <span>{{ current_time }}</span>
+          <div class="chat-bubble-assistant p-4">
+            <div class="markdown-content">
+              <p>👋 Hello! I'm your AI assistant powered by Google. How can I help you today?</p>
+              <p>You can ask me questions, request information, or share an image for analysis.</p>
+            </div>
+            <div class="status-indicator">
+              <span>{{ current_time }}</span>
+            </div>
           </div>
         </div>
-      </div>
+      {% endif %}
 
       <!-- Loading indicator within chat area -->
       <div id="loading" class="flex justify-center my-4 hidden">
@@ -91,6 +127,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
+    /* Your CSS styles remain the same */
     .chat-bubble-user {
       background: linear-gradient(135deg, #22c55e, #16a34a);
       color: white;
@@ -103,7 +140,6 @@
     footer {
       display: none !important;
     }
-
     .chat-bubble-assistant {
       background: linear-gradient(135deg, #3b82f6, #2563eb);
       color: white;
@@ -112,21 +148,17 @@
       max-width: 80%;
       animation: fadeIn 0.3s ease-out;
     }
-
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
     .loader {
       border-top-color: #3b82f6;
       animation: spin 1s linear infinite;
     }
-
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-
     .input-container {
       position: relative;
       border-radius: 24px;
@@ -134,11 +166,9 @@
       transition: all 0.3s ease;
       background-color: #f9fafb;
     }
-
     .input-container:focus-within {
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
     }
-
     #user-message {
       border-radius: 24px;
       padding-right: 90px;
@@ -147,7 +177,6 @@
       max-height: 120px;
       overflow-y: auto;
     }
-
     .send-button {
       position: absolute;
       right: 8px;
@@ -160,11 +189,9 @@
       justify-content: center;
       transition: all 0.2s;
     }
-
     .send-button:hover {
       transform: scale(1.05);
     }
-
     .attachment-button {
       position: absolute;
       right: 56px;
@@ -179,24 +206,20 @@
       background-color: #f3f4f6;
       color: #4b5563;
     }
-
     .attachment-button:hover {
       background-color: #e5e7eb;
     }
-
     .image-preview {
       max-height: 200px;
       border-radius: 12px;
       border: 2px solid #e5e7eb;
       object-fit: contain;
     }
-
     .preview-container {
       position: relative;
       display: inline-block;
       margin-bottom: 0.5rem;
     }
-
     .remove-image {
       position: absolute;
       top: -8px;
@@ -212,29 +235,23 @@
       cursor: pointer;
       font-size: 12px;
     }
-
     .status-indicator {
       font-size: 0.7rem;
       color: rgba(255, 255, 255, 0.7);
       margin-top: 0.25rem;
       text-align: right;
     }
-
     .markdown-content ul, .markdown-content ol {
       padding-left: 1.5rem;
       margin: 0.5rem 0;
     }
-
     .markdown-content p {
       margin-bottom: 0.5rem;
     }
-
     .markdown-content a {
       color: #d1fae5;
       text-decoration: underline;
     }
-
-    /* Code block styling */
     .markdown-content pre {
       background-color: rgba(0, 0, 0, 0.2);
       border-radius: 8px;
@@ -242,7 +259,6 @@
       overflow-x: auto;
       margin: 0.5rem 0;
     }
-
     .markdown-content code {
       font-family: 'Courier New', monospace;
     }
@@ -258,28 +274,20 @@
     const imagePreview = document.getElementById('image-preview');
     const removeImageButton = document.getElementById('remove-image');
 
-    // Variable to store image data as a base64 URL
     let selectedImageDataUrl = null;
 
-    // Auto-resize textarea as user types
     userMessageInput.addEventListener('input', function() {
       this.style.height = 'auto';
       this.style.height = (this.scrollHeight) + 'px';
-      if (this.scrollHeight > 120) {
-        this.style.overflowY = 'auto';
-      } else {
-        this.style.overflowY = 'hidden';
-      }
+      this.style.overflowY = (this.scrollHeight > 120) ? 'auto' : 'hidden';
     });
 
-    // Handle image selection
     userImageInput.addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (file) {
         const reader = new FileReader();
         reader.onload = function(event) {
           selectedImageDataUrl = event.target.result;
-          // Show preview
           imagePreview.src = selectedImageDataUrl;
           imagePreviewContainer.classList.remove('hidden');
         }
@@ -290,33 +298,27 @@
       }
     });
 
-    // Handle attachment button click
     attachmentButton.addEventListener('click', function() {
       userImageInput.click();
     });
 
-    // Handle remove image button click
     removeImageButton.addEventListener('click', function() {
       selectedImageDataUrl = null;
       userImageInput.value = '';
       imagePreviewContainer.classList.add('hidden');
     });
 
-    // Helper function to format current time
     function getCurrentTime() {
       const now = new Date();
       return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
-    // Helper function to add a chat message bubble
     function addMessage(message, sender, imageData = null) {
       const messageDiv = document.createElement('div');
       messageDiv.classList.add('flex', 'w-full', 'items-start', 'mb-6');
-
       const time = getCurrentTime();
 
       if (sender === 'assistant') {
-        // Assistant messages
         const content = marked.parse(message);
         messageDiv.innerHTML = `
           <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center mr-3 flex-shrink-0">
@@ -330,11 +332,7 @@
           </div>
         `;
       } else {
-        // User messages
-        let contentHTML = '';
-        if (message) {
-          contentHTML += `<p>${message}</p>`;
-        }
+        let contentHTML = message ? `<p>${message}</p>` : '';
         if (imageData) {
           contentHTML += `<img src="${imageData}" class="mt-2 rounded-lg max-w-full max-h-48" alt="Sent image">`;
         }
@@ -355,32 +353,23 @@
       }
 
       chatContainer.appendChild(messageDiv);
-      // Scroll to the latest message
       chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
-    // Function to send a message
     function sendMessage() {
       const message = userMessageInput.value.trim();
-      // Allow sending if message or image is present
       if (!message && !selectedImageDataUrl) return;
 
-      // Display user's message with image if available
       addMessage(message, 'user', selectedImageDataUrl);
-
-      // Reset input fields and preview
       userMessageInput.value = '';
       userMessageInput.style.height = 'auto';
       imagePreviewContainer.classList.add('hidden');
 
-      // Store image data for the API call
       const imageDataForAPI = selectedImageDataUrl;
       selectedImageDataUrl = null;
 
-      // Show loading indicator
       loadingIndicator.classList.remove('hidden');
 
-      // Build request parameters for the Django backend
       const formData = new FormData();
       if (message) {
         formData.append('message', message);
@@ -388,10 +377,8 @@
       if (imageDataForAPI) {
         formData.append('image_url', imageDataForAPI);
       }
-      // Add CSRF token
       formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
 
-      // Send to Django backend
       fetch("{% url 'ai_assistant:gemini_flash_chat' %}", {
         method: "POST",
         body: formData
@@ -399,11 +386,9 @@
       .then(response => response.json())
       .then(data => {
         loadingIndicator.classList.add('hidden');
-
         if (data.error) {
           addMessage("Error: " + data.error, 'assistant');
         } else if (data.choices && data.choices[0] && data.choices[0].message) {
-          // Process OpenRouter/Gemini response format
           const assistantMsg = data.choices[0].message.content;
           addMessage(assistantMsg, 'assistant');
         } else {
@@ -417,7 +402,6 @@
       });
     }
 
-    // Event listeners
     sendButton.addEventListener('click', function(e) {
       e.preventDefault();
       sendMessage();
@@ -430,7 +414,6 @@
       }
     });
 
-    // Quick response buttons
     document.querySelectorAll('.flex.flex-wrap.gap-2.mt-3 button').forEach(button => {
       button.addEventListener('click', function() {
         userMessageInput.value = this.textContent.trim();

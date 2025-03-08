@@ -1,5 +1,6 @@
-# middleware.py
+# users/middleware.py
 from django.utils import timezone
+from users.models import Profile
 
 class UpdateLastOnlineMiddleware:
     def __init__(self, get_response):
@@ -7,7 +8,10 @@ class UpdateLastOnlineMiddleware:
 
     def __call__(self, request):
         if request.user.is_authenticated:
-            profile = request.user.profile
+            try:
+                profile = request.user.profile
+            except Profile.DoesNotExist:
+                profile = Profile.objects.create(user=request.user)
             profile.last_online = timezone.now()
             profile.save(update_fields=['last_online'])
         return self.get_response(request)
