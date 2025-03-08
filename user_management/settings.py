@@ -1,4 +1,5 @@
 import os
+from email.policy import default
 from pathlib import Path
 
 # To keep secret keys in environment variables
@@ -122,10 +123,10 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-db_url = os.environ.get('postgresql://postgres:hnzfXICblatumDEsKpTKIYSgunxotHzn@postgres.railway.internal:5432/railway') or os.environ.get('postgresql://postgres:hnzfXICblatumDEsKpTKIYSgunxotHzn@interchange.proxy.rlwy.net:39796/railway')
-if db_url:
-    DATABASES['default'] = dj_database_url.parse(db_url, conn_max_age=600)
-
+DATABASE_URL = "postgresql://postgres:hnzfXICblatumDEsKpTKIYSgunxotHzn@interchange.proxy.rlwy.net:39796/railway"
+DATABASES = {
+    "default": dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
+}
 
 
 
