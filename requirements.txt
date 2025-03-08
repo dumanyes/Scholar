@@ -63,6 +63,8 @@ uvicorn
 uvicorn[standard]
 websockets
 django-grappelli==4.0.1
+whitenoise
+
 
 
 
