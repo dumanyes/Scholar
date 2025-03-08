@@ -19,12 +19,12 @@ SECRET_KEY = str(os.getenv('SECRET_KEY'))
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-ALLOWED_HOSTS = [
-    "*"
-    # etc.
-]
+# ALLOWED_HOSTS = [
+#     "*"
+#     # etc.
+# ]
 
-# ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'scholar-d6c0.onrender.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'scholar-d6c0.onrender.com', 'https://scholarhub.up.railway.app/']
 # 'scholar-d6c0.onrender.com'
 
 # Application definition
@@ -125,6 +125,7 @@ DATABASE_URL = "postgresql://postgres:hnzfXICblatumDEsKpTKIYSgunxotHzn@interchan
 DATABASES = {
     "default": dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
 }
+
 
 
 
