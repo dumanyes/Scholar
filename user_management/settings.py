@@ -24,7 +24,7 @@ DEBUG = True
 #     # etc.
 # ]
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'scholar-d6c0.onrender.com', 'https://scholarhub.up.railway.app/']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'scholar-d6c0.onrender.com', 'scholarhub.up.railway.app/']
 # 'scholar-d6c0.onrender.com'
 
 # Application definition
