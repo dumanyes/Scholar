@@ -12,6 +12,7 @@ defusedxml==0.7.1
 distro==1.9.0
 dj-database-url==2.3.0
 Django==4.2.18
+faiss-cpu==1.7.2
 django-allauth==65.3.1
 django-autocomplete-light==3.11.0
 django-autoslug==1.9.9
@@ -65,6 +66,7 @@ websockets
 django-grappelli==4.0.1
 whitenoise
 dj_database_url
+docker
 
 
 
