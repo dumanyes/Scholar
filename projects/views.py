@@ -21,6 +21,13 @@ from users.models import Profile
 from projects.recommendation import rank_projects_with_faiss, recommend_projects_for_user  # Updated import
 
 
+
+from django.db.models import Q, OuterRef, Subquery, CharField, Case, When
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import ListView
+from projects.models import Project, ProjectApplication, Category, ChatMessage, ChatRoom
+from projects.recommendation import rank_projects_with_faiss, recommend_projects_for_user
+
 class MarketplaceView(LoginRequiredMixin, ListView):
     model = Project
     template_name = 'marketplace/marketplace.html'
@@ -71,24 +78,26 @@ class MarketplaceView(LoginRequiredMixin, ListView):
         if time_sort == 'old':
             return queryset.order_by('created_at')
 
-        # Otherwise, reorder all filtered projects based on FAISS recommendations.
+        # Otherwise, reorder projects based on FAISS recommendations.
         projects_list = list(queryset)
         if not projects_list:
             return queryset.order_by('-created_at')
 
-        # Get a recommended ordering (a list of project IDs ordered from most similar to least)
-        recommended_order = rank_projects_with_faiss(projects_list, self.request.user)
-        # Reorder the queryset using Django's Case/When expression.
+        recommended_order, faiss_scores = rank_projects_with_faiss(projects_list, self.request.user)
+        # Save the mapping for potential use in context.
+        self.faiss_scores = faiss_scores
         ordering = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(recommended_order)])
-        return queryset.filter(pk__in=recommended_order).order_by(ordering)
+        qs = queryset.filter(pk__in=recommended_order).order_by(ordering)
+        # Convert to list and attach the FAISS score to each project.
+        projects_with_score = list(qs)
+        for project in projects_with_score:
+            project.faiss_score = self.faiss_scores.get(project.id, 0)
+        return projects_with_score
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Unread notifications
-        unread_notifications = Notification.objects.filter(
-            user=self.request.user,
-            read=False
-        ).order_by('-created_at')
+        unread_notifications = self.request.user.notifications.filter(read=False).order_by('-created_at')
         notifications_count = unread_notifications.count()
 
         # Unread chat messages (only messages not sent by the user)
@@ -115,11 +124,12 @@ class MarketplaceView(LoginRequiredMixin, ListView):
             'favorite_ids': list(favorite_ids)
         })
 
-        # Additionally, include a separate list of top 5 recommended projects (if needed)
+        # Additionally, include top recommended projects.
         recommended = recommend_projects_for_user(self.request.user, top_n=9)
         context['recommended_projects'] = recommended
 
         return context
+
 
 
 class ChatListView(LoginRequiredMixin, ListView):

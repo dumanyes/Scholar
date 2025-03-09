@@ -106,17 +106,24 @@
                         {% endfor %}
                     </span>
                     {% with match=project|skill_match:user %}
-                    <span class="inline-flex items-center ml-2 px-4 py-1 rounded-full text-sm font-medium
-                        {% if match > 71 %}
-                            bg-green-500 text-white
-                        {% elif match > 41 %}
-                            bg-yellow-500 text-white
-                        {% else %}
-                            bg-pink-500 text-white
-                        {% endif %}">
-                        <i class="fas fa-check mr-1"></i> {{ match }}% Match
-                    </span>
-                    {% endwith %}
+<span class="inline-flex items-center ml-2 px-4 py-1 rounded-full text-sm font-medium
+    {% if match > 71 %}
+        bg-green-500 text-white
+    {% elif match > 41 %}
+        bg-yellow-500 text-white
+    {% else %}
+        bg-pink-500 text-white
+    {% endif %}">
+    <i class="fas fa-check mr-1"></i> {{ match }}% Skill Match
+</span>
+{% endwith %}
+
+{% if project.faiss_score %}
+<span class="inline-flex items-center ml-2 px-4 py-1 rounded-full text-sm font-medium bg-blue-500 text-white">
+    <i class="fas fa-star mr-1"></i> {{ project.faiss_score }}% FAISS Match
+</span>
+{% endif %}
+
                 </div>
                 <!-- Project Title -->
                 <h2 class="text-2xl font-semibold mb-4">{{ project.title }}</h2>
@@ -180,36 +187,41 @@
         <div class="bg-white rounded-xl shadow-lg p-6 transition-all duration-200 hover:-translate-y-1">
             <!-- Top row: Categories and Match Score -->
             <div class="flex items-center justify-between mb-4">
-                <div>
-                    <span class="inline-flex items-center px-4 py-1 bg-gray-100 rounded-full text-sm font-medium">
-                        {% for category in project.category.all %}
-                            {{ category.name }}{% if not forloop.last %}, {% endif %}
-                        {% empty %}
-                            No category assigned
-                        {% endfor %}
-                    </span>
-                    {% with match=project|skill_match:user %}
-                    <span class="inline-flex items-center ml-2 px-4 py-1 rounded-full text-sm font-medium
-                        {% if match > 71 %}
-                            bg-green-500 text-white
-                        {% elif match > 41 %}
-                            bg-yellow-500 text-white
-                        {% else %}
-                            bg-pink-500 text-white
-                        {% endif %}">
-                        <i class="fas fa-check mr-1"></i> {{ match }}% Match
-                    </span>
-                    {% endwith %}
-                </div>
-                <!-- Save Button -->
-                <button type="button" onclick="saveProject({{ project.id }})" class="heart-btn focus:outline-none" id="fav-btn-{{ project.id }}">
-                    {% if project.id in favorite_ids %}
-                        <i class="fas fa-heart text-red-500 transition-colors"></i>
-                    {% else %}
-                        <i class="fas fa-heart text-gray-400 hover:text-red-500 transition-colors"></i>
-                    {% endif %}
-                </button>
-            </div>
+    <div>
+        <span class="inline-flex items-center px-4 py-1 bg-gray-100 rounded-full text-sm font-medium">
+            {% for category in project.category.all %}
+                {{ category.name }}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+                No category assigned
+            {% endfor %}
+        </span>
+        {% with match=project|skill_match:user %}
+        <span class="inline-flex items-center ml-2 px-4 py-1 rounded-full text-sm font-medium
+            {% if match > 71 %}
+                bg-green-500 text-white
+            {% elif match > 41 %}
+                bg-yellow-500 text-white
+            {% else %}
+                bg-pink-500 text-white
+            {% endif %}">
+            <i class="fas fa-check mr-1"></i> {{ match }}% Skill Match
+        </span>
+        {% endwith %}
+        {% if project.faiss_score %}
+        <span class="inline-flex items-center ml-2 px-4 py-1 rounded-full text-sm font-medium bg-blue-500 text-white">
+            <i class="fas fa-star mr-1"></i> {{ project.faiss_score }}% FAISS Match
+        </span>
+        {% endif %}
+    </div>
+    <!-- Save Button -->
+    <button type="button" onclick="saveProject({{ project.id }})" class="heart-btn focus:outline-none" id="fav-btn-{{ project.id }}">
+        {% if project.id in favorite_ids %}
+            <i class="fas fa-heart text-red-500 transition-colors"></i>
+        {% else %}
+            <i class="fas fa-heart text-gray-400 hover:text-red-500 transition-colors"></i>
+        {% endif %}
+    </button>
+</div>
 
             <!-- Avatar, Username, Country and City -->
             <div class="flex items-center gap-3 mb-4">
