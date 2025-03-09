@@ -1,0 +1,265 @@
+{% extends "users/base.html" %}
+{% block title %}Home Page{% endblock title %}
+{% block content %}
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#3b82f6',
+          secondary: '#4f46e5',
+        }
+      }
+    }
+  }
+</script>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+
+<!-- Chart.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+<!-- Hero Section -->
+<section class="bg-gray-50 py-20">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <h1 class="text-4xl font-semibold text-gray-900 mb-6 leading-tight">
+      Connect. Collaborate.<br>Create Impact.
+    </h1>
+    <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-10">
+      Join a global network of researchers and innovators. Find collaborators, share resources, 
+      and accelerate your research with AI-powered tools.
+    </p>
+    <a href="{% url 'marketplace' %}" class="inline-flex items-center px-6 py-3 rounded-full bg-primary text-white font-medium hover:bg-blue-600 transition duration-200 shadow-sm hover:shadow-md space-x-2">
+      <i class="fas fa-rocket"></i>
+      <span>Get Started</span>
+    </a>
+  </div>
+</section>
+
+<!-- Stats Section with Visualizations -->
+<section class="py-16 bg-white">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="text-2xl font-medium text-center text-gray-900 mb-12">Research Network Statistics</h2>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+      <!-- Researchers Chart -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+        <div class="mb-4 flex items-center">
+          <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+            <i class="fas fa-users text-primary"></i>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900">Researchers</h3>
+        </div>
+        <div class="h-52 relative">
+          <canvas id="researchersChart"></canvas>
+        </div>
+        <p class="text-3xl font-semibold text-primary text-center mt-4">{{ total_researchers }}</p>
+      </div>
+      
+      <!-- Projects Chart -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+        <div class="mb-4 flex items-center">
+          <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+            <i class="fas fa-project-diagram text-primary"></i>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900">Active Projects</h3>
+        </div>
+        <div class="h-52 relative">
+          <canvas id="projectsChart"></canvas>
+        </div>
+        <p class="text-3xl font-semibold text-primary text-center mt-4">{{ total_projects }}</p>
+      </div>
+      
+      <!-- Countries Chart -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+        <div class="mb-4 flex items-center">
+          <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+            <i class="fas fa-globe text-primary"></i>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900">Countries</h3>
+        </div>
+        <div class="h-52 relative">
+          <canvas id="countriesChart"></canvas>
+        </div>
+        <p class="text-3xl font-semibold text-primary text-center mt-4">85+</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Lists Section -->
+<section class="py-16 bg-gray-50">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="text-2xl font-medium text-center text-gray-900 mb-12">Discover Opportunities</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- Top Categories -->
+      <div class="bg-white rounded-lg shadow-sm p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-6 flex items-center">
+          <i class="fas fa-tags text-primary mr-2"></i> Top Categories
+        </h3>
+        <div class="space-y-4">
+          {% for category in top_categories %}
+          <div>
+            <div class="flex justify-between mb-1">
+              <span class="text-sm font-medium text-gray-700">{{ category.name }}</span>
+              <span class="text-sm font-medium text-gray-500">{{ category.count }}</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <div class="bg-primary h-2 rounded-full" style="width: {{ category.count|add:10 }}%"></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      
+      <!-- Most Needed Skills -->
+      <div class="bg-white rounded-lg shadow-sm p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-6 flex items-center">
+          <i class="fas fa-tools text-primary mr-2"></i> Most Needed Skills
+        </h3>
+        <div class="space-y-4">
+          {% for skill in most_needed_skills %}
+          <div>
+            <div class="flex justify-between mb-1">
+              <span class="text-sm font-medium text-gray-700">{{ skill.name }}</span>
+              <span class="text-sm font-medium text-gray-500">{{ skill.count }}</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <div class="bg-primary h-2 rounded-full" style="width: {{ skill.count|add:15 }}%"></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-16 bg-white">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="text-2xl font-medium text-center text-gray-900 mb-12">Platform Features</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Feature 1 -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center transition duration-300 hover:shadow-md hover:-translate-y-1">
+        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-brain text-primary"></i>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 mb-3">Smart Matching</h3>
+        <p class="text-gray-600 text-sm">
+          Our AI analyzes profiles and projects to create perfect matches based on skills, interests, and research goals.
+        </p>
+      </div>
+      
+      <!-- Feature 2 -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center transition duration-300 hover:shadow-md hover:-translate-y-1">
+        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-comments text-primary"></i>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 mb-3">Real-time Collaboration</h3>
+        <p class="text-gray-600 text-sm">
+          Integrated workspace with chat, video conferencing, and document sharing for seamless teamwork.
+        </p>
+      </div>
+      
+      <!-- Feature 3 -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center transition duration-300 hover:shadow-md hover:-translate-y-1">
+        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-chart-line text-primary"></i>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 mb-3">Analytics Dashboard</h3>
+        <p class="text-gray-600 text-sm">
+          Track project progress, collaboration metrics, and research impact with real-time visualizations.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Chart Initialization Scripts -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Researchers Chart using dynamic data
+    const researchersCtx = document.getElementById('researchersChart').getContext('2d');
+    new Chart(researchersCtx, {
+      type: 'line',
+      data: {
+        labels: {{ registration_months|safe }},
+        datasets: [{
+          label: 'New Researchers',
+          data: {{ researcher_counts|safe }},
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          tension: 0.3,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { display: false } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+    
+    // Projects Chart using dynamic data
+    const projectsCtx = document.getElementById('projectsChart').getContext('2d');
+    new Chart(projectsCtx, {
+      type: 'bar',
+      data: {
+        labels: {{ project_months|safe }},
+        datasets: [{
+          label: 'Active Projects',
+          data: {{ project_counts|safe }},
+          backgroundColor: '#3b82f6',
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { display: false } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+    
+    // Countries Chart using static sample data
+    const countriesCtx = document.getElementById('countriesChart').getContext('2d');
+    new Chart(countriesCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['North America', 'Europe', 'Asia', 'Other'],
+        datasets: [{
+          data: [30, 25, 20, 10],
+          backgroundColor: ['#279357', '#e3d903', '#60a5fa', '#b81d1d']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { boxWidth: 10, font: { size: 10 } }
+          }
+        }
+      }
+    });
+  });
+</script>
+{% endblock content %}

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Update Folder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <div class="max-w-md mx-auto my-10 p-6 bg-white rounded shadow">
+    <h1 class="text-xl font-semibold mb-4">Update Folder</h1>
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-4">
+        <label for="id_name" class="block text-sm font-medium text-gray-700">Folder Name</label>
+        {{ form.name|add_class:"w-full px-3 py-2 border rounded" }}
+      </div>
+      <div class="flex justify-end gap-2">
+        <a href="{% url 'chat_list' %}" class="px-4 py-2 bg-gray-300 text-gray-800 rounded">Cancel</a>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Update</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

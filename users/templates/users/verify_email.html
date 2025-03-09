@@ -1,0 +1,56 @@
+{% extends "users/base.html" %}
+{% load widget_tweaks %}
+{% block title %}Verify Email{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
+    <div class="max-w-md w-full space-y-8 p-6">
+        <div class="text-center">
+            <h2 class="text-3xl font-serif font-bold">Verify Your Email</h2>
+            <p class="mt-2 text-sm text-gray-600">We've sent a 6-digit code to your email</p>
+        </div>
+
+        <form method="POST" class="bg-white rounded-lg shadow-xl p-6 space-y-6">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <div class="relative">
+                    <input type="text" name="verification_code" 
+                           class="w-full pl-11 pr-4 py-3 border rounded-lg text-center text-xl font-mono"
+                           placeholder="••••••"
+                           maxlength="6"
+                           required>
+                    <svg class="absolute left-3 top-3.5 h-5 w-5 text-gray-400" 
+                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                </div>
+                
+                <button type="submit" 
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium">
+                    Verify Code
+                </button>
+                
+                <p class="text-center text-sm text-gray-600">
+                    Didn't receive code? 
+                    <button type="button" class="text-blue-600 hover:text-blue-800" id="resend-code">
+                        Resend Code
+                    </button>
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('resend-code').addEventListener('click', function() {
+    fetch('{% url "resend-code" %}')
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            alert('New verification code sent!');
+        }
+    });
+});
+</script>
+{% endblock %}

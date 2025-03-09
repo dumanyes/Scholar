@@ -1,0 +1,189 @@
+{% extends "users/base.html" %}
+{% block title %}About Us{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <!-- Hero Section -->
+    <div class="max-w-7xl mx-auto text-center mb-16">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">Welcome to ScholarHub</h1>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+            Connecting students, researchers, and professionals worldwide through an AI-powered platform
+            for academic collaboration and knowledge sharing.
+        </p>
+    </div>
+
+    <!-- Mission Section -->
+    <div class="max-w-4xl mx-auto mb-16 bg-white rounded-lg shadow">
+        <div class="p-6">
+            <h2 class="text-2xl font-semibold text-gray-900">Our Mission</h2>
+        </div>
+        <div class="px-6 pb-6 text-gray-600">
+            <p>
+                ScholarHub addresses the challenges faced by researchers and professionals in the
+                fragmented research ecosystem. Through our AI-powered platform, we break down
+                geographic and disciplinary barriers, facilitate meaningful collaborations, and
+                promote efficient knowledge sharing to enhance the global research community's
+                efficiency and innovation.
+            </p>
+        </div>
+    </div>
+
+    <!-- Objectives Grid -->
+    <div class="max-w-7xl mx-auto mb-16">
+        <h2 class="text-2xl font-semibold text-gray-900 text-center mb-8">Our Objectives</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- AI-Powered Matching -->
+            <div class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
+                <div class="p-6">
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313-12.454z"></path>
+                                <path d="M17 4a2 2 0 0 0 2 2a2 2 0 0 0 -2 2a2 2 0 0 0 -2 -2a2 2 0 0 0 2 -2"></path>
+                                <path d="M19 11h2m-1 -1v2"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">AI-Powered Matching</h3>
+                            <p class="text-gray-600">Connect with researchers and professionals based on shared interests and expertise through our intelligent matching system</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Marketplace -->
+            <div class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
+                <div class="p-6">
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                                <line x1="4" y1="22" x2="4" y2="15"></line>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Project Marketplace</h3>
+                            <p class="text-gray-600">Discover and share research opportunities in our dynamic marketplace for academic collaboration</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resource Hub -->
+            <div class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
+                <div class="p-6">
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Resource Hub</h3>
+                            <p class="text-gray-600">Access curated tools, datasets, and tutorials to support your research journey</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Collaboration -->
+            <div class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
+                <div class="p-6">
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Global Collaboration</h3>
+                            <p class="text-gray-600">Break down geographic and disciplinary barriers through interdisciplinary partnerships</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Section -->
+    <!-- Team Section -->
+  <div class="max-w-7xl mx-auto">
+    <h2 class="text-2xl font-semibold text-gray-900 text-center mb-8">Meet Our Team</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Team Member 1 -->
+      <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+        <div class="flex items-center justify-center mb-4">
+          <!-- Users Icon -->
+          <svg class="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M17 21v-2a4 4 0 00-3-3.87" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M7 21v-2a4 4 0 013-3.87" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 12a4 4 0 100-8 4 4 0 000 8z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 text-center mb-2">Zhanar Mazhit</h3>
+        <p class="text-blue-600 text-center mb-2">Project Manager & ML Engineer</p>
+        <p class="text-gray-600 text-center text-sm">Project oversight, ML development, documentation</p>
+      </div>
+
+      <!-- Team Member 2 -->
+      <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+        <div class="flex items-center justify-center mb-4">
+          <svg class="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M17 21v-2a4 4 0 00-3-3.87" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M7 21v-2a4 4 0 013-3.87" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 12a4 4 0 100-8 4 4 0 000 8z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 text-center mb-2">Duman Yessenbay</h3>
+        <p class="text-blue-600 text-center mb-2">Backend Developer</p>
+        <p class="text-gray-600 text-center text-sm">Database architecture, API development</p>
+      </div>
+
+      <!-- Team Member 3 -->
+      <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+        <div class="flex items-center justify-center mb-4">
+          <svg class="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M17 21v-2a4 4 0 00-3-3.87" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M7 21v-2a4 4 0 013-3.87" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 12a4 4 0 100-8 4 4 0 000 8z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 text-center mb-2">Alikhan Nurbek</h3>
+        <p class="text-blue-600 text-center mb-2">Backend Developer</p>
+        <p class="text-gray-600 text-center text-sm">Server management, API integration</p>
+      </div>
+
+      <!-- Team Member 4 -->
+      <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+        <div class="flex items-center justify-center mb-4">
+          <svg class="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M17 21v-2a4 4 0 00-3-3.87" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M7 21v-2a4 4 0 013-3.87" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 12a4 4 0 100-8 4 4 0 000 8z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 text-center mb-2">Omargali Tlepbergenov</h3>
+        <p class="text-blue-600 text-center mb-2">Frontend Developer</p>
+        <p class="text-gray-600 text-center text-sm">UI implementation, user experience</p>
+      </div>
+
+      <!-- Team Member 5 -->
+      <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+        <div class="flex items-center justify-center mb-4">
+          <svg class="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M17 21v-2a4 4 0 00-3-3.87" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M7 21v-2a4 4 0 013-3.87" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 12a4 4 0 100-8 4 4 0 000 8z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 text-center mb-2">Rakhman Aidaruly</h3>
+        <p class="text-blue-600 text-center mb-2">Frontend Developer</p>
+        <p class="text-gray-600 text-center text-sm">Frontend architecture, responsive design</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
