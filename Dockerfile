@@ -11,10 +11,19 @@ WORKDIR /app
 # Install system dependencies (if any)
 RUN apt-get update && apt-get install -y build-essential
 
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    libopenblas-dev \
+    libomp-dev \
+    swig
+
 # Copy requirements file and install Python dependencies
 COPY requirements.txt /app/
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
+
 
 # Copy the rest of your application code
 COPY . /app/
