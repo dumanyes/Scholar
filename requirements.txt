@@ -66,9 +66,6 @@ django-grappelli==4.0.1
 whitenoise
 dj_database_url
 docker
-
-
-
-
-
-
+faiss-cpu~=1.10.0
+numpy~=2.0.2
+scikit-learn~=1.6.1
