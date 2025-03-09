@@ -4,6 +4,8 @@
 
 {% block content %}
 <head>
+    <!-- Ensures proper rendering and touch zooming on mobile devices -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
@@ -26,7 +28,7 @@
     <!-- Header -->
     <div class="text-center mb-12">
       <h1 class="text-4xl font-bold mb-6">Explore Research Projects</h1>
-      <div class="flex justify-center gap-4">
+      <div class="flex flex-wrap justify-center gap-4">
           <button type="button" onclick="location.href='{% url 'my-projects' %}'"
              class="inline-flex items-center px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-xl font-semibold transition-all">
               <i class="fas fa-folder-open mr-2"></i>
