@@ -27,6 +27,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'scholar-d6c0.onrender.com', 'scholarhub.up.railway.app', 'scholarhub-trkt.onrender.com']
 # 'scholar-d6c0.onrender.com'
 
+
 # Application definition
 INSTALLED_APPS = [
     'whitenoise.runserver_nostatic',
