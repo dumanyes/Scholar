@@ -1,11 +1,10 @@
-FROM python:3.10
+FROM python:3.9
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 WORKDIR /app
 
-# Install system dependencies, including FAISS development libraries
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \

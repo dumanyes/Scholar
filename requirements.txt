@@ -1,3 +1,4 @@
+faiss-cpu==1.7.2
 annotated-types==0.7.0
 anyio==4.8.0
 asgiref==3.8.1
@@ -12,7 +13,6 @@ defusedxml==0.7.1
 distro==1.9.0
 dj-database-url==2.3.0
 Django==4.2.18
-faiss-cpu==1.7.2
 django-allauth==65.3.1
 django-autocomplete-light==3.11.0
 django-autoslug==1.9.9
