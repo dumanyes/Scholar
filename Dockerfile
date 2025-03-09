@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y libffi-dev libssl-dev zlib1g-dev libjpe
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
+
 COPY . .
 
 EXPOSE 8080
