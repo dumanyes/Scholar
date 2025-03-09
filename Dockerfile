@@ -13,6 +13,9 @@ RUN apt-get update && apt-get install -y \
     swig \
     libfaiss-dev
 
+# Create a symlink so that the FAISS headers can be found in /usr/local/include/faiss
+RUN mkdir -p /usr/local/include && ln -s /usr/include/faiss /usr/local/include/faiss
+
 COPY requirements.txt /app/
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
