@@ -1,317 +1,221 @@
-<!doctype html>
+{% extends "users/base.html" %}
+{% load static %}
+{% block content %}
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
   <title>Chats</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    :root {
-      --primary-color: #2D2A32;
-      --accent-color: #7A6F5B;
-      --background-color: #0f172a;
-      --text-primary: #f3f4f6;
-      --text-secondary: #9ca3af;
-      --border-color: #374151;
+    /* Pulse animation for new messages */
+    @keyframes pulse-new {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.7; }
+      100% { transform: scale(1); opacity: 1; }
     }
-    body {
-      background-color: var(--background-color);
-    }
-    @keyframes fade-in {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .animate-fade-in {
-      animation: fade-in 0.3s ease;
-    }
-    /* Typing Indicator */
-    .typing-indicator {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-    }
-    .typing-dot {
-      width: 0.4rem;
-      height: 0.4rem;
-      background-color: #ccc;
-      border-radius: 50%;
-      animation: typingBounce 1s infinite;
-    }
-    @keyframes typingBounce {
-      0%, 80%, 100% { transform: translateY(0); }
-      40% { transform: translateY(-6px); }
-    }
-    /* New messages & connection error banners */
-    .new-messages-indicator,
-    .connection-error {
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 0.5rem 1rem;
-      border-radius: 9999px;
-      color: #fff;
-      cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      display: none;
-      z-index: 50;
-    }
-    .new-messages-indicator {
-      bottom: 5rem;
-      background-color: #3b82f6;
-    }
-    .connection-error {
-      top: 4rem;
-      background-color: #dc2626;
+    .pulse-new {
+      animation: pulse-new 1s ease-in-out;
     }
   </style>
 </head>
-<body class="flex flex-col h-screen text-gray-100 relative">
-  <!-- We'll assume you pass the current user's ID in the template context as "current_user_id" -->
-  <script>
-    const CURRENT_USER_ID = {{ current_user_id|default:"0" }};
-  </script>
-
+<body class="flex flex-col h-screen bg-gray-50 text-gray-800 relative">
   <!-- Connection Error Banner -->
-  <div class="connection-error" id="connection-error">
+  <div id="connection-error" class="hidden fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-full shadow z-50">
     Connection lost. Reconnecting...
   </div>
 
-  <!-- New Messages Indicator -->
-  <div class="new-messages-indicator" id="new-messages-indicator">
-    ↓ New messages
+  <!-- New Messages Indicator (optional) -->
+  <div id="new-messages-indicator" class="hidden fixed bottom-16 left-1/2 transform -translate-x-1/2 bg-gray-200 text-gray-800 px-4 py-2 rounded-full shadow z-40 cursor-pointer">
+    New messages
   </div>
 
   <!-- Header -->
-  <header class="flex items-center justify-between px-4 py-3 bg-gray-900 border-b border-gray-800 shadow">
-    <div class="flex items-center gap-4">
-      <!-- Back Button -->
-      <a href="{% url 'marketplace' %}" class="flex items-center text-gray-300 hover:text-gray-100">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-        Back
-      </a>
-      <!-- Create Folder Button -->
-      <button id="create-folder-btn" class="flex items-center text-gray-300 hover:text-gray-100">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 7l3-3m0 0l3 3m-3-3v18" />
-        </svg>
-        Create Folder
-      </button>
-    </div>
+  <header class="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200 shadow">
+    <!-- Back Button -->
+    <a href="{% url 'marketplace' %}" class="flex items-center text-gray-600 hover:text-gray-800 transition">
+      <!-- Heroicon: Arrow Left -->
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      <span class="font-medium">Back</span>
+    </a>
     <h1 class="text-xl font-semibold">Chats</h1>
+    <div class="w-6"></div>
   </header>
 
-  <!-- Folder List Section -->
-  <section id="folder-list" class="px-4 py-2 bg-gray-800 border-b border-gray-700">
-    <div id="folders" class="flex space-x-2">
-      {% for folder in chat_folders %}
-        <div class="flex items-center gap-1 bg-gray-700 text-gray-200 px-3 py-1 rounded-full text-xs">
-          <span>{{ folder.name }}</span>
-          <!-- Update and delete icons -->
-          <a href="{% url 'folder_update' folder.id %}" class="hover:text-blue-300">✎</a>
-          <a href="{% url 'folder_delete' folder.id %}" class="hover:text-red-400">✕</a>
-        </div>
-      {% empty %}
-        <span class="text-gray-400 text-xs">No folders yet.</span>
-      {% endfor %}
-    </div>
-  </section>
-
   <!-- Search Bar -->
-  <section class="px-4 py-3 bg-gray-800 border-b border-gray-700">
+  <section class="px-4 py-3 bg-white border-b border-gray-200">
     <div class="relative">
-      <input type="search" placeholder="Search chats..."
-             class="w-full bg-gray-700 rounded-full px-4 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
-      <svg class="w-5 h-5 text-gray-400 absolute top-1/2 right-4 transform -translate-y-1/2"
-           fill="currentColor" viewBox="0 0 20 20">
-        <path fill-rule="evenodd"
-              d="M12.9 14.32a8 8 0 111.414-1.414l4.296 4.296a1 1 0 01-1.414 1.414l-4.296-4.296zM8 14a6 6 0 100-12 6 6 0 000 12z"
-              clip-rule="evenodd"/>
+      <input type="search" name="q" placeholder="Search chats..."
+             value="{{ request.GET.q }}"
+             class="w-full bg-gray-50 rounded-full px-4 py-2 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 transition">
+      <!-- Heroicon: Magnifying Glass -->
+      <svg class="w-5 h-5 text-gray-500 absolute top-1/2 right-4 transform -translate-y-1/2"
+           fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
     </div>
   </section>
 
   <!-- Chat List Container -->
-  <main id="chat-list" class="flex-1 overflow-y-auto bg-gray-800 px-4 py-4">
-    {% for item in chat_data %}
-      {% if item.other_user %}
-      <a href="{% url 'chat' user_id=item.other_user.id %}"
-         class="flex items-center justify-between bg-gray-900 rounded-lg p-3 hover:bg-gray-700 transition relative folder-chat"
-         data-chat-id="{{ item.room.id }}">
-        <!-- Left: Avatar, name, snippet -->
-        <div class="flex items-center gap-3">
+  <main id="chat-list" class="flex-1 overflow-y-auto bg-gray-50 px-4 py-4 space-y-3">
+    {% if chat_data %}
+      {% for item in chat_data %}
+      <!-- Clicking this link navigates to chat_view (where messages are actually marked read) -->
+      <a href="{% url 'chat' user_id=item.other_user.id %}" data-chat-id="{{ item.room.id }}"
+         class="folder-chat flex items-center justify-between bg-white rounded-lg p-4 border border-gray-200 hover:bg-gray-100 transition relative">
+        <!-- Left: Avatar, Name, and Message Snippet -->
+        <div class="flex items-center gap-3 flex-1">
           {% if item.other_user.profile.avatar %}
-            <img src="{{ item.other_user.profile.avatar.url }}" alt="{{ item.other_user.username }}"
-                 class="w-12 h-12 rounded-full object-cover">
+            <img src="{{ item.other_user.profile.avatar.url }}" alt="{{ item.other_user.username }}" class="w-12 h-12 rounded-full object-cover border border-gray-300">
           {% else %}
-            <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center">
+            <div class="w-12 h-12 rounded-full bg-gray-400 flex items-center justify-center">
               <span class="text-white text-lg font-bold">{{ item.other_user.username|slice:":1"|upper }}</span>
             </div>
           {% endif %}
-          <div>
-            <div class="text-sm font-semibold">{{ item.other_user.username }}</div>
-            <div class="text-xs text-gray-400" data-snippet>
+          <div class="flex-1">
+            <div class="flex items-center">
+              <span class="text-sm font-semibold">{{ item.other_user.username }}</span>
+              {% if item.unread_count > 0 %}
+                <span data-unread-id="{{ item.room.id }}" class="ml-2 bg-gray-800 text-xs text-white px-2 py-0.5 rounded-full transition duration-300">
+                  {{ item.unread_count }}
+                </span>
+              {% endif %}
+            </div>
+            <p data-snippet class="text-xs text-gray-600 truncate">
               {% if item.last_message %}
-                {% if item.last_message.sender == request.user %}
-                  You:
+                {% if item.last_message.sender == request.user.id %}
+                  <span class="text-gray-500">You:</span>
                 {% endif %}
                 {{ item.last_message.content|truncatechars:40 }}
               {% else %}
                 No messages yet
               {% endif %}
-            </div>
+            </p>
           </div>
         </div>
-        <!-- Right: time and unread badge -->
-        <div class="flex flex-col items-end space-y-1">
-          <span class="text-xs text-gray-400" data-time>
-            {% if item.last_message %}{{ item.last_message.timestamp|time:"H:i" }}{% endif %}
-          </span>
-          {% if item.unread_count > 0 %}
-            <span class="bg-blue-600 text-xs text-white px-2 py-1 rounded-full" data-unread-id="{{ item.room.id }}">
-              {{ item.unread_count }}
-            </span>
+        <!-- Right: Time -->
+        <div data-time class="text-xs text-gray-600 ml-2">
+          {% if item.last_message %}
+            {{ item.last_message.timestamp|date:"H:i" }}
           {% endif %}
         </div>
+        <!-- Unread Indicator Bar -->
+        {% if item.unread_count > 0 %}
+        <div class="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1">
+          <div class="w-2 h-8 bg-gray-800 rounded-r-full"></div>
+        </div>
+        {% endif %}
       </a>
-      {% endif %}
-    {% empty %}
-      <div class="p-4 text-center text-gray-500">
-        No chats found.
+      {% endfor %}
+    {% else %}
+      <div class="flex flex-col items-center justify-center h-full text-gray-500">
+        <!-- Heroicon: Chat -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M8 12h.01M12 12h.01M16 12h.01M21 12
+                   c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3
+                   20l1.395-3.72C3.512 15.042 3 13.574 3
+                   12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+        <p class="text-lg font-medium">No conversations found</p>
+        <p class="text-sm mt-2">Try adjusting your search or start a new conversation</p>
+        <button class="mt-6 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition">
+          Start a new conversation
+        </button>
       </div>
-    {% endfor %}
+    {% endif %}
   </main>
 
-  <!-- Typing Indicator -->
-  <div class="typing-indicator absolute bottom-4 left-4 bg-gray-700 px-3 py-2 rounded-full"
-       id="typing-indicator" style="display: none;">
-    <div class="typing-dot"></div>
-    <div class="typing-dot"></div>
-    <div class="typing-dot"></div>
+  <!-- Typing Indicator (optional) -->
+  <div id="typing-indicator" class="fixed bottom-4 left-4 bg-gray-100 px-3 py-2 rounded-full shadow z-30 flex items-center space-x-1" style="display: none;">
+    <div class="w-2 h-2 bg-gray-800 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+    <div class="w-2 h-2 bg-gray-800 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+    <div class="w-2 h-2 bg-gray-800 rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+    <span class="text-xs text-gray-800">Typing...</span>
   </div>
 
-  <!-- Footer (no input on chat list) -->
-  <footer class="border-t border-gray-700 bg-gray-900 p-4">
-    <p class="text-sm text-gray-400 text-center">Select a chat to view messages.</p>
+  <!-- Footer -->
+  <footer class="border-t border-gray-200 bg-white p-4">
+    <p class="text-sm text-gray-600 text-center">Select a conversation to view messages.</p>
   </footer>
 
+  <!-- Scripts -->
   <script>
-    // Auto-scroll chat list on page load
-    const chatList = document.getElementById('chat-list');
-    chatList.scrollTop = chatList.scrollHeight;
+    // Debounce function to group rapid updates
+    function debounce(func, delay) {
+      let timer;
+      return function(...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => func.apply(this, args), delay);
+      };
+    }
 
-    // WebSocket for ChatListConsumer
+    // WebSocket for Chat List Updates with Debounce
     const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
     const chatListSocket = new WebSocket(wsScheme + "://" + window.location.host + "/ws/chat-list/");
 
-    chatListSocket.onopen = function() {
-      console.log("ChatList WebSocket connected.");
-      document.getElementById('connection-error').style.display = 'none';
-    };
-    chatListSocket.onerror = function(e) {
-      console.error("ChatList WebSocket error:", e);
-      document.getElementById('connection-error').style.display = 'block';
-    };
-    chatListSocket.onclose = function(e) {
-      console.error("ChatList WebSocket closed unexpectedly:", e);
-      document.getElementById('connection-error').style.display = 'block';
-    };
-
-    // Handle incoming updates from ChatListConsumer
-    chatListSocket.onmessage = function(e) {
-      const data = JSON.parse(e.data);
-      console.log("ChatList update:", data);
-      // Example data: {
-      //   chat_id: <room_id>,
-      //   unread_count: <int>,
-      //   last_message: <str>,
-      //   timestamp: <str>,
-      //   sender_id: <int> (optional)
-      // }
-
+    // Called after receiving a chatlist_update from ChatListConsumer
+    function updateChatItem(data) {
       if (data.chat_id) {
-        // Update unread badge
-        const badge = document.querySelector(`span[data-unread-id="${data.chat_id}"]`);
-        if (badge) {
-          badge.textContent = data.unread_count;
-          if (data.unread_count === 0) {
-            badge.style.display = 'none';
-          } else {
-            badge.style.display = 'inline-block';
-          }
-        }
-
-        // Update snippet/time
         const chatItem = document.querySelector(`a[data-chat-id="${data.chat_id}"]`);
         if (chatItem) {
-          // snippet
-          const snippetElem = chatItem.querySelector('[data-snippet]');
-          if (snippetElem && data.last_message !== undefined) {
-            if (parseInt(data.sender_id) === parseInt(CURRENT_USER_ID)) {
-              snippetElem.textContent = "You: " + data.last_message;
+          // Unread badge
+          const badge = chatItem.querySelector(`span[data-unread-id="${data.chat_id}"]`);
+          if (badge) {
+            if (parseInt(data.unread_count) === 0) {
+              badge.style.display = 'none';
             } else {
-              snippetElem.textContent = data.last_message;
+              badge.textContent = data.unread_count;
+              badge.style.display = 'inline-block';
+              // Subtle pulse animation for new messages
+              badge.classList.add('pulse-new');
+              setTimeout(() => badge.classList.remove('pulse-new'), 1000);
             }
           }
-          // time
+          // Update snippet
+          const snippetElem = chatItem.querySelector('[data-snippet]');
+          if (snippetElem && data.last_message !== undefined) {
+            const senderId = parseInt(data.sender_id);
+            const currentUserId = parseInt({{ current_user_id }});
+            snippetElem.textContent = (senderId === currentUserId ? "You: " : "") + data.last_message;
+          }
+          // Update time
           const timeElem = chatItem.querySelector('[data-time]');
           if (timeElem && data.timestamp) {
             timeElem.textContent = data.timestamp;
           }
         }
       }
+    }
+
+    const debouncedUpdate = debounce(updateChatItem, 100);
+
+    chatListSocket.onmessage = function(e) {
+      const data = JSON.parse(e.data);
+      console.log("ChatList update:", data);
+      debouncedUpdate(data);
     };
 
-    // Create Folder (AJAX)
-    const createFolderBtn = document.getElementById('create-folder-btn');
-    createFolderBtn.addEventListener('click', function() {
-      const folderName = prompt("Enter folder name:");
-      if (folderName) {
-        fetch("{% url 'folder_create' %}", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": "{{ csrf_token }}"
-          },
-          body: JSON.stringify({ name: folderName })
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            location.reload();
-          } else {
-            alert("Error creating folder: " + data.error);
-          }
-        });
-      }
-    });
+    chatListSocket.onopen = function() {
+      console.log("ChatList WebSocket connected.");
+      document.getElementById('connection-error').style.display = 'none';
+    };
 
-    // Mark chat as read on click (demo)
-    const chatItems = document.querySelectorAll('.folder-chat');
-    chatItems.forEach(item => {
-      item.addEventListener('click', function() {
-        const roomId = item.getAttribute('data-chat-id');
-        fetch("{% url 'mark_chat_read' %}", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": "{{ csrf_token }}"
-          },
-          body: JSON.stringify({ room_id: roomId })
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            // Hide unread badge
-            const badge = item.querySelector(`span[data-unread-id="${roomId}"]`);
-            if (badge) {
-              badge.style.display = 'none';
-            }
-          }
-        });
-      });
-    });
+    chatListSocket.onerror = function(e) {
+      console.error("ChatList WebSocket error:", e);
+      document.getElementById('connection-error').style.display = 'block';
+    };
+
+    chatListSocket.onclose = function(e) {
+      console.error("ChatList WebSocket closed unexpectedly:", e);
+      document.getElementById('connection-error').style.display = 'block';
+    };
   </script>
 </body>
 </html>
+{% endblock %}

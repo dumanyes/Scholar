@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     
-    <link rel="icon" href="/media/img_3.png" type="image/x-icon">
+    <link rel="icon" href="/media/img_4.png" type="image/x-icon">
 
     
   <script src="https://cdn.tailwindcss.com"></script>
@@ -42,6 +42,9 @@
         <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-about' %}">About</a>
         <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-services' %}">Services</a>
         <a class="text-gray-900 hover:text-gray-600" href="{% url 'marketplace' %}">Marketplace</a>
+      <a class="text-gray-900 hover:text-gray-600" href="{% url 'journal_list' %}">Resource Hub</a>
+     
+
         <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-contact' %}">Contact</a>
         <a class="text-gray-900 hover:text-gray-600" href="{% url 'ai_assistant:ai_home' %}">AI Assistant</a>
         {% if user.is_authenticated %}
@@ -58,6 +61,7 @@
         <a class="block text-gray-900 hover:text-gray-600" href="{% url 'users-about' %}">About</a>
         <a class="block text-gray-900 hover:text-gray-600" href="{% url 'users-services' %}">Services</a>
         <a class="block text-gray-900 hover:text-gray-600" href="{% url 'marketplace' %}">Marketplace</a>
+      <a class="text-gray-900 hover:text-gray-600" href="{% url 'journal_list' %}">Resource Hub</a>
         <a class="block text-gray-900 hover:text-gray-600" href="{% url 'users-contact' %}">Contact</a>
         <a class="block text-gray-900 hover:text-gray-600" href="{% url 'ai_assistant:ai_home' %}">AI Assistant</a>
         {% if user.is_authenticated %}

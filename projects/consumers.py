@@ -1,4 +1,4 @@
-# chatconsumers.py
+# consumers.py
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
@@ -10,6 +10,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.room_group_name = f'chat_{self.room_id}'
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
+        print(f"[DEBUG] User {self.scope['user']} connected to room {self.room_id}")
 
     async def receive(self, text_data):
         data = json.loads(text_data)
@@ -19,7 +20,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             sender = self.scope['user']
             chat_message = await self.create_chat_message(room, sender, message_content)
 
-            # 1) Broadcast the message to the room
+            # Broadcast the new message to everyone in the room.
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -32,10 +33,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
             )
 
-            # 2) Update each participant's chat list
+            # For each participant, broadcast updated unread count.
             participants = await self.get_room_participants(room)
             for participant in participants:
-                unread_count = await self.get_unread_count(room, participant)
+                # For the sender, unread_count is zero.
+                if participant == sender:
+                    unread_count = 0
+                else:
+                    unread_count = await self.get_unread_count(room, participant)
                 await self.channel_layer.group_send(
                     f"chatlist_{participant.id}",
                     {
@@ -45,10 +50,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
                             'unread_count': unread_count,
                             'last_message': message_content,
                             'timestamp': chat_message.timestamp.strftime("%H:%M"),
-                            'sender_id': sender.id  # optional
+                            'sender_id': sender.id
                         }
                     }
                 )
+                print(f"[DEBUG] Room {room.id}: Broadcast unread_count {unread_count} for user {participant.id}")
 
     @database_sync_to_async
     def get_room(self, room_id):
@@ -70,10 +76,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def get_unread_count(self, room, user):
+        # Only count messages not sent by the user that are still unread.
         return room.messages.filter(read=False).exclude(sender=user).count()
 
     async def chat_message(self, event):
-        # Sends the new message to the chat page
+        # Sends the new message to the chat page.
         await self.send(text_data=json.dumps({
             'message': event['message'],
             'sender': event['sender'],
@@ -90,16 +97,20 @@ class ChatListConsumer(AsyncWebsocketConsumer):
             self.group_name = f"chatlist_{self.user.id}"
             await self.channel_layer.group_add(self.group_name, self.channel_name)
             await self.accept()
+            print(f"[DEBUG] ChatListConsumer connected for user {self.user.id}")
         else:
             await self.close()
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
+        print(f"[DEBUG] ChatListConsumer disconnected for user {self.user.id}")
 
     async def receive(self, text_data):
-        # Possibly handle "typing" or other events from the chat list
+        # Optionally handle "typing" events, etc.
         pass
 
     async def chatlist_update(self, event):
-        # Forward the update payload
-        await self.send(text_data=json.dumps(event["data"]))
+        data = event["data"]
+        print(f"[DEBUG] ChatListConsumer received update: {data}")
+        # Immediately forward the update to the client.
+        await self.send(text_data=json.dumps(data))

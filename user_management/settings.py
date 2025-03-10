@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'projects',
     'ai_assistant',
     'dashboard',
+    'sduNews',
 
 ]
 

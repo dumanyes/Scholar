@@ -2,20 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <!-- Ensure proper scaling on mobile devices -->
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+     <link rel="icon" href="/media/img_5.png" type="image/x-icon">
+  <!-- Include Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <title>Chat with {{ other_user.username }}</title>
   <style>
     :root {
-      --primary-color: #2D2A32;
-      --accent-color: #7A6F5B;
-      --background-color: #0f172a;
-      --text-primary: #f3f4f6;
-      --text-secondary: #9ca3af;
-      --border-color: #374151;
+      /* Light theme colors */
+      --primary-color: #1F2937; /* dark gray for accents */
+      --accent-color: #3B82F6;  /* blue accent */
+      --background-color: #F9FAFB; /* very light gray background */
+      --text-primary: #1F2937;  /* dark text */
+      --text-secondary: #4B5563; /* medium gray */
+      --border-color: #D1D5DB;   /* light gray border */
     }
     body {
       background-color: var(--background-color);
+      color: var(--text-primary);
     }
     @keyframes fade-in {
       from { opacity: 0; transform: translateY(8px); }
@@ -24,7 +30,6 @@
     .animate-fade-in {
       animation: fade-in 0.3s ease;
     }
-
     /* Typing indicator styling */
     .typing-indicator {
       display: flex;
@@ -34,7 +39,7 @@
     .typing-dot {
       width: 0.4rem;
       height: 0.4rem;
-      background-color: #ccc;
+      background-color: var(--accent-color);
       border-radius: 50%;
       animation: typingBounce 1s infinite;
     }
@@ -42,8 +47,7 @@
       0%, 80%, 100% { transform: translateY(0); }
       40% { transform: translateY(-6px); }
     }
-
-    /* Example styling for new messages indicator & connection error */
+    /* New messages indicator & connection error styling */
     .new-messages-indicator,
     .connection-error {
       position: fixed;
@@ -59,15 +63,15 @@
     }
     .new-messages-indicator {
       bottom: 5rem;
-      background-color: #3b82f6; /* Tailwind's blue-500 */
+      background-color: var(--accent-color);
     }
     .connection-error {
       top: 4rem;
-      background-color: #dc2626; /* Tailwind's red-600 */
+      background-color: #DC2626; /* red */
     }
   </style>
 </head>
-<body class="flex flex-col h-screen text-gray-100 relative">
+<body class="flex flex-col h-screen text-gray-800 relative">
 
   <!-- Connection Error State -->
   <div class="connection-error" id="connection-error">
@@ -80,10 +84,10 @@
   </div>
 
   <!-- Header -->
-  <header class="p-4 bg-gray-900 shadow flex items-center justify-between">
+  <header class="p-4 bg-white border-b border-gray-200 shadow flex items-center justify-between">
     <div class="flex items-center gap-4">
       <!-- Back Button -->
-      <a href="{% url 'chat_list' %}" class="flex items-center text-gray-300 hover:text-gray-100">
+      <a href="{% url 'chat_list' %}" class="flex items-center text-gray-600 hover:text-gray-800">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
@@ -93,34 +97,32 @@
       {% if other_user.profile.avatar %}
         <img src="{{ other_user.profile.avatar.url }}" alt="{{ other_user.username }}" class="w-10 h-10 rounded-full object-cover shadow-sm">
       {% else %}
-        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center text-white font-medium text-lg shadow-sm">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white font-medium text-lg shadow-sm">
           {{ other_user.username|first|upper }}
         </div>
       {% endif %}
       <div>
         <h2 class="font-semibold">@{{ other_user.username }}</h2>
-        <p class="text-xs">
-{% if other_user.is_online %}
-  <span class="inline-block w-2 h-2 bg-green-500 rounded-full mr-1"></span>
-  Online
-{% else %}
-  <span class="inline-block w-2 h-2 bg-gray-400 rounded-full mr-1"></span>
-  Last seen:
-  {% if other_user.profile.last_online %}
-    {{ other_user.profile.last_online|date:"jS M, H:i" }}
-  {% else %}
-    Unavailable
-  {% endif %}
-{% endif %}
-
-
+        <p class="text-xs text-gray-500">
+          {% if other_user.is_online %}
+            <span class="inline-block w-2 h-2 bg-green-500 rounded-full mr-1"></span>
+            Online
+          {% else %}
+            <span class="inline-block w-2 h-2 bg-gray-400 rounded-full mr-1"></span>
+            Last seen:
+            {% if other_user.profile.last_online %}
+              {{ other_user.profile.last_online|date:"jS M, H:i" }}
+            {% else %}
+              Unavailable
+            {% endif %}
+          {% endif %}
         </p>
       </div>
     </div>
   </header>
 
   <!-- Chat Messages Container -->
-  <main id="message-list" class="flex-1 overflow-y-auto bg-gray-800 px-6 py-4 relative">
+  <main id="message-list" class="flex-1 overflow-y-auto bg-white px-4 py-4 relative">
     {% for message in chat_messages %}
       <div class="{% if message.sender.id == request.user.id %}ml-auto max-w-[75%] flex flex-col items-end mb-4{% else %}mr-auto max-w-[75%] mb-4{% endif %} animate-fade-in">
         <div class="flex items-end gap-2">
@@ -128,25 +130,25 @@
             {% if message.sender.profile.avatar %}
               <img src="{{ message.sender.profile.avatar.url }}" alt="{{ message.sender.username }}" class="w-8 h-8 rounded-full object-cover">
             {% else %}
-              <div class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-xs">
+              <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-800">
                 {{ message.sender.username|first|upper }}
               </div>
             {% endif %}
           {% endif %}
-          <!-- Chat bubble: user's messages = bright blue, others = dark gray -->
-          <div class="{% if message.sender.id == request.user.id %}bg-blue-600 text-white{% else %}bg-gray-700 text-gray-100{% endif %}
+          <!-- Chat bubble styling -->
+          <div class="{% if message.sender.id == request.user.id %}bg-blue-500 text-white{% else %}bg-gray-100 text-gray-800{% endif %}
                       rounded-2xl shadow-sm px-4 py-3
                       {% if message.sender.id == request.user.id %}rounded-tr-none{% else %}rounded-tl-none{% endif %}">
             <p class="text-sm">{{ message.content }}</p>
           </div>
         </div>
-        <span class="text-xs text-gray-400 mt-1">
+        <span class="text-xs text-gray-500 mt-1">
           {{ message.timestamp|date:"H:i" }}
         </span>
       </div>
     {% empty %}
-      <div class="flex flex-col items-center justify-center h-full text-center text-gray-300">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div class="flex flex-col items-center justify-center h-full text-center text-gray-500">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
         </svg>
         <h3 class="text-lg font-medium">No messages yet</h3>
@@ -154,7 +156,7 @@
       </div>
     {% endfor %}
     <!-- Typing Indicator -->
-    <div class="typing-indicator absolute bottom-2 left-2 bg-gray-700 px-3 py-2 rounded-full"
+    <div class="typing-indicator absolute bottom-2 left-2 bg-gray-100 border border-gray-200 px-3 py-2 rounded-full"
          id="typing-indicator" style="display: none;">
       <div class="typing-dot"></div>
       <div class="typing-dot"></div>
@@ -163,12 +165,12 @@
   </main>
 
   <!-- Message Input -->
-  <footer class="border-t border-gray-700 bg-gray-900 p-4">
+  <footer class="border-t border-gray-200 bg-white p-4">
     <form method="POST" id="chat-form">
       {% csrf_token %}
       <div class="flex items-center gap-3">
-        <textarea name="content" rows="1" class="block w-full px-4 py-2 text-sm bg-gray-700 border-0 rounded-full focus:ring-2 focus:ring-blue-500 resize-none text-gray-100" placeholder="Type your message..."></textarea>
-        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 shadow-md transition duration-200">
+        <textarea name="content" rows="1" class="block w-full px-4 py-2 text-sm bg-gray-100 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 resize-none text-gray-800" placeholder="Type your message..."></textarea>
+        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 shadow-md transition duration-200">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
             <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
           </svg>
@@ -177,139 +179,150 @@
     </form>
   </footer>
 
-  <script>
-    // Auto-scroll to bottom on page load
-    const messageList = document.getElementById('message-list');
-    messageList.scrollTop = messageList.scrollHeight;
+ <script>
+  // Auto-scroll to bottom on page load
+  const messageList = document.getElementById('message-list');
+  messageList.scrollTop = messageList.scrollHeight;
 
-    // Auto-expand textarea
-    const textarea = document.querySelector('textarea[name="content"]');
-    textarea.addEventListener('input', function() {
-      this.style.height = 'auto';
-      this.style.height = (this.scrollHeight) + 'px';
-      if (this.scrollHeight > 200) {
-        this.style.height = '200px';
+  // Auto-expand textarea on input
+  const textarea = document.querySelector('textarea[name="content"]');
+  textarea.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = (this.scrollHeight) + 'px';
+    if (this.scrollHeight > 200) {
+      this.style.height = '200px';
+    }
+  });
+
+  // Grab references to dynamic elements
+  const typingIndicator = document.getElementById('typing-indicator');
+  const newMessagesIndicator = document.getElementById('new-messages-indicator');
+  const connectionError = document.getElementById('connection-error');
+
+  // Setup WebSocket connection (wss for HTTPS)
+  const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+  const roomId = "{{ room_id }}";
+  const chatSocket = new WebSocket(wsScheme + "://" + window.location.host + "/ws/chat/" + roomId + "/");
+
+  chatSocket.onopen = function() {
+    console.log("WebSocket connection established.");
+    connectionError.style.display = 'none';
+  };
+  chatSocket.onerror = function(e) {
+    console.error("WebSocket error:", e);
+    connectionError.style.display = 'block';
+  };
+  chatSocket.onclose = function(e) {
+    console.error("WebSocket closed unexpectedly:", e);
+    connectionError.style.display = 'block';
+  };
+
+  // Listen for incoming messages
+  chatSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    console.log("Received data:", data);
+
+    // Handle typing indicator events
+    if (data.type === 'typing') {
+      typingIndicator.style.display = 'flex';
+      return;
+    }
+    if (data.type === 'stop_typing') {
+      typingIndicator.style.display = 'none';
+      return;
+    }
+
+    // Create a new chat message element
+    const messageDiv = document.createElement('div');
+    let senderSideClass = "mr-auto max-w-[75%] mb-4 animate-fade-in";
+    if (parseInt(data.sender_id) === parseInt({{ request.user.id }})) {
+      senderSideClass = "ml-auto max-w-[75%] flex flex-col items-end mb-4 animate-fade-in";
+    }
+
+    // Build the avatar HTML if needed
+    let avatarHTML = "";
+    if (parseInt(data.sender_id) !== parseInt({{ request.user.id }})) {
+      if (data.sender_avatar) {
+        avatarHTML = `<img src="${data.sender_avatar}" alt="${data.sender}" class="w-8 h-8 rounded-full object-cover">`;
+      } else {
+        const letter = data.sender ? data.sender[0].toUpperCase() : '';
+        avatarHTML = `<div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-800">
+                        ${letter}
+                      </div>`;
       }
-    });
+    }
 
-    // Grab references to our new elements
-    const typingIndicator = document.getElementById('typing-indicator');
-    const newMessagesIndicator = document.getElementById('new-messages-indicator');
-    const connectionError = document.getElementById('connection-error');
+    // Determine bubble styling
+    let bubbleClasses = "bg-gray-100 text-gray-800 rounded-2xl rounded-tl-none px-4 py-3 shadow-sm";
+    if (parseInt(data.sender_id) === parseInt({{ request.user.id }})) {
+      bubbleClasses = "bg-blue-500 text-white rounded-2xl rounded-tr-none px-4 py-3 shadow-sm";
+    }
 
-    // If your site is HTTPS, use wss; else ws
-    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
-    const roomId = "{{ room_id }}";
-    const chatSocket = new WebSocket(wsScheme + "://" + window.location.host + "/ws/chat/" + roomId + "/");
-
-    chatSocket.onopen = function() {
-      console.log("WebSocket handshake successful.");
-      connectionError.style.display = 'none'; // hide if shown
-    };
-    chatSocket.onerror = function(e) {
-      console.error("WebSocket error:", e);
-      connectionError.style.display = 'block';
-    };
-    chatSocket.onclose = function(e) {
-      console.error("WebSocket closed unexpectedly:", e);
-      connectionError.style.display = 'block';
-    };
-
-    // Listen for messages from the server
-    chatSocket.onmessage = function(e) {
-      const data = JSON.parse(e.data);
-      console.log("New message data:", data);
-
-      // If the server sends a "typing" event, show the indicator
-      if (data.type === 'typing') {
-        typingIndicator.style.display = 'flex';
-        return;
-      }
-      // If the server says "stop_typing", hide the indicator
-      if (data.type === 'stop_typing') {
-        typingIndicator.style.display = 'none';
-        return;
-      }
-
-      // If it's a normal chat message
-      const messageDiv = document.createElement('div');
-      let senderSideClass = "mr-auto max-w-[75%] mb-4 animate-fade-in";
-      // Compare data.sender_id to the current user's ID
-      if (parseInt(data.sender_id) === parseInt({{ request.user.id }})) {
-        senderSideClass = "ml-auto max-w-[75%] flex flex-col items-end mb-4 animate-fade-in";
-      }
-
-      // Build the avatar if needed
-      let avatarHTML = "";
-      if (parseInt(data.sender_id) !== parseInt({{ request.user.id }})) {
-        if (data.sender_avatar) {
-          avatarHTML = `<img src="${data.sender_avatar}" alt="${data.sender}" class="w-8 h-8 rounded-full object-cover">`;
-        } else {
-          const letter = data.sender ? data.sender[0].toUpperCase() : '';
-          avatarHTML = `<div class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-xs">
-                          ${letter}
-                        </div>`;
-        }
-      }
-
-      // Decide bubble color
-      let bubbleClasses = "bg-gray-700 text-gray-100 rounded-2xl rounded-tl-none px-4 py-3 shadow-sm";
-      if (parseInt(data.sender_id) === parseInt({{ request.user.id }})) {
-        bubbleClasses = "bg-blue-600 text-white rounded-2xl rounded-tr-none px-4 py-3 shadow-sm";
-      }
-
-      // Build the message bubble
-      messageDiv.className = senderSideClass;
-      messageDiv.innerHTML = `
-        <div class="flex items-end gap-2">
-          ${avatarHTML}
-          <div class="${bubbleClasses}">
-            <p class="text-sm">${data.message}</p>
-          </div>
+    // Construct message bubble HTML
+    messageDiv.className = senderSideClass;
+    messageDiv.innerHTML = `
+      <div class="flex items-end gap-2">
+        ${avatarHTML}
+        <div class="${bubbleClasses}">
+          <p class="text-sm">${data.message}</p>
         </div>
-        <span class="text-xs text-gray-400 mt-1">${data.timestamp || ''}</span>
-      `;
+      </div>
+      <span class="text-xs text-gray-500 mt-1">${data.timestamp || ''}</span>
+    `;
 
-      messageList.appendChild(messageDiv);
+    messageList.appendChild(messageDiv);
 
-      // If user is scrolled up, show new messages indicator; else scroll down
+    // If the message is not from the current user, then check scroll position for indicator display
+    if (parseInt(data.sender_id) !== parseInt({{ request.user.id }})) {
       const isAtBottom = messageList.scrollHeight - messageList.scrollTop <= messageList.clientHeight + 50;
       if (!isAtBottom && newMessagesIndicator) {
         newMessagesIndicator.style.display = 'block';
       } else {
         messageList.scrollTop = messageList.scrollHeight;
       }
-    };
-
-    // If user clicks new-messages-indicator, scroll down
-    if (newMessagesIndicator) {
-      newMessagesIndicator.addEventListener('click', function() {
-        messageList.scrollTop = messageList.scrollHeight;
-        newMessagesIndicator.style.display = 'none';
-      });
+    } else {
+      // For messages sent by the current user, always auto-scroll down
+      messageList.scrollTop = messageList.scrollHeight;
     }
+  };
 
-    // Send a message via WebSocket
-    const chatForm = document.getElementById('chat-form');
-    chatForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const msg = textarea.value.trim();
-      if (msg === "") return;
-      chatSocket.send(JSON.stringify({'message': msg}));
-      textarea.value = '';
-      textarea.style.height = 'auto';
-    });
+  // Scroll event listener to automatically hide the new messages indicator
+  messageList.addEventListener('scroll', function() {
+    const isAtBottom = messageList.scrollHeight - messageList.scrollTop <= messageList.clientHeight + 50;
+    if (isAtBottom) {
+      newMessagesIndicator.style.display = 'none';
+    }
+  });
 
-    // Let the server know we’re typing after each keystroke
-    let typingTimeout;
-    textarea.addEventListener('input', function() {
-      // Send a "typing" event to the server
-      chatSocket.send(JSON.stringify({'type': 'typing'}));
-      clearTimeout(typingTimeout);
-      typingTimeout = setTimeout(() => {
-        chatSocket.send(JSON.stringify({'type': 'stop_typing'}));
-      }, 1000);
+  // New messages indicator click scrolls to the bottom
+  if (newMessagesIndicator) {
+    newMessagesIndicator.addEventListener('click', function() {
+      messageList.scrollTop = messageList.scrollHeight;
+      newMessagesIndicator.style.display = 'none';
     });
-  </script>
+  }
+
+  // Sending a chat message via WebSocket
+  const chatForm = document.getElementById('chat-form');
+  chatForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const msg = textarea.value.trim();
+    if (msg === "") return;
+    chatSocket.send(JSON.stringify({'message': msg}));
+    textarea.value = '';
+    textarea.style.height = 'auto';
+  });
+
+  // Notify server on typing status with debouncing
+  let typingTimeout;
+  textarea.addEventListener('input', function() {
+    chatSocket.send(JSON.stringify({'type': 'typing'}));
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+      chatSocket.send(JSON.stringify({'type': 'stop_typing'}));
+    }, 1000);
+  });
+</script>
+
 </body>
 </html>

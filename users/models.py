@@ -24,7 +24,7 @@ class Profile(models.Model):
 
     # Basic Information
     orcid_id = models.CharField(max_length=19, blank=True, null=True, unique=True)
-    avatar = models.ImageField(default='default.jpg', upload_to='profile_images')
+    avatar = models.ImageField(default='default-avatar.png', upload_to='profile_images')
     bio = models.TextField(blank=True, default="No bio available.")
     birthdate = models.DateField(blank=True, null=True)  # Added birthdate field
 
@@ -72,7 +72,7 @@ class Profile(models.Model):
                 # Log the missing file or set to default if necessary
                 print(f"Avatar file not found at: {avatar_path}")
                 # Optionally, set a default image if the file is missing:
-                # self.avatar = 'default.jpg'
+                # self.avatar = 'default-avatar.png'
                 # super().save(update_fields=['avatar'])
                 return
 

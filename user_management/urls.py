@@ -12,6 +12,7 @@ urlpatterns = [
 
     path('grappelli/', include('grappelli.urls')),
     path('admin/', admin.site.urls),
+    path('sdunews/', include('sduNews.urls')),
     path('dashboard/', include('dashboard.urls')),
     path('marketplace/', include('projects.urls')),  # Marketplace routes (projects app)
     path('ai-assistant/', include('ai_assistant.urls', namespace='ai_assistant')),

@@ -1,226 +1,398 @@
 {% extends "users/base.html" %}
 {% load static %}
+{% load project_tags %}
 
 {% block content %}
-<style>
-    .my-projects-header {
-        margin: 2rem 0;
-        padding: 1.5rem 0;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Research Projects</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- jQuery for AJAX -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    /* Utility for clamping text */
+    .line-clamp-3 {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
-    .project-card {
-        background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        transition: all 0.2s ease;
-        border: none;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        position: relative;
-    }
-    .project-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-    }
-    .project-status {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-        font-size: 0.85rem;
-        padding: 6px 12px;
-        border-radius: 20px;
-        backdrop-filter: blur(4px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-    }
-    .active-status {
-        background: rgba(72, 199, 116, 0.15);
-        color: #2f9e44;
-    }
-    .inactive-status {
-        background: rgba(255, 107, 107, 0.15);
-        color: #ff6b6b;
-    }
-    .avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid #eee;
-    }
-    .user-info {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .search-create-wrapper {
-        display: flex;
-        gap: 1rem;
-        margin: 2rem 0;
-        flex-wrap: wrap;
-    }
-    .search-form {
-        flex: 1;
-        max-width: 600px;
-        position: relative;
-    }
-    .search-input {
-        width: 100%;
-        padding: 14px 20px;
-        border-radius: 12px;
-        border: 2px solid #e0e0e0;
-        font-size: 1rem;
-        transition: all 0.2s ease;
-    }
-    .search-input:focus {
-        border-color: #40c057;
-        box-shadow: 0 0 0 3px rgba(64, 192, 87, 0.2);
-    }
-    .create-button {
-        background: #2f9e44;
-        color: white;
-        padding: 14px 24px;
-        border-radius: 12px;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        white-space: nowrap;
-        transition: all 0.2s ease;
-    }
-    .create-button:hover {
-        background: #2b8a3e;
-        color: white;
-        text-decoration: none;
-    }
-    .skill-badge {
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 6px 12px;
-        margin: 4px;
-        font-size: 0.85rem;
-        font-weight: 500;
-    }
-    .project-actions {
-        border-top: 2px solid #f8f9fa;
-        padding-top: 1.5rem;
-        margin-top: 1.5rem;
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-        justify-content: space-between;
-    }
-    .action-button {
-        padding: 10px 20px;
-        border-radius: 12px;
-        font-weight: 600;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .empty-state {
-        text-align: center;
-        padding: 3rem;
-        border-radius: 16px;
-        background: #f8f9fa;
-        margin: 2rem 0;
-    }
-</style>
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div class="container mx-auto px-4 py-8 max-w-6xl">
+    <!-- Search & Filter Row -->
+    <div class="mb-8 flex flex-col items-center gap-4">
+      <!-- Search Bar -->
+      <div class="relative w-full max-w-md">
+        <form id="searchForm" method="GET" class="w-full">
+          <!-- Hidden inputs for category/time sort -->
+          <input type="hidden" id="timeSort" name="time_sort" value="{{ request.GET.time_sort }}">
+          <input type="hidden" id="selectedCategories" name="categories" value="{{ request.GET.categories }}">
 
-<main class="container">
-    <div class="my-projects-header">
-        <h1 class="mb-3" style="font-size: 2rem; font-weight: 700;">My Research Projects</h1>
-        <div class="search-create-wrapper">
-            <form class="search-form" method="GET">
-                <input type="text"
-                       class="search-input"
-                       name="q"
-                       placeholder="Search my projects..."
-                       value="{{ request.GET.q }}">
-                <button type="submit" class="action-button" style="position: absolute; right: 0; top: 0; height: 100%; background: transparent; color: #868e96;">
-                    <i class="fas fa-search"></i>
-                </button>
-            </form>
-            <a href="{% url 'project-create' %}" class="create-button">
-                <i class="fas fa-plus"></i>
-                Create New Project
-            </a>
-        </div>
+          <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search my projects..."
+                 class="w-full py-3 px-5 rounded-2xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none text-base">
+          <button type="submit" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+            <i class="fas fa-search"></i>
+          </button>
+        </form>
+      </div>
+      <!-- Create New Project & Filters -->
+      <div class="flex gap-4">
+        <a href="{% url 'project-create' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all whitespace-nowrap">
+          <i class="fas fa-plus"></i>
+          Create New Project
+        </a>
+        <button onclick="toggleFilterDialog()" class="inline-flex items-center px-4 py-2 bg-white shadow rounded-xl font-medium text-gray-700 hover:shadow transition-all">
+          <i class="fas fa-filter mr-2"></i> Filters
+        </button>
+      </div>
     </div>
 
-    <div class="project-list">
-        {% for project in projects %}
-        <div class="project-card">
-            <span class="project-status {% if project.is_active %}active-status{% else %}inactive-status{% endif %}">
-                {% if project.is_active %}Active{% else %}Inactive{% endif %}
-            </span>
-            <div class="user-info mb-3">
-                {% if project.owner.profile.avatar %}
-                    <a href="{% url 'user-profile' project.owner.username %}">
-                        <img src="{{ project.owner.profile.avatar.url }}" alt="{{ project.owner.username }}" class="avatar">
-                    </a>
+    <!-- Time Sorting Controls (Improved Design) -->
+<div class="mb-8 flex items-center justify-center">
+  <div class="bg-white p-4 rounded-xl shadow flex items-center gap-4">
+    <span class="font-medium text-gray-700">Sort by Time:</span>
+    <div class="flex rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+      <!-- Newest First -->
+      <button
+        type="button"
+        onclick="toggleTimeSort('recent')"
+        id="sort-time-recent"
+        class="px-4 py-2 text-sm font-medium text-blue-800 hover:bg-blue-100 transition inline-flex items-center gap-1"
+      >
+        <i class="fas fa-clock"></i>
+        Newest First
+      </button>
+      <!-- Oldest First -->
+      <button
+        type="button"
+        onclick="toggleTimeSort('old')"
+        id="sort-time-old"
+        class="px-4 py-2 text-sm font-medium text-blue-800 hover:bg-blue-100 transition inline-flex items-center gap-1"
+      >
+        <i class="fas fa-history"></i>
+        Oldest First
+      </button>
+    </div>
+  </div>
+</div>
+
+
+    <!-- My Projects (One per row) -->
+    <div class="grid grid-cols-1 gap-6">
+      {% for project in projects %}
+      <div class="bg-white rounded-xl shadow p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-md border border-gray-100 relative">
+        <!-- Heart (Favorite) Button at Top-Right -->
+        <button onclick="saveProject({{ project.id }})"
+                id="fav-btn-{{ project.id }}"
+                class="absolute top-4 right-4 p-1 rounded-full hover:bg-gray-100 transition-colors focus:outline-none"
+                aria-label="{% if project.id in favorite_ids %}Remove from favorites{% else %}Add to favorites{% endif %}">
+          {% if project.id in favorite_ids %}
+            <i class="fas fa-heart text-red-500"></i>
+          {% else %}
+            <i class="fas fa-heart text-gray-400 hover:text-red-400"></i>
+          {% endif %}
+        </button>
+
+        <!-- Top Row: Trending Badge + Clickable Categories -->
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+          {% if project.view_count > 500 %}
+          <span class="inline-flex items-center gap-1 px-2 py-1 bg-red-600 text-white text-xs font-semibold rounded-full">
+            <i class="fas fa-fire-alt"></i> Trending
+          </span>
+          {% endif %}
+          {% for category in project.category.all %}
+          <!-- Category Badge: toggles filter instead of linking to marketplace -->
+          <button type="button"
+                  onclick="toggleCategory('{{ category.id }}')"
+                  id="cat-{{ category.id }}"
+                  class="inline-flex items-center px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-sm font-medium text-gray-800">
+            {{ category.name }}
+          </button>
+          {% empty %}
+          <span class="inline-flex items-center px-3 py-1 bg-gray-100 rounded-full text-sm font-medium text-gray-800">
+            No category
+          </span>
+          {% endfor %}
+        </div>
+
+        <!-- Owner Info -->
+        <div class="flex items-center gap-3 mb-4">
+          {% if project.owner.profile.avatar %}
+            <a href="{% url 'project-user-profile' project.owner.username %}">
+              <img src="{{ project.owner.profile.avatar.url }}" alt="{{ project.owner.username }}" class="w-10 h-10 rounded-full object-cover">
+            </a>
+          {% else %}
+            <a href="{% url 'project-user-profile' project.owner.username %}"
+               class="w-10 h-10 rounded-full flex items-center justify-center bg-green-500 text-white font-bold">
+              {{ project.owner.username|first|upper }}
+            </a>
+          {% endif %}
+          <div>
+            <a href="{% url 'project-user-profile' project.owner.username %}" class="text-gray-800 font-medium hover:text-blue-600 transition-colors">
+              @{{ project.owner.username }}
+            </a>
+            {% if project.owner.profile.city or project.owner.profile.country %}
+            <p class="text-xs text-gray-500">
+              {{ project.owner.profile.city }}{% if project.owner.profile.city and project.owner.profile.country %} - {% endif %}{{ project.owner.profile.country }}
+            </p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Project Title -->
+        <h2 class="text-2xl font-semibold mb-2 text-gray-800">{{ project.title }}</h2>
+
+        <!-- Posted Date & Time -->
+        <div class="mb-2 text-sm text-gray-500">
+          <i class="fas fa-clock mr-1"></i>
+          Posted on {{ project.created_at|date:"M d, Y h:i A" }} ({{ project.created_at|timesince }} ago)
+        </div>
+
+        <!-- Collapsible Description -->
+        <div>
+          <p id="desc-{{ project.id }}" class="text-gray-600 mb-4 line-clamp-3">
+            {{ project.description }}
+          </p>
+          <button onclick="toggleDescription({{ project.id }}, event)" class="text-blue-600 text-sm focus:outline-none">
+            Read More
+          </button>
+        </div>
+
+        <!-- Roles as Tag Badges -->
+        {% if project.required_roles.all %}
+        <div class="flex flex-wrap gap-2 mb-4">
+          {% for role in project.required_roles.all %}
+          <span class="inline-flex items-center px-3 py-1 bg-blue-100 rounded-full text-xs font-medium text-blue-800">
+            <i class="fas fa-user mr-1"></i> {{ role.name }}
+          </span>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Bottom Row: Project Status & Buttons -->
+        <div class="flex items-center justify-between mt-4">
+          <!-- Status Badge (Active/Inactive) -->
+          <span class="px-3 py-1 rounded-full text-xs font-medium
+            {% if project.is_active %}bg-green-100 text-green-600{% else %}bg-red-100 text-red-500{% endif %}">
+            {% if project.is_active %}Active{% else %}Inactive{% endif %}
+          </span>
+          <!-- Action Buttons: View Details & Activate/Deactivate -->
+          <div class="flex items-center gap-4">
+            <a href="{% url 'project-detail' pk=project.pk %}"
+               class="text-gray-900 font-medium hover:text-blue-600 inline-flex items-center gap-2 transition-colors">
+              View Details <i class="fas fa-arrow-right"></i>
+            </a>
+            <form method="POST" action="{% url 'project-toggle' project.id %}">
+              {% csrf_token %}
+              <button type="submit" class="px-4 py-2 rounded-xl font-medium transition-all
+                {% if project.is_active %}
+                  border border-red-500 text-red-500 hover:bg-red-50
                 {% else %}
-                    <a href="{% url 'user-profile' project.owner.username %}" class="avatar" style="display: inline-flex; align-items: center; justify-content: center; background: #2f9e44; color: white; font-weight: 600; font-size: 1.1rem; text-decoration: none;">
-                        {{ project.owner.username|first|upper }}
-                    </a>
-                {% endif %}
-                <span style="font-weight:600;">{{ project.owner.username }}</span>
-            </div>
-            <!-- Title with additional top margin -->
-            <h2 class="mt-3 mb-2" style="font-size: 1.25rem; font-weight: 600;">{{ project.title }}</h2>
-            <div class="d-flex align-items-center gap-2 mb-3">
-                {% for category in project.category.all %}
-                    <span class="skill-badge">{{ category.name }}</span>
-                {% empty %}
-                    <span class="skill-badge">No category</span>
-                {% endfor %}
-                <small class="text-muted">Created: {{ project.created_at|date:"M d, Y" }}</small>
-            </div>
-            <p class="text-secondary mb-3">{{ project.description|truncatechars:120 }}</p>
-            <div class="mb-3">
-                {% for skill in project.skills_required.split %}
-                    <span class="skill-badge">{{ skill }}</span>
-                {% endfor %}
-            </div>
-            <div class="project-actions">
-                <div class="d-flex gap-2 flex-wrap">
-                    <a href="{% url 'project-detail' pk=project.pk %}" class="action-button" style="background: #f8f9fa; color: #495057;">
-                        <i class="fas fa-eye"></i>
-                        View
-                    </a>
-                    <a href="{% url 'project-update' project.pk %}" class="action-button btn btn-outline-secondary">
-                        <i class="fas fa-edit"></i> Edit
-                    </a>
-                </div>
-                <form method="POST" action="{% url 'project-toggle' project.id %}">
-                    {% csrf_token %}
-                    <button type="submit" class="action-button {% if project.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
-                        {% if project.is_active %}Deactivate{% else %}Activate{% endif %}
-                    </button>
-                </form>
-            </div>
+                  border border-green-500 text-green-500 hover:bg-green-50
+                {% endif %}">
+                {% if project.is_active %}Deactivate{% else %}Activate{% endif %}
+              </button>
+            </form>
+          </div>
         </div>
-        {% empty %}
-        <div class="empty-state">
-            <i class="fas fa-folder-open fa-2x mb-3" style="color: #ced4da;"></i>
-            <p class="text-muted mb-3">You haven't created any projects yet</p>
-            <a href="{% url 'project-create' %}" class="create-button">
-                Start Your First Project
-            </a>
+      </div>
+      {% empty %}
+      <div class="bg-gray-50 rounded-2xl p-12 text-center">
+        <div class="flex justify-center mb-4">
+          <i class="fas fa-folder-open fa-2x" style="color: #ced4da;"></i>
         </div>
-        {% endfor %}
+        <p class="text-gray-500 mb-6">You haven't created any projects yet</p>
+        <a href="{% url 'project-create' %}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all">
+          Start Your First Project
+        </a>
+      </div>
+      {% endfor %}
     </div>
-</main>
+  </div>
 
-<script>
-    // Confirm before deactivating project
-    document.querySelectorAll('.project-actions button').forEach(button => {
-        button.addEventListener('click', (e) => {
-            if (button.innerText.includes('Deactivate')) {
-                if (!confirm('Are you sure you want to deactivate this project?')) {
-                    e.preventDefault();
-                }
+  <!-- Filter Dialog -->
+  <div id="filterDialog" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl w-full max-w-lg p-6 m-4">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-semibold">Filter Projects</h3>
+        <button type="button" onclick="toggleFilterDialog()" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <form id="filterForm" method="GET" class="space-y-6">
+        <!-- Status Filter -->
+        <div>
+          <label class="block text-sm font-medium mb-2">Status</label>
+          <select name="status" class="w-full py-2 px-3 border rounded-lg border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-200">
+            <option value="">All</option>
+            <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+            <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
+          </select>
+        </div>
+        <!-- Category Filter (clickable badges) -->
+        <div>
+          <label class="block text-sm font-medium mb-2">Category</label>
+          <div id="filter-categories" class="flex flex-wrap gap-2">
+            <button type="button" onclick="selectAllFilterCategories()" id="filter-cat-all"
+              class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-full text-sm font-medium transition">
+              All
+            </button>
+            {% for cat in all_categories %}
+            <button type="button" onclick="toggleFilterCategory('{{ cat.id }}')" id="filter-cat-{{ cat.id }}"
+              class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-full text-sm font-medium transition">
+              {{ cat.name }}
+            </button>
+            {% endfor %}
+          </div>
+          <input type="hidden" id="filterSelectedCategories" name="filter_category" value="{{ request.GET.filter_category }}">
+        </div>
+        <div class="flex gap-4">
+          <button type="button" onclick="resetFilterDialog()" class="flex-1 px-6 py-3 bg-red-100 text-red-700 rounded-xl font-medium hover:bg-red-200 transition-all">
+            Clear
+          </button>
+          <button type="button" onclick="toggleFilterDialog()" class="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-all">
+            Cancel
+          </button>
+          <button type="submit" class="flex-1 px-6 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-all">
+            Apply
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Toggle Filter Dialog
+    function toggleFilterDialog() {
+      const dialog = document.getElementById('filterDialog');
+      dialog.classList.toggle('hidden');
+    }
+    // Reset Filter Dialog
+    function resetFilterDialog() {
+      document.querySelector('select[name="status"]').value = "";
+      const filterBtns = document.querySelectorAll("#filter-categories button");
+      filterBtns.forEach(btn => btn.classList.remove('bg-blue-300','text-white'));
+      document.getElementById('filter-cat-all').classList.add('bg-blue-300','text-white');
+      document.getElementById('filterSelectedCategories').value = "";
+    }
+    // Toggle Category from Filter Dialog
+    function toggleFilterCategory(catId) {
+      let selected = document.getElementById('filterSelectedCategories').value;
+      selected = selected ? selected.split(',') : [];
+      const btn = document.getElementById('filter-cat-' + catId);
+      const index = selected.indexOf(catId);
+      if (index > -1) {
+        selected.splice(index, 1);
+        btn.classList.remove('bg-blue-300','text-white');
+      } else {
+        selected.push(catId);
+        btn.classList.add('bg-blue-300','text-white');
+      }
+      document.getElementById('filterSelectedCategories').value = selected.join(',');
+      if (selected.length === 0) {
+        document.getElementById('filter-cat-all').classList.add('bg-blue-300','text-white');
+      } else {
+        document.getElementById('filter-cat-all').classList.remove('bg-blue-300','text-white');
+      }
+    }
+    function selectAllFilterCategories() {
+      resetFilterDialog();
+      document.getElementById('filterSelectedCategories').value = "";
+    }
+
+    // Time Sort
+    function toggleTimeSort(sortVal) {
+      document.getElementById('timeSort').value = sortVal;
+      document.getElementById('searchForm').submit();
+    }
+
+    // Category Filter on the Card
+    // If you want categories in the card to filter as well, similar to marketplace:
+    function toggleCategory(catId) {
+      // read the hidden input
+      let selected = document.getElementById('selectedCategories').value;
+      selected = selected ? selected.split(',') : [];
+      const index = selected.indexOf(catId);
+      if (index > -1) {
+        selected.splice(index, 1);
+      } else {
+        selected.push(catId);
+      }
+      document.getElementById('selectedCategories').value = selected.join(',');
+      // submit the form
+      document.getElementById('searchForm').submit();
+    }
+
+    // Collapsible Description Toggle
+    function toggleDescription(projectId, event) {
+      const desc = document.getElementById('desc-' + projectId);
+      const btn = event.target;
+      if (desc.classList.contains('line-clamp-3')) {
+        desc.classList.remove('line-clamp-3');
+        btn.textContent = 'Read Less';
+      } else {
+        desc.classList.add('line-clamp-3');
+        btn.textContent = 'Read More';
+      }
+    }
+
+    // AJAX to Toggle Favorites
+    function saveProject(projectId) {
+      $.ajax({
+        type: "POST",
+        url: "{% url 'toggle-favorite' %}",
+        data: {
+          project_id: projectId,
+          csrfmiddlewaretoken: "{{ csrf_token }}"
+        },
+        success: function(response) {
+          if (response.success) {
+            const btnIcon = $("#fav-btn-" + projectId + " i");
+            if (response.is_favorite) {
+              btnIcon.removeClass("text-gray-400").addClass("text-red-500");
+            } else {
+              btnIcon.removeClass("text-red-500").addClass("text-gray-400");
             }
+          } else {
+            alert("Error: " + response.error);
+          }
+        },
+        error: function(xhr, status, error) {
+          alert("An error occurred: " + error);
+        }
+      });
+    }
+
+    // Optionally highlight selected categories from GET params
+    document.addEventListener("DOMContentLoaded", function() {
+      // time sort highlight
+      const currentSort = "{{ time_sort|default_if_none:'recent' }}";
+      if (currentSort === 'old') {
+        document.getElementById('sort-time-old').classList.add('bg-blue-300','text-white');
+      } else {
+        document.getElementById('sort-time-recent').classList.add('bg-blue-300','text-white');
+      }
+
+      // categories highlight
+      let catVal = "{{ request.GET.categories|default_if_none:'' }}";
+      if (catVal) {
+        let selectedArray = catVal.split(',');
+        selectedArray.forEach(catId => {
+          const catBtn = document.getElementById('cat-' + catId);
+          if (catBtn) {
+            catBtn.classList.add('bg-gray-300','text-gray-800');
+          }
         });
+      }
     });
-</script>
+  </script>
+</body>
+</html>
 {% endblock %}

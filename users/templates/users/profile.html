@@ -1,4 +1,6 @@
 {% extends "users/base.html" %}
+{% load static %}
+
 {% block title %}Profile{% endblock %}
 
 {% block content %}
@@ -16,9 +18,13 @@
                     
                     <!-- Profile Picture & Name -->
                     <div class="relative inline-block group">
-                        <img class="w-32 h-32 rounded-full border-4 border-gray-50 shadow-lg mx-auto group-hover:border-blue-100 transition-all duration-300" 
-                             src="{{ user.profile.avatar.url }}" alt="{{ user.get_full_name }}"
-                             onerror="this.src='/static/images/default-avatar.png'">
+                        {% if user.profile.avatar %}
+                            <img class="w-32 h-32 rounded-full border-4 border-gray-50 shadow-lg mx-auto group-hover:border-blue-100 transition-all duration-300" 
+                                 src="{{ user.profile.avatar.url }}" alt="{{ user.get_full_name }}">
+                        {% else %}
+                            <img class="w-32 h-32 rounded-full border-4 border-gray-50 shadow-lg mx-auto group-hover:border-blue-100 transition-all duration-300" 
+                                 src="{{ MEDIA_URL }}default-avatar.png" alt="{{ user.get_full_name }}">
+                        {% endif %}
                         {% if user.profile.is_verified %}
                         <div class="absolute bottom-2 right-2 bg-blue-500 rounded-full p-1.5">
                             <i class="fa-solid fa-check-circle text-white text-sm"></i>

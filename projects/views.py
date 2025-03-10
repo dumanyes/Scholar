@@ -1,5 +1,7 @@
 from urllib import request
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy, reverse
 from django.views import View
@@ -21,6 +23,12 @@ from users.models import Profile
 from projects.recommendation import rank_projects_with_faiss, recommend_projects_for_user  # Updated import
 
 
+
+from django.db.models import Q, OuterRef, Subquery, CharField, Case, When
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import ListView
+from projects.models import Project, ProjectApplication, Category, ChatMessage, ChatRoom
+from projects.recommendation import rank_projects_with_faiss, recommend_projects_for_user
 
 from django.db.models import Q, OuterRef, Subquery, CharField, Case, When
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -124,11 +132,16 @@ class MarketplaceView(LoginRequiredMixin, ListView):
             'favorite_ids': list(favorite_ids)
         })
 
-        # Additionally, include top recommended projects.
+        # Retrieve recommended projects and annotate them with application status
         recommended = recommend_projects_for_user(self.request.user, top_n=9)
+        for project in recommended:
+            user_app = project.applications.filter(applicant=self.request.user).first()
+            project.application_status = user_app.status if user_app else None
+
         context['recommended_projects'] = recommended
 
         return context
+
 
 
 
@@ -343,7 +356,24 @@ class MyProjectsView(LoginRequiredMixin, ListView):
     context_object_name = 'projects'
 
     def get_queryset(self):
-        return Project.objects.filter(owner=self.request.user)
+        qs = Project.objects.filter(owner=self.request.user)
+        # Time sorting: defaults to 'recent'; if 'old' is specified, order ascending by created_at.
+        time_sort = self.request.GET.get('time_sort', 'recent')
+        if time_sort == 'old':
+            qs = qs.order_by('created_at')
+        else:
+            qs = qs.order_by('-created_at')
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Add all categories for filtering (if needed in the template)
+        context['all_categories'] = Category.objects.all()
+        # Pass the current sorting parameter to the template
+        context['time_sort'] = self.request.GET.get('time_sort', 'recent')
+        # Also include any status filter if needed (e.g., active/inactive)
+        context['status'] = self.request.GET.get('status', '')
+        return context
 
 
 class ProjectCreateView(LoginRequiredMixin, CreateView):
@@ -563,20 +593,50 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import User, ChatRoom, ChatMessage
 
+
+
 @login_required
 def chat_view(request, user_id):
+    # Get the other user to chat with.
     other_user = get_object_or_404(User, id=user_id)
     current_user = request.user
+
+    # Try to find an existing chat room with exactly these two participants.
     rooms = ChatRoom.objects.filter(participants=current_user).filter(participants=other_user)
     room = None
     for r in rooms:
         if r.participants.count() == 2:
             room = r
             break
+
+    # If no room exists, create one.
     if not room:
         room = ChatRoom.objects.create()
         room.participants.add(current_user, other_user)
+
+    # Mark messages as read for the current user.
+    # Only update messages not sent by the current user.
+    updated = room.messages.filter(read=False).exclude(sender=current_user).update(read=True)
+
+    # (Optional) Broadcast updated unread count to the current user's chat list.
+    channel_layer = get_channel_layer()
+    unread_count = room.messages.filter(read=False).exclude(sender=current_user).count()
+    async_to_sync(channel_layer.group_send)(
+        f"chatlist_{current_user.id}",
+        {
+            "type": "chatlist_update",
+            "data": {
+                "chat_id": room.id,
+                "unread_count": unread_count,
+                "last_message": "",
+                "timestamp": ""
+            }
+        }
+    )
+
+    # Get all chat messages ordered by timestamp.
     chat_messages = room.messages.all().order_by('timestamp')
+
     context = {
         'room': room,
         'other_user': other_user,
@@ -636,3 +696,4 @@ def mark_notification_read(request, notification_id):
 def mark_all_notifications_read(request):
     Notification.objects.filter(user=request.user, read=False).update(read=True)
     return redirect('notifications_list')
+
