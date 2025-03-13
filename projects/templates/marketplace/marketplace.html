@@ -511,197 +511,205 @@
   </div>
 
   <!-- Scripts -->
-  <script>
-    // Toggle Filter Modal
-    function toggleFilterDialog() {
-      const dialog = document.getElementById('filterDialog');
-      dialog.classList.toggle('hidden');
-    }
-    // -------------------------
-    // Time Filter Functions
-    function setTimeFilter(value) {
-      document.getElementById('time_filter').value = value;
-      const buttons = ['time-any', 'time-24', 'time-week', 'time-month', 'time-year'];
-      buttons.forEach(id => {
-        document.getElementById(id).classList.remove('bg-blue-300', 'text-white');
-      });
-      if (value === '') {
-        document.getElementById('time-any').classList.add('bg-blue-300', 'text-white');
-      } else if (value === 'last_24_hours') {
-        document.getElementById('time-24').classList.add('bg-blue-300', 'text-white');
-      } else if (value === 'last_week') {
-        document.getElementById('time-week').classList.add('bg-blue-300', 'text-white');
-      } else if (value === 'last_month') {
-        document.getElementById('time-month').classList.add('bg-blue-300', 'text-white');
-      } else if (value === 'last_year') {
-        document.getElementById('time-year').classList.add('bg-blue-300', 'text-white');
-      }
-      if (value !== 'custom') {
-        document.getElementById('custom-date-range').classList.add('hidden');
-      }
-    }
-    function toggleCustomDate() {
-      const customDiv = document.getElementById('custom-date-range');
-      if (customDiv.classList.contains('hidden')) {
-        customDiv.classList.remove('hidden');
-        setTimeFilter('custom');
-      } else {
-        customDiv.classList.add('hidden');
-        setTimeFilter('');
-      }
-    }
-    // -------------------------
-    // Skills Filter Functions
-    $("#skills_search").on("input", function() {
-      const query = $(this).val();
-      if (query.length < 2) {
-        $("#skills_suggestions").addClass("hidden");
-        return;
-      }
-      $.ajax({
-        url: "{% url 'search-skills' %}",
-        data: { query: query },
-        success: function(response) {
-          const suggestions = response.skills;
-          let html = "";
-          suggestions.forEach(function(skill) {
-            const regex = new RegExp("(" + query + ")", "gi");
-            const skillNameHighlighted = skill.name.replace(regex, "<strong>$1</strong>");
-            html += `<div class="p-2 hover:bg-gray-200 cursor-pointer" data-name="${skill.name}">
-                        ${skillNameHighlighted}
-                      </div>`;
-          });
-          $("#skills_suggestions").html(html).removeClass("hidden");
-        }
-      });
+ <!-- Scripts -->
+<script>
+  // Toggle Filter Modal
+  function toggleFilterDialog() {
+    const dialog = document.getElementById('filterDialog');
+    dialog.classList.toggle('hidden');
+  }
+  // -------------------------
+  // Time Filter Functions
+  function setTimeFilter(value) {
+    document.getElementById('time_filter').value = value;
+    const buttons = ['time-any', 'time-24', 'time-week', 'time-month', 'time-year'];
+    buttons.forEach(id => {
+      document.getElementById(id).classList.remove('bg-blue-300', 'text-white');
     });
-    $("#skills_suggestions").on("click", "div", function() {
-      const skillName = $(this).data("name");
-      if ($("#selected_skills").val().split(",").indexOf(String(skillName)) === -1) {
-        addSkillTag(skillName);
-      }
-      $("#skills_search").val("");
-      $("#skills_suggestions").addClass("hidden").empty();
-    });
-    function addSkillTag(skillName) {
-      let current = $("#selected_skills").val();
-      let arr = current ? current.split(",") : [];
-      arr.push(skillName);
-      $("#selected_skills").val(arr.join(","));
-      $("#selected_skills_container").append(
-        `<span class="skill-tag" data-name="${skillName}">${skillName} <button type="button" onclick="removeSkillTag('${skillName}')" class="text-xs">&times;</button></span>`
-      );
+    if (value === '') {
+      document.getElementById('time-any').classList.add('bg-blue-300', 'text-white');
+    } else if (value === 'last_24_hours') {
+      document.getElementById('time-24').classList.add('bg-blue-300', 'text-white');
+    } else if (value === 'last_week') {
+      document.getElementById('time-week').classList.add('bg-blue-300', 'text-white');
+    } else if (value === 'last_month') {
+      document.getElementById('time-month').classList.add('bg-blue-300', 'text-white');
+    } else if (value === 'last_year') {
+      document.getElementById('time-year').classList.add('bg-blue-300', 'text-white');
     }
-    function removeSkillTag(skillName) {
-      let arr = $("#selected_skills").val().split(",");
-      arr = arr.filter(function(item) { return item !== skillName; });
-      $("#selected_skills").val(arr.join(","));
-      $(`#selected_skills_container span[data-name="${skillName}"]`).remove();
-    }
-    // -------------------------
-    // Categories Filter Functions
-    function toggleCategoryFilter(catId) {
-      let current = document.getElementById('filterSelectedCategories').value;
-      let selected = current ? current.split(',') : [];
-      const btn = document.getElementById('cat-btn-' + catId);
-      const index = selected.indexOf(catId);
-      if (index > -1) {
-        selected.splice(index, 1);
-        btn.classList.remove('bg-blue-300', 'text-white');
-      } else {
-        selected.push(catId);
-        btn.classList.add('bg-blue-300', 'text-white');
-      }
-      document.getElementById('filterSelectedCategories').value = selected.join(',');
-    }
-    function setCategoryFilter(catId) {
-      document.getElementById('filterSelectedCategories').value = catId;
-      document.getElementById('filterForm').submit();
-    }
-    function clearFilters() {
-      document.getElementById('time_filter').value = "";
-      $("#selected_skills").val("");
-      $("#selected_skills_container").empty();
-      document.getElementById('filterSelectedCategories').value = "";
-      const catButtons = document.querySelectorAll("#categories_filter button");
-      catButtons.forEach(btn => btn.classList.remove('bg-blue-300', 'text-white'));
-      document.getElementById('date_from').value = "";
-      document.getElementById('date_to').value = "";
-      const timeButtons = ['time-any', 'time-24', 'time-week', 'time-month', 'time-year'];
-      timeButtons.forEach(id => document.getElementById(id).classList.remove('bg-blue-300', 'text-white'));
+    if (value !== 'custom') {
       document.getElementById('custom-date-range').classList.add('hidden');
     }
-    // -------------------------
-    // Collapsible Description
-    function toggleDescription(descId, event) {
-      const desc = document.getElementById(descId);
-      const btn = event.target;
-      if (desc.classList.contains('line-clamp-3')) {
-        desc.classList.remove('line-clamp-3');
-        btn.textContent = 'Read Less';
-      } else {
-        desc.classList.add('line-clamp-3');
-        btn.textContent = 'Read More';
-      }
+  }
+  function toggleCustomDate() {
+    const customDiv = document.getElementById('custom-date-range');
+    if (customDiv.classList.contains('hidden')) {
+      customDiv.classList.remove('hidden');
+      setTimeFilter('custom');
+    } else {
+      customDiv.classList.add('hidden');
+      setTimeFilter('');
     }
-    // -------------------------
-    // AJAX for saving favorites
-    function saveProject(projectId) {
-      $.ajax({
-        type: "POST",
-        url: "{% url 'toggle-favorite' %}",
-        data: {
-          project_id: projectId,
-          csrfmiddlewaretoken: "{{ csrf_token }}"
-        },
-        success: function(response) {
-          if (response.success) {
-            const btnIcon = $("#fav-btn-" + projectId + " i");
-            if (response.is_favorite) {
-              btnIcon.removeClass("text-gray-400").addClass("text-red-500");
-            } else {
-              btnIcon.removeClass("text-red-500").addClass("text-gray-400");
-            }
+  }
+  // -------------------------
+  // Skills Filter Functions
+  $("#skills_search").on("input", function() {
+    const query = $(this).val();
+    if (query.length < 2) {
+      $("#skills_suggestions").addClass("hidden");
+      return;
+    }
+    $.ajax({
+      url: "{% url 'search-skills' %}",
+      data: { query: query },
+      success: function(response) {
+        const suggestions = response.skills;
+        let html = "";
+        suggestions.forEach(function(skill) {
+          const regex = new RegExp("(" + query + ")", "gi");
+          const skillNameHighlighted = skill.name.replace(regex, "<strong>$1</strong>");
+          html += `<div class="p-2 hover:bg-gray-200 cursor-pointer" data-name="${skill.name}">
+                      ${skillNameHighlighted}
+                   </div>`;
+        });
+        $("#skills_suggestions").html(html).removeClass("hidden");
+      }
+    });
+  });
+
+  $("#skills_suggestions").on("click", "div", function() {
+    const skillName = $(this).data("name");
+    // Use "||" instead of ","
+    if ($("#selected_skills").val().split("||").indexOf(String(skillName)) === -1) {
+      addSkillTag(skillName);
+    }
+    $("#skills_search").val("");
+    $("#skills_suggestions").addClass("hidden").empty();
+  });
+
+  function addSkillTag(skillName) {
+    let current = $("#selected_skills").val();
+    // Split on "||" instead of ","
+    let arr = current ? current.split("||") : [];
+    arr.push(skillName);
+    // Join with "||"
+    $("#selected_skills").val(arr.join("||"));
+    $("#selected_skills_container").append(
+      `<span class="skill-tag" data-name="${skillName}">
+         ${skillName} <button type="button" onclick="removeSkillTag('${skillName}')" class="text-xs">&times;</button>
+       </span>`
+    );
+  }
+
+  function removeSkillTag(skillName) {
+    // Again, use "||" instead of ","
+    let arr = $("#selected_skills").val().split("||");
+    arr = arr.filter(function(item) { return item !== skillName; });
+    $("#selected_skills").val(arr.join("||"));
+    $(`#selected_skills_container span[data-name="${skillName}"]`).remove();
+  }
+  // -------------------------
+  // Categories Filter Functions
+  function toggleCategoryFilter(catId) {
+    let current = document.getElementById('filterSelectedCategories').value;
+    let selected = current ? current.split(',') : [];
+    const btn = document.getElementById('cat-btn-' + catId);
+    const index = selected.indexOf(catId);
+    if (index > -1) {
+      selected.splice(index, 1);
+      btn.classList.remove('bg-blue-300', 'text-white');
+    } else {
+      selected.push(catId);
+      btn.classList.add('bg-blue-300', 'text-white');
+    }
+    document.getElementById('filterSelectedCategories').value = selected.join(',');
+  }
+  function setCategoryFilter(catId) {
+    document.getElementById('filterSelectedCategories').value = catId;
+    document.getElementById('filterForm').submit();
+  }
+  function clearFilters() {
+    document.getElementById('time_filter').value = "";
+    $("#selected_skills").val("");
+    $("#selected_skills_container").empty();
+    document.getElementById('filterSelectedCategories').value = "";
+    const catButtons = document.querySelectorAll("#categories_filter button");
+    catButtons.forEach(btn => btn.classList.remove('bg-blue-300', 'text-white'));
+    document.getElementById('date_from').value = "";
+    document.getElementById('date_to').value = "";
+    const timeButtons = ['time-any', 'time-24', 'time-week', 'time-month', 'time-year'];
+    timeButtons.forEach(id => document.getElementById(id).classList.remove('bg-blue-300', 'text-white'));
+    document.getElementById('custom-date-range').classList.add('hidden');
+  }
+  // -------------------------
+  // Collapsible Description
+  function toggleDescription(descId, event) {
+    const desc = document.getElementById(descId);
+    const btn = event.target;
+    if (desc.classList.contains('line-clamp-3')) {
+      desc.classList.remove('line-clamp-3');
+      btn.textContent = 'Read Less';
+    } else {
+      desc.classList.add('line-clamp-3');
+      btn.textContent = 'Read More';
+    }
+  }
+  // -------------------------
+  // AJAX for saving favorites
+  function saveProject(projectId) {
+    $.ajax({
+      type: "POST",
+      url: "{% url 'toggle-favorite' %}",
+      data: {
+        project_id: projectId,
+        csrfmiddlewaretoken: "{{ csrf_token }}"
+      },
+      success: function(response) {
+        if (response.success) {
+          const btnIcon = $("#fav-btn-" + projectId + " i");
+          if (response.is_favorite) {
+            btnIcon.removeClass("text-gray-400").addClass("text-red-500");
           } else {
-            alert("Error: " + response.error);
+            btnIcon.removeClass("text-red-500").addClass("text-gray-400");
           }
-        },
-        error: function(xhr, status, error) {
-          alert("An error occurred: " + error);
+        } else {
+          alert("Error: " + response.error);
+        }
+      },
+      error: function(xhr, status, error) {
+        alert("An error occurred: " + error);
+      }
+    });
+  }
+
+  // -------------------------
+  // Auto slider for Recommended Projects
+  $(document).ready(function(){
+    var slider = document.getElementById('recommendedSlider');
+    if(slider){
+      setInterval(function(){
+        slider.scrollBy({left: 310, behavior: 'smooth'});
+        if(slider.scrollLeft + slider.clientWidth >= slider.scrollWidth){
+          slider.scrollTo({left: 0, behavior: 'smooth'});
+        }
+      }, 2700); // every 2.7 seconds, adjust as needed
+    }
+    // Prepopulate filter modal on page load
+    var tf = $("#time_filter").val();
+    if (tf) {
+      setTimeFilter(tf);
+    }
+    var cats = $("#filterSelectedCategories").val();
+    if (cats) {
+      cats.split(",").forEach(function(catId) {
+        if (catId) {
+          $("#cat-btn-" + catId).addClass("bg-blue-300 text-white");
         }
       });
     }
+  });
+</script>
 
-
-
-
-    // -------------------------
-    // Auto slider for Recommended Projects
-    $(document).ready(function(){
-      var slider = document.getElementById('recommendedSlider');
-      if(slider){
-        setInterval(function(){
-          slider.scrollBy({left: 310, behavior: 'smooth'});
-          if(slider.scrollLeft + slider.clientWidth >= slider.scrollWidth){
-            slider.scrollTo({left: 0, behavior: 'smooth'});
-          }
-        }, 2700); // every 3 seconds
-      }
-      // Prepopulate filter modal on page load
-      var tf = $("#time_filter").val();
-      if (tf) {
-        setTimeFilter(tf);
-      }
-      var cats = $("#filterSelectedCategories").val();
-      if (cats) {
-        cats.split(",").forEach(function(catId) {
-          if (catId) {
-            $("#cat-btn-" + catId).addClass("bg-blue-300 text-white");
-          }
-        });
-      }
-    });
-  </script>
 </body>
 </html>
 {% endblock %}
