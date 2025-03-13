@@ -482,7 +482,8 @@
               {% endif %}
             {% endfor %}
           </div>
-          <input type="hidden" id="selected_skills" name="skills" value="{{ selected_skills|join:',' }}">
+          <input type="hidden" id="selected_skills" name="skills" value="{{ selected_skills|join:'||' }}">
+
         </div>
 
         <!-- Categories Filter -->
@@ -511,7 +512,10 @@
   </div>
 
   <!-- Scripts -->
- <!-- Scripts -->
+<!-- In your filter modal section, update the hidden input -->
+<input type="hidden" id="selected_skills" name="skills" value="{{ selected_skills|join:'||' }}">
+
+<!-- Scripts -->
 <script>
   // Toggle Filter Modal
   function toggleFilterDialog() {
@@ -576,33 +580,24 @@
       }
     });
   });
-
   $("#skills_suggestions").on("click", "div", function() {
     const skillName = $(this).data("name");
-    // Use "||" instead of ","
     if ($("#selected_skills").val().split("||").indexOf(String(skillName)) === -1) {
       addSkillTag(skillName);
     }
     $("#skills_search").val("");
     $("#skills_suggestions").addClass("hidden").empty();
   });
-
   function addSkillTag(skillName) {
     let current = $("#selected_skills").val();
-    // Split on "||" instead of ","
     let arr = current ? current.split("||") : [];
     arr.push(skillName);
-    // Join with "||"
     $("#selected_skills").val(arr.join("||"));
     $("#selected_skills_container").append(
-      `<span class="skill-tag" data-name="${skillName}">
-         ${skillName} <button type="button" onclick="removeSkillTag('${skillName}')" class="text-xs">&times;</button>
-       </span>`
+      `<span class="skill-tag" data-name="${skillName}">${skillName} <button type="button" onclick="removeSkillTag('${skillName}')" class="text-xs">&times;</button></span>`
     );
   }
-
   function removeSkillTag(skillName) {
-    // Again, use "||" instead of ","
     let arr = $("#selected_skills").val().split("||");
     arr = arr.filter(function(item) { return item !== skillName; });
     $("#selected_skills").val(arr.join("||"));
@@ -681,7 +676,6 @@
       }
     });
   }
-
   // -------------------------
   // Auto slider for Recommended Projects
   $(document).ready(function(){

@@ -45,10 +45,10 @@ class MarketplaceView(LoginRequiredMixin, ListView):
         # New code that uses skill names:
         skills_param = self.request.GET.get('skills', '')
         if skills_param:
-            skill_names = [s.strip() for s in skills_param.split(',') if s.strip()]
+            # Split by the delimiter "||" instead of comma.
+            skill_names = [s.strip() for s in skills_param.split('||') if s.strip()]
             if skill_names:
                 queryset = queryset.filter(skills_required__name__in=skill_names).distinct()
-
 
         # --- Text Search Filtering ---
         q = self.request.GET.get('q', '')
@@ -123,7 +123,8 @@ class MarketplaceView(LoginRequiredMixin, ListView):
             'all_categories': Category.objects.all(),
             'user_skills': {s.name.lower() for s in self.request.user.profile.skills.all()},
             'selected_categories': self.request.GET.get('categories', '').split(','),
-            'selected_skills': self.request.GET.get('skills', '').split(','),
+            # Split using "||" instead of comma!
+            'selected_skills': self.request.GET.get('skills', '').split('||'),
             'current_query': self.request.GET.get('q', ''),
             'time_sort': self.request.GET.get('time_sort', ''),
             'time_filter': self.request.GET.get('time_filter', ''),
@@ -144,9 +145,6 @@ class MarketplaceView(LoginRequiredMixin, ListView):
         context['recommended_projects'] = recommended
 
         return context
-
-
-
 
 
 class ChatListView(LoginRequiredMixin, ListView):
