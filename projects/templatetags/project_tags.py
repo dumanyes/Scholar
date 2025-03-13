@@ -1,5 +1,5 @@
 import string
-
+import re
 from django import template
 
 register = template.Library()
@@ -47,5 +47,7 @@ def skill_in_profile(skill, user):
 def other_participant(room, user):
     """Return the other participant in a 1-on-1 chat."""
     return room.participants.exclude(id=user.id).first()
+
+
 
 

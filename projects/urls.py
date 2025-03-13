@@ -15,7 +15,7 @@ from .views import (
     update_application,
     chat_view, chat_messages, MyRequestsView, DeleteApplicationView, withdraw_application, ChatListView,
     NotificationsListView, FolderCreateView, FolderDeleteView, FolderUpdateView, MarkChatReadView, add_chat_to_folder,
-    toggle_favorite, FavoritesListView,
+    toggle_favorite, FavoritesListView, search_skills,
 )
 
 urlpatterns = [
@@ -53,4 +53,6 @@ urlpatterns = [
     path('toggle_favorite/', toggle_favorite, name='toggle-favorite'),
     path('favorites/', FavoritesListView.as_view(), name='favorites'),
 
+    path('ajax/search_skills/', search_skills, name='search-skills'),
+    path('view-all-recommended/', views.view_all_recommended, name='view-all-recommended'),
 ]

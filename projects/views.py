@@ -18,18 +18,8 @@ from .models import (
     ChatFolder, ChatRoom, FavoriteProject, Project, ProjectApplication,
     Category, ChatMessage
 )
-from django.contrib.auth.mixins import LoginRequiredMixin
-from users.models import Profile
-from projects.recommendation import rank_projects_with_faiss, recommend_projects_for_user  # Updated import
-
-
-
-from django.db.models import Q, OuterRef, Subquery, CharField, Case, When
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView
-from projects.models import Project, ProjectApplication, Category, ChatMessage, ChatRoom
-from projects.recommendation import rank_projects_with_faiss, recommend_projects_for_user
-
+from datetime import timedelta
+from django.utils import timezone
 from django.db.models import Q, OuterRef, Subquery, CharField, Case, When
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView
@@ -44,23 +34,23 @@ class MarketplaceView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         queryset = Project.objects.filter(is_active=True)
 
-        # Category filtering
+        # --- Filter by Clickable Categories ---
         categories_param = self.request.GET.get('categories', '')
         if categories_param:
             cat_ids = [cid.strip() for cid in categories_param.split(',') if cid.strip()]
             if cat_ids:
                 queryset = queryset.filter(category__id__in=cat_ids).distinct()
 
-        # Skill filtering
+        # --- Filter by Skills ---
+        # New code that uses skill names:
         skills_param = self.request.GET.get('skills', '')
         if skills_param:
-            skill_ids = [s.strip() for s in skills_param.split(',') if s.strip()]
-            if skill_ids:
-                for skill_id in skill_ids:
-                    queryset = queryset.filter(skills_required__id=skill_id)
-                queryset = queryset.distinct()
+            skill_names = [s.strip() for s in skills_param.split(',') if s.strip()]
+            if skill_names:
+                queryset = queryset.filter(skills_required__name__in=skill_names).distinct()
 
-        # Text search filtering
+
+        # --- Text Search Filtering ---
         q = self.request.GET.get('q', '')
         if q:
             queryset = queryset.filter(
@@ -70,37 +60,50 @@ class MarketplaceView(LoginRequiredMixin, ListView):
                 Q(project_objectives__icontains=q)
             )
 
-        # Annotate application status for the current user using a Subquery
-        app_qs = ProjectApplication.objects.filter(
-            project=OuterRef('pk'),
-            applicant=self.request.user
-        ).values('status')[:1]
-        queryset = queryset.annotate(
-            application_status=Subquery(app_qs, output_field=CharField())
-        )
+        # --- Time-Based Filtering ---
+        time_filter = self.request.GET.get('time_filter', '')
+        if time_filter:
+            now = timezone.now()
+            if time_filter == 'last_24_hours':
+                cutoff = now - timedelta(days=1)
+                queryset = queryset.filter(created_at__gte=cutoff)
+            elif time_filter == 'last_week':
+                cutoff = now - timedelta(weeks=1)
+                queryset = queryset.filter(created_at__gte=cutoff)
+            elif time_filter == 'last_month':
+                cutoff = now - timedelta(days=30)
+                queryset = queryset.filter(created_at__gte=cutoff)
+            elif time_filter == 'last_year':
+                cutoff = now - timedelta(days=365)
+                queryset = queryset.filter(created_at__gte=cutoff)
+            elif time_filter == 'custom':
+                date_from = self.request.GET.get('date_from')
+                date_to = self.request.GET.get('date_to')
+                if date_from and date_to:
+                    queryset = queryset.filter(created_at__range=[date_from, date_to])
 
-        # Allow overriding ordering by time if requested
+        # --- Ordering ---
         time_sort = self.request.GET.get('time_sort', '')
         if time_sort == 'recent':
-            return queryset.order_by('-created_at')
-        if time_sort == 'old':
-            return queryset.order_by('created_at')
+            queryset = queryset.order_by('-created_at')
+        elif time_sort == 'old':
+            queryset = queryset.order_by('created_at')
+        else:
+            # Use FAISS recommendations if available.
+            projects_list = list(queryset)
+            if projects_list:
+                recommended_order, faiss_scores = rank_projects_with_faiss(projects_list, self.request.user)
+                self.faiss_scores = faiss_scores
+                ordering = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(recommended_order)])
+                queryset = queryset.filter(pk__in=recommended_order).order_by(ordering)
+                projects_with_score = list(queryset)
+                for project in projects_with_score:
+                    project.faiss_score = self.faiss_scores.get(project.id, 0)
+                return projects_with_score
+            else:
+                queryset = queryset.order_by('-created_at')
 
-        # Otherwise, reorder projects based on FAISS recommendations.
-        projects_list = list(queryset)
-        if not projects_list:
-            return queryset.order_by('-created_at')
-
-        recommended_order, faiss_scores = rank_projects_with_faiss(projects_list, self.request.user)
-        # Save the mapping for potential use in context.
-        self.faiss_scores = faiss_scores
-        ordering = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(recommended_order)])
-        qs = queryset.filter(pk__in=recommended_order).order_by(ordering)
-        # Convert to list and attach the FAISS score to each project.
-        projects_with_score = list(qs)
-        for project in projects_with_score:
-            project.faiss_score = self.faiss_scores.get(project.id, 0)
-        return projects_with_score
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -108,13 +111,12 @@ class MarketplaceView(LoginRequiredMixin, ListView):
         unread_notifications = self.request.user.notifications.filter(read=False).order_by('-created_at')
         notifications_count = unread_notifications.count()
 
-        # Unread chat messages (only messages not sent by the user)
+        # Unread chat messages (excluding those sent by the current user)
         unread_chat_count = ChatMessage.objects.filter(
             room__participants=self.request.user,
             read=False
         ).exclude(sender=self.request.user).count()
 
-        # Favorite project IDs for the current user
         favorite_ids = self.request.user.favorite_projects.values_list('project_id', flat=True)
 
         context.update({
@@ -124,7 +126,9 @@ class MarketplaceView(LoginRequiredMixin, ListView):
             'selected_skills': self.request.GET.get('skills', '').split(','),
             'current_query': self.request.GET.get('q', ''),
             'time_sort': self.request.GET.get('time_sort', ''),
-            'match_sort': self.request.GET.get('match_sort', ''),
+            'time_filter': self.request.GET.get('time_filter', ''),
+            'date_from': self.request.GET.get('date_from', ''),
+            'date_to': self.request.GET.get('date_to', ''),
             'notifications': unread_notifications,
             'notifications_count': notifications_count,
             'chat_rooms': ChatRoom.objects.filter(participants=self.request.user).order_by('-created_at'),
@@ -132,15 +136,15 @@ class MarketplaceView(LoginRequiredMixin, ListView):
             'favorite_ids': list(favorite_ids)
         })
 
-        # Retrieve recommended projects and annotate them with application status
+        # Recommended projects section
         recommended = recommend_projects_for_user(self.request.user, top_n=9)
         for project in recommended:
             user_app = project.applications.filter(applicant=self.request.user).first()
             project.application_status = user_app.status if user_app else None
-
         context['recommended_projects'] = recommended
 
         return context
+
 
 
 
@@ -317,15 +321,25 @@ class ApplyProjectView(View):
             project.application_count = project.applications.count()
             project.save(update_fields=['application_count'])
             messages.success(request, 'Your application has been submitted successfully!')
+
+            # Notification for the project owner
             Notification.objects.create(
                 user=project.owner,
                 message=f"{request.user.username} sent a request to join your project '{project.title}'.",
+                link=reverse('project-detail', kwargs={'pk': project.pk})
+            )
+
+            # Notification for the applicant themselves
+            Notification.objects.create(
+                user=request.user,
+                message=f"You applied to the project '{project.title}'.",
                 link=reverse('project-detail', kwargs={'pk': project.pk})
             )
             return redirect('project-detail', pk=project.id)
         else:
             context = {'project': project, 'form': form}
             return render(request, 'marketplace/apply_project.html', context)
+
 
 
 class DeleteApplicationView(LoginRequiredMixin, DeleteView):
@@ -696,4 +710,19 @@ def mark_notification_read(request, notification_id):
 def mark_all_notifications_read(request):
     Notification.objects.filter(user=request.user, read=False).update(read=True)
     return redirect('notifications_list')
+
+
+def search_skills(request):
+    query = request.GET.get('query', '')
+    skills = Skill.objects.filter(name__icontains=query)[:10].values('id', 'name')
+    return JsonResponse({'skills': list(skills)})
+
+
+
+@login_required
+def view_all_recommended(request):
+    # You can adjust the top_n parameter as needed (or remove it altogether)
+    recommended = recommend_projects_for_user(request.user, top_n=100)
+    context = {'recommended_projects': recommended}
+    return render(request, 'marketplace/view-all-recommended.html', context)
 

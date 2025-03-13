@@ -1,0 +1,158 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% load project_tags %}
+
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold mb-6">All Recommended Projects</h1>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for project in recommended_projects %}
+      <div class="bg-white rounded-xl shadow p-6 relative">
+        <!-- Favorite Button -->
+        <button onclick="saveProject({{ project.id }})"
+                id="fav-btn-{{ project.id }}"
+                class="absolute top-4 right-4 p-1 rounded-full hover:bg-gray-100 transition-colors focus:outline-none"
+                aria-label="{% if project.id in favorite_ids %}Remove from favorites{% else %}Add to favorites{% endif %}">
+          {% if project.id in favorite_ids %}
+            <i class="fas fa-heart text-red-500"></i>
+          {% else %}
+            <i class="fas fa-heart text-gray-400 hover:text-red-400"></i>
+          {% endif %}
+        </button>
+
+        <!-- Trending Badge & Category Links -->
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+          {% if project.view_count > 500 %}
+            <span class="inline-flex items-center gap-1 px-2 py-1 bg-red-600 text-white text-xs font-semibold rounded-full">
+              <i class="fas fa-fire-alt"></i> Trending
+            </span>
+          {% endif %}
+          {% for category in project.category.all %}
+            <a href="#" onclick="setCategoryFilter('{{ category.id }}')"
+               class="inline-flex items-center px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-sm font-medium text-gray-800">
+              {{ category.name }}
+            </a>
+          {% endfor %}
+        </div>
+
+        <!-- FAISS Match (if available) -->
+        {% if project.faiss_score %}
+          <div class="mb-4">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-500 text-white">
+              <i class="fas fa-star mr-1"></i> {{ project.faiss_score }}% FAISS Match
+            </span>
+          </div>
+        {% endif %}
+
+        <!-- Owner Info -->
+        <div class="flex items-center gap-3 mb-4">
+          <a href="{% url 'project-user-profile' project.owner.username %}">
+            <img src="{{ project.owner.profile.avatar_url }}" alt="{{ project.owner.username }}"
+                 class="w-10 h-10 rounded-full object-cover">
+          </a>
+          <div>
+            <a href="{% url 'project-user-profile' project.owner.username %}"
+               class="text-gray-800 font-medium hover:text-blue-600 transition-colors">
+              @{{ project.owner.username }}
+            </a>
+            {% if project.owner.profile.city or project.owner.profile.country %}
+              <p class="text-xs text-gray-500">
+                {{ project.owner.profile.city }}{% if project.owner.profile.city and project.owner.profile.country %} - {% endif %}{{ project.owner.profile.country }}
+              </p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Project Title (with highlight if a query exists) -->
+        <h2 class="text-2xl font-semibold mb-2 text-gray-800">
+          {{ project.title }}
+        </h2>
+
+        <!-- Posted Date & Time -->
+        <div class="mb-2 text-sm text-gray-500">
+          <i class="fas fa-clock mr-1"></i>
+          Posted on {{ project.created_at|date:"M d, Y h:i A" }} ({{ project.created_at|timesince }} ago)
+        </div>
+
+        <!-- Project Description with "Read More" toggle -->
+        <div>
+          <p id="desc-{{ project.id }}" class="text-gray-600 mb-4 line-clamp-3">
+            {{ project.description }}
+          </p>
+          <button onclick="toggleDescription('desc-{{ project.id }}', event)"
+                  class="text-blue-600 text-sm focus:outline-none">
+            Read More
+          </button>
+        </div>
+
+        <!-- Required Roles as Tags -->
+        {% if project.required_roles.all %}
+          <div class="mb-4 flex flex-wrap gap-2">
+            {% for role in project.required_roles.all %}
+              <span class="inline-flex items-center px-3 py-1 bg-blue-100 rounded-full text-xs font-medium text-blue-800">
+                <i class="fas fa-user mr-1"></i> {{ role.name }}
+              </span>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- Skill Match Progress Bar -->
+        {% with match=project|skill_match:user %}
+          <div class="mb-4">
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              {% if match <= 20 %}
+                <div class="h-2 rounded-full bg-green-200" style="width: {{ match }}%;"></div>
+              {% elif match <= 50 %}
+                <div class="h-2 rounded-full bg-green-500" style="width: {{ match }}%;"></div>
+              {% else %}
+                <div class="h-2 rounded-full bg-green-700" style="width: {{ match }}%;"></div>
+              {% endif %}
+            </div>
+            <p class="text-sm text-gray-600 mt-1">{{ match }}% Skill Match</p>
+          </div>
+        {% endwith %}
+
+        <!-- View Count -->
+        <div class="mb-4 text-sm text-gray-500 flex items-center">
+          <i class="fas fa-eye mr-1"></i> {{ project.view_count }} Views
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-4">
+          <a href="{% url 'project-detail' pk=project.pk %}"
+             class="text-gray-900 font-medium hover:text-blue-600 inline-flex items-center gap-2 transition-colors">
+            View Details <i class="fas fa-arrow-right"></i>
+          </a>
+          {% if project.owner != request.user %}
+            {% if project.application_status %}
+              {% if project.application_status == 'PENDING' %}
+                <a href="{% url 'withdraw-application' project_id=project.id %}"
+                   class="px-4 py-2 rounded-xl font-medium bg-red-600 text-white hover:bg-red-700 transition-colors">
+                  Withdraw
+                </a>
+              {% elif project.application_status == 'ACCEPTED' %}
+                <a href="{% url 'chat' user_id=project.owner.id %}"
+                   class="px-4 py-2 rounded-xl font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                  Chat
+                </a>
+              {% else %}
+                <button disabled class="px-4 py-2 rounded-xl font-medium bg-gray-400 text-white">
+                  {{ project.application_status|title }}
+                </button>
+              {% endif %}
+            {% else %}
+              <a href="{% url 'apply-project' project_id=project.id %}"
+                 class="px-4 py-2 rounded-xl font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                Apply Now
+              </a>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <p>No recommended projects available.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

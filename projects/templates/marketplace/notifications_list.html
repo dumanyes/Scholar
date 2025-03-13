@@ -8,7 +8,6 @@
       <div class="flex items-center gap-3">
         <!-- Back Button -->
         <button onclick="window.history.back()" class="p-2 rounded-full hover:bg-gray-100 transition">
-          <!-- Heroicon: Chevron Left -->
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
@@ -22,14 +21,12 @@
       </div>
       <!-- Mark all as read button -->
       <a href="{% url 'mark_all_notifications_read' %}" class="text-sm px-3 py-1.5 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition flex items-center gap-1">
-        <!-- Heroicon: CheckCircle -->
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2l4 -4" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
         </svg>
         Mark all as read
       </a>
     </div>
-
   </header>
 
   <!-- Notifications List -->
@@ -48,47 +45,43 @@
                      bg-blue-100
                    {% endif %}">
                 {% if notification.type == "comment" %}
-                  <!-- MessageSquare Icon -->
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4" />
                   </svg>
                 {% elif notification.type == "like" %}
-                  <!-- Heart Icon -->
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8a6 6 0 0112 0c0 4-6 10-6 10S4 12 4 8z" />
                   </svg>
                 {% elif notification.type == "follow" %}
-                  <!-- UserPlus Icon -->
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3M6 9a4 4 0 110 8 4 4 0 010-8z" />
                   </svg>
                 {% elif notification.type == "feature" %}
-                  <!-- Star Icon -->
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l2.362 7.238h7.605c.969 0 1.371 1.24.588 1.81l-6.157 4.467l2.362 7.238c.3.921-.755 1.688-1.54 1.118l-6.157-4.467l-6.157 4.467c-.785.57-1.84-.197-1.54-1.118l2.362-7.238L.345 11.965c-.783-.57-.38-1.81.588-1.81h7.605l2.362-7.238z" />
                   </svg>
                 {% elif notification.type == "reminder" %}
-                  <!-- Clock Icon -->
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0a9 9 0 0118 0z" />
                   </svg>
                 {% elif notification.type == "accepted" %}
-                  <!-- Accepted Icon: CheckCircle -->
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2l4 -4" />
                   </svg>
                 {% elif notification.type == "rejected" %}
-                  <!-- Rejected Icon: X Circle -->
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m4-10a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 {% elif notification.type == "message" %}
-                  <!-- Message Icon: Chat Bubble -->
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4" />
                   </svg>
+                {% elif notification.type == "applied" %}
+                  <!-- New Applied Notification Icon -->
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6M9 16h6" />
+                  </svg>
                 {% else %}
-                  <!-- Default: Bell Icon -->
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                   </svg>
@@ -101,7 +94,6 @@
                     {{ notification.message }}
                   </p>
                   <div class="flex items-center mt-1 text-xs text-gray-500">
-                    <!-- Clock Icon for timestamp -->
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0a9 9 0 0118 0z" />
                     </svg>
@@ -113,15 +105,15 @@
               <div class="flex items-center gap-2">
                 {% if not notification.read %}
                   <button onclick="location.href='{% url 'mark_notification_read' notification.id %}'" class="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100" aria-label="Mark as read">
-                    <!-- Check Icon -->
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
                   </button>
                 {% endif %}
                 <button class="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100" aria-label="Dismiss">
-                  <!-- X Icon -->
-
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
               </div>
             </div>
@@ -131,7 +123,6 @@
     {% else %}
       <div class="text-center py-12">
         <div class="bg-gray-100 w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
-          <!-- Bell Icon -->
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>

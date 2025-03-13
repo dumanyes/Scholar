@@ -1,5 +1,6 @@
 import os
 
+from django.conf import settings
 from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import User
@@ -8,6 +9,7 @@ from cities_light.models import Country, City
 from datetime import date
 
 from projects.models import Category
+
 
 
 class University(models.Model):
@@ -69,11 +71,10 @@ class Profile(models.Model):
 
             # Check if the file exists before processing
             if not os.path.exists(avatar_path):
-                # Log the missing file or set to default if necessary
                 print(f"Avatar file not found at: {avatar_path}")
-                # Optionally, set a default image if the file is missing:
-                # self.avatar = 'default-avatar.png'
-                # super().save(update_fields=['avatar'])
+                # Set to default avatar if file is missing
+                self.avatar = 'default-avatar.png'
+                super().save(update_fields=['avatar'])
                 return
 
             try:
@@ -84,8 +85,13 @@ class Profile(models.Model):
                     img.thumbnail(output_size, Image.ANTIALIAS)
                     img.save(avatar_path, quality=95)
             except Exception as e:
-                # Log the error but do not block the save
                 print(f"Error processing avatar image: {e}")
+
+    @property
+    def avatar_url(self):
+        if self.avatar and os.path.exists(self.avatar.path):
+            return self.avatar.url
+        return settings.MEDIA_URL + "default-avatar.png"
 
     @property
     def location(self):
