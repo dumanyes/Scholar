@@ -96,7 +96,7 @@ def call_ai_model(user_message: str, conversation_history: list) -> JsonResponse
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
-        "HTTP-Referer": "http://localhost:8000",  # Update with your actual site URL.
+        "HTTP-Referer": "http://localhost:8000", "https://scholarhub-trkt.onrender.com"  # Update with your actual site URL.
         "X-Title": "ScholarHub"
     }
     print("Payload being sent:", json.dumps(payload, indent=2))
