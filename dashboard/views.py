@@ -6,6 +6,7 @@ from django.db.models import Count, Q
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 
+from dashboard.models import ContactMessage
 from projects.models import Project, Category
 from projects.forms import ProjectDashboardForm
 from users.forms import UserDashboardForm, ProfileDashboardForm
@@ -113,3 +114,16 @@ def delete_project_view(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     project.delete()
     return redirect("dashboard-projects")
+
+@staff_member_required
+def contact_messages_view(request):
+    messages_qs = ContactMessage.objects.order_by('-submitted_at')
+    paginator = Paginator(messages_qs, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "dashboard/contact_messages.html", {
+        "page_obj": page_obj
+    })
+
+

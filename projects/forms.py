@@ -1,5 +1,5 @@
 from django import forms
-from .models import Project, Skill, MaxWordsValidator, ProjectApplication
+from .models import Project, Skill, MaxWordsValidator, ProjectApplication, RequiredRole
 
 
 class ProjectForm(forms.ModelForm):
@@ -97,10 +97,24 @@ class ProjectApplicationForm(forms.ModelForm):
         label="How will you contribute?",
         help_text="Please explain how your skills and experience will help the project."
     )
+    applied_role = forms.ModelChoiceField(
+        queryset=RequiredRole.objects.none(),  # по умолчанию пустой QuerySet
+        required=True,
+        label="Выберите роль, на которую вы подаетесь",
+        widget=forms.Select(attrs={
+            'class': 'w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
+        })
+    )
 
     class Meta:
         model = ProjectApplication
-        fields = ['message', 'contribution']
+        fields = ['applied_role', 'message', 'contribution']
+
+    def __init__(self, *args, **kwargs):
+        project = kwargs.pop('project', None)
+        super().__init__(*args, **kwargs)
+        if project:
+            self.fields['applied_role'].queryset = project.required_roles.all()
 
 
 # projects/forms.py

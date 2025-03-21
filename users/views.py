@@ -7,6 +7,8 @@ from django.urls import reverse_lazy
 from django.contrib.auth.views import LoginView, PasswordResetView, PasswordChangeView
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.auth.decorators import login_required
+
+from dashboard.forms import ContactForm
 from .forms import LoginForm, UpdateUserForm, UpdateProfileForm
 from .models import Profile
 from projects.models import Skill, Interest, Project
@@ -273,38 +275,51 @@ from projects.models import (
 logger = logging.getLogger(__name__)
 
 
+import json
+from random import randint
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
+from django.contrib import messages
+from django.core.mail import send_mail
+from django.conf import settings
+import logging
+
+from django.views import View
+from django.contrib.auth.models import User
+from .forms import RegisterForm
+from projects.models import SkillsCategory, Category, Skill
+
+logger = logging.getLogger(__name__)
+
 class RegisterView(View):
     form_class = RegisterForm
     template_name = 'users/register.html'
-    steps = ['personal', 'verify', 'password', 'skills']
+    # Добавляем новый шаг "research" для выбора областей исследований
+    steps = ['personal', 'verify', 'password', 'skills', 'research']
     min_selections = 5
 
     def dispatch(self, request, *args, **kwargs):
-        """Check if user is already authenticated"""
         if request.user.is_authenticated:
             return redirect('/')
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request):
-        """Handle GET requests - display the appropriate registration step"""
         step = int(request.GET.get('step', 0))
         context = self.get_step_context(request, step)
         return render(request, self.template_name, context)
 
     def post(self, request):
-        """Handle POST requests - process form data for each registration step"""
         step = int(request.POST.get('step', 0))
         registration_data = request.session.get('registration_data', {})
 
         # STEP 0: Personal Info
         if step == 0:
             form = self.form_class(request.POST)
-            # Keep only personal info fields
+            # Оставляем только поля личной информации
             personal_fields = ['first_name', 'last_name', 'username', 'email', 'birthdate', 'terms_and_conditions']
             for field in list(form.fields.keys()):
                 if field not in personal_fields:
                     form.fields.pop(field)
-
             if form.is_valid():
                 registration_data.update({
                     'first_name': form.cleaned_data['first_name'],
@@ -316,16 +331,15 @@ class RegisterView(View):
                 })
                 request.session['registration_data'] = registration_data
 
-                # Generate and send verification code
+                # Генерация и отправка кода верификации
                 code = str(randint(100000, 999999))
                 request.session['verification_code'] = code
                 try:
                     send_mail(
-                        'ScholarHub Verification Code',
+                        "ScholarHub Verification Code",
                         f'Your verification code: {code}',
                         settings.DEFAULT_FROM_EMAIL,
-                        [form.cleaned_data['email']],
-                        fail_silently=False,
+                        [form.cleaned_data['email']]
                     )
                     return redirect(f"{reverse('users-register')}?step=1")
                 except Exception as e:
@@ -345,14 +359,11 @@ class RegisterView(View):
         elif step == 1:
             entered_code = request.POST.get('verification_code')
             stored_code = request.session.get('verification_code')
-
             if not stored_code:
                 messages.error(request, 'Verification session expired. Please start over.')
                 return redirect(reverse('users-register'))
-
             if str(entered_code) == str(stored_code):
                 return redirect(f"{reverse('users-register')}?step=2")
-
             messages.error(request, 'Invalid verification code')
             context = {
                 'step': step,
@@ -364,12 +375,10 @@ class RegisterView(View):
         # STEP 2: Password Setup
         elif step == 2:
             form = self.form_class(request.POST)
-            # Keep only password fields
             password_fields = ['password1', 'password2']
             for field in list(form.fields.keys()):
                 if field not in password_fields:
                     form.fields.pop(field)
-
             if form.is_valid():
                 registration_data['password'] = form.cleaned_data['password1']
                 request.session['registration_data'] = registration_data
@@ -387,10 +396,8 @@ class RegisterView(View):
         # STEP 3: Skills Selection
         elif step == 3:
             try:
-                # Parse and validate selected skills
                 skills_data = json.loads(request.POST.get('selected_skills', '[]'))
                 selected_skills = Skill.objects.filter(id__in=skills_data)
-
                 if len(selected_skills) < self.min_selections:
                     messages.error(request, f'Please select at least {self.min_selections} skills')
                     context = {
@@ -403,17 +410,14 @@ class RegisterView(View):
                         'progress': ((step + 1) / len(self.steps)) * 100
                     }
                     return render(request, self.template_name, context)
-
                 registration_data['skills'] = list(selected_skills.values_list('id', flat=True))
                 request.session['registration_data'] = registration_data
-                return self.finalize_registration(request)
-
+                return redirect(f"{reverse('users-register')}?step=4")
             except json.JSONDecodeError:
                 messages.error(request, 'Invalid skills data provided')
             except Exception as e:
                 logger.error(f"Skills selection error: {str(e)}")
                 messages.error(request, 'An error occurred while processing your skills selection')
-
             context = {
                 'step': step,
                 'skill_categories': SkillsCategory.objects.prefetch_related(
@@ -425,21 +429,35 @@ class RegisterView(View):
             }
             return render(request, self.template_name, context)
 
+        # STEP 4: Research Areas Selection
+        elif step == 4:
+            categories_data = request.POST.get('selected_categories', '')
+            try:
+                category_ids = [int(cid) for cid in categories_data.split(",") if cid]
+            except ValueError:
+                messages.error(request, "Некорректные данные для областей исследований.")
+                from projects.models import Category
+                context = {
+                    'step': step,
+                    'available_categories': Category.objects.all(),
+                    'progress': ((step + 1) / len(self.steps)) * 100
+                }
+                return render(request, self.template_name, context)
+            registration_data['categories'] = category_ids
+            request.session['registration_data'] = registration_data
+            return self.finalize_registration(request)
+
         return self.get(request)
 
     def get_step_context(self, request, step):
-        """Prepare context data for each registration step"""
         context = {
             'step': step,
             'progress': ((step + 1) / len(self.steps)) * 100
         }
-
         if step == 0:
             context['form'] = self.form_class()
-
         elif step == 1:
             context['email'] = request.session.get('registration_data', {}).get('email', '')
-
         elif step == 2:
             password_form = self.form_class()
             for field in list(password_form.fields.keys()):
@@ -447,26 +465,23 @@ class RegisterView(View):
                     password_form.fields.pop(field)
             context['form'] = password_form
             context['password_form'] = True
-
         elif step == 3:
             context['skill_categories'] = SkillsCategory.objects.prefetch_related(
                 'subcategories',
                 'subcategories__skills'
             ).all()
             context['min_selections'] = self.min_selections
-
+        elif step == 4:
+            from projects.models import Category
+            context['available_categories'] = Category.objects.all()
         return context
 
     def finalize_registration(self, request):
-        """Complete the registration process and create the user account"""
         data = request.session.get('registration_data', {})
-
         if 'password' not in data:
             messages.error(request, 'Registration failed: Password not found')
             return redirect(f"{reverse('users-register')}?step=2")
-
         try:
-            # Create the user account
             user = User.objects.create_user(
                 username=data['username'],
                 email=data['email'],
@@ -474,25 +489,21 @@ class RegisterView(View):
                 first_name=data['first_name'],
                 last_name=data['last_name']
             )
-
-            # Set up the user's profile
             profile = user.profile
-
-            # Add selected skills to profile
             if 'skills' in data:
                 profile.skills.set(data['skills'])
-
-            # Clean up session data
+            if 'categories' in data:
+                profile.categories.set(data['categories'])
             request.session.pop('registration_data', None)
             request.session.pop('verification_code', None)
-
             messages.success(request, 'Registration completed successfully!')
             return redirect('login')
-
         except Exception as e:
             logger.error(f"Registration failed: {str(e)}")
             messages.error(request, 'Registration failed. Please try again.')
             return redirect(reverse('users-register'))
+
+
 
 class ResendCodeView(View):
     def get(self, request):
@@ -613,8 +624,20 @@ def terms(request):
 def services(request):
     return render(request, 'users/services.html')
 
-def contact(request):
-    return render(request, 'users/contact.html')
+def contact_view(request):
+    if request.method == "POST":
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Your message was sent successfully!")
+            return redirect("contact")
+        else:
+            print("❌ Form errors:", form.errors)  # Debug
+            messages.error(request, "There was a problem sending your message.")
+    else:
+        form = ContactForm()
+    return render(request, "users/contact.html", {"form": form})
+
 
 def privacyPolicy(request):
     return render(request, 'users/privacy_policy.html')

@@ -2,7 +2,7 @@ from django.urls import path, include
 from django.views.generic import RedirectView
 
 from . import views
-from .views import home, profile, RegisterView, EditProfileView, ResendCodeView, privacyPolicy
+from .views import home, profile, RegisterView, EditProfileView, ResendCodeView, privacyPolicy, contact_view
 
 urlpatterns = [
     path('', home, name='users-home'),
@@ -17,7 +17,9 @@ urlpatterns = [
     path('about/', views.about, name='users-about'),
     path('terms/', views.terms, name='users-terms'),
     path('services/', views.services, name='users-services'),
-    path('contact/', views.contact, name='users-contact'),
+    path('contact/', views.contact_view, name='users-contact'),
+    path('contact/', contact_view, name='contact'),
+
 
     # path('verify-email/', VerifyEmailView.as_view(), name='verify-email'),
     path('resend-code/', ResendCodeView.as_view(), name='resend-code'),

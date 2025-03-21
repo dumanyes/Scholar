@@ -6,7 +6,7 @@ from .views import (
     bulk_user_action_view,
     edit_user_view,
     edit_project_view,
-    delete_project_view,
+    delete_project_view, contact_messages_view,
 )
 
 urlpatterns = [
@@ -17,4 +17,5 @@ urlpatterns = [
     path('projects/', manage_projects_view, name='dashboard-projects'),
     path('projects/edit/<int:project_id>/', edit_project_view, name='dashboard-edit-project'),
     path('projects/delete/<int:project_id>/', delete_project_view, name='dashboard-delete-project'),
+    path('contacts/', contact_messages_view, name='dashboard-contacts'),
 ]

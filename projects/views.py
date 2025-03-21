@@ -136,6 +136,7 @@ class MarketplaceView(LoginRequiredMixin, ListView):
             'unread_chat_count': unread_chat_count,
             'favorite_ids': list(favorite_ids)
         })
+        context['skill_categories'] = SkillsCategory.objects.prefetch_related('subcategories__skills').all()
 
         # Recommended projects section
         recommended = recommend_projects_for_user(self.request.user, top_n=9)
@@ -143,6 +144,18 @@ class MarketplaceView(LoginRequiredMixin, ListView):
             user_app = project.applications.filter(applicant=self.request.user).first()
             project.application_status = user_app.status if user_app else None
         context['recommended_projects'] = recommended
+
+        if not self.request.user.profile.categories.exists():
+            context['recommended_projects'] = []
+            context['recommended_projects_message'] = (
+                "To see the recommended projects, you need to indicate your preferred research areas"
+            )
+        else:
+            recommended = recommend_projects_for_user(self.request.user, top_n=9)
+            for project in recommended:
+                user_app = project.applications.filter(applicant=self.request.user).first()
+                project.application_status = user_app.status if user_app else None
+            context['recommended_projects'] = recommended
 
         return context
 
@@ -300,7 +313,8 @@ class ApplyProjectView(View):
         if ProjectApplication.objects.filter(project=project, applicant=request.user).exists():
             messages.info(request, "You have already applied to this project.")
             return redirect('project-detail', pk=project.id)
-        form = ProjectApplicationForm()
+        # Pass the project instance so the form can limit the roles
+        form = ProjectApplicationForm(project=project)
         context = {'project': project, 'form': form}
         return render(request, 'marketplace/apply_project.html', context)
 
@@ -309,7 +323,8 @@ class ApplyProjectView(View):
         if ProjectApplication.objects.filter(project=project, applicant=request.user).exists():
             messages.info(request, "You have already applied to this project.")
             return redirect('project-detail', pk=project.id)
-        form = ProjectApplicationForm(request.POST)
+        # Pass the project instance into the form initialization
+        form = ProjectApplicationForm(request.POST, project=project)
         if form.is_valid():
             application = form.save(commit=False)
             application.project = project
@@ -724,3 +739,35 @@ def view_all_recommended(request):
     context = {'recommended_projects': recommended}
     return render(request, 'marketplace/view-all-recommended.html', context)
 
+
+from django.http import JsonResponse, HttpResponseRedirect
+
+@login_required
+@require_POST
+def update_profile_preferences(request):
+    skills = request.POST.get("skills", "")
+    categories = request.POST.get("categories", "")
+    try:
+        profile = request.user.profile
+        if skills:
+            skill_ids = [int(s) for s in skills.split("||") if s]
+            profile.skills.set(Skill.objects.filter(id__in=skill_ids))
+        else:
+            profile.skills.clear()
+        if categories:
+            category_ids = [int(c) for c in categories.split(",") if c]
+            profile.categories.set(Category.objects.filter(id__in=category_ids))
+        else:
+            profile.categories.clear()
+        profile.save()
+
+        if request.is_ajax():
+            return JsonResponse({"success": True})
+        else:
+            return HttpResponseRedirect(reverse('marketplace'))
+    except Exception as e:
+        if request.is_ajax():
+            return JsonResponse({"success": False, "error": str(e)})
+        else:
+            # handle error appropriately, e.g. redirect with an error message
+            return HttpResponseRedirect(reverse('marketplace'))

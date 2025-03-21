@@ -24,7 +24,7 @@
               <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: {{ progress }}%"></div>
             </div>
             <div class="text-right text-sm text-gray-500 mt-1">
-              Step {{ step|add:1 }} of 4
+              Step {{ step|add:1 }} of 5
             </div>
           </div>
 
@@ -116,12 +116,10 @@
                       data-target="{{ form.password1.id_for_label }}"
                       aria-label="Toggle password visibility"
                     >
-                      <!-- Eye icon (visible when password is hidden) -->
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-open" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
-                      <!-- Eye-slash icon (visible when password is shown) -->
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-closed hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
                       </svg>
@@ -140,12 +138,10 @@
                       data-target="{{ form.password2.id_for_label }}"
                       aria-label="Toggle password visibility"
                     >
-                      <!-- Eye icon (visible when password is hidden) -->
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-open" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
-                      <!-- Eye-slash icon (visible when password is shown) -->
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-closed hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
                       </svg>
@@ -157,20 +153,14 @@
 
             {# STEP 3: Skills Selection #}
             {% if step == 3 %}
-              <!-- Hidden field to store selected skill IDs -->
               <input type="hidden" id="selected_skills" name="selected_skills" value="">
-
               <p class="text-gray-600 text-sm">
                 Select at least {{ min_selections }} skills by clicking a Category, then a Subcategory, and finally a Skill:
               </p>
-
-              <!-- Show how many skills are selected -->
               <div id="selected-count" class="text-gray-600 font-medium mb-4"></div>
-
               <div class="space-y-4 mt-4">
                 {% for category in skill_categories %}
                   <div class="category-container border p-2 rounded-lg">
-                    <!-- Category Header -->
                     <div class="category-header flex items-center justify-between cursor-pointer bg-gray-50 px-3 py-2 hover:bg-gray-100">
                       <p class="font-semibold text-gray-700">{{ category.name }}</p>
                       <svg class="arrow-icon w-5 h-5 text-gray-500 transform transition-transform"
@@ -178,8 +168,6 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                       </svg>
                     </div>
-                    
-                    <!-- Subcategories (initially hidden) -->
                     <div class="subcategories-container hidden divide-y divide-gray-200">
                       {% for subcategory in category.subcategories.all %}
                         <div class="subcategory-container">
@@ -190,12 +178,9 @@
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                             </svg>
                           </div>
-                          
-                          <!-- Skills (initially hidden) -->
                           <div class="skills-container hidden bg-gray-50 pl-8 py-2">
                             <div class="grid grid-cols-2 gap-2">
                               {% for skill in subcategory.skills.all %}
-                                <!-- Single Skill Item (Clickable) -->
                                 <div class="skill-item cursor-pointer p-2 rounded hover:bg-gray-100" data-skill-id="{{ skill.id }}">
                                   <span class="text-sm text-gray-700">{{ skill.name }}</span>
                                 </div>
@@ -207,6 +192,25 @@
                     </div>
                   </div>
                 {% endfor %}
+              </div>
+            {% endif %}
+
+            {# STEP 4: Research Areas Selection as clickable items #}
+            {% if step == 4 %}
+              <div class="space-y-4">
+                <p class="text-gray-600 text-sm">Select at least one research area by clicking on your preferred categories:</p>
+                <div id="selected-categories-count" class="text-gray-600 font-medium mb-4"></div>
+                <div class="grid grid-cols-2 gap-4">
+                  {% for category in available_categories %}
+                    <div class="research-category-item cursor-pointer p-2 rounded border border-gray-300 hover:bg-gray-100" data-category-id="{{ category.id }}">
+                      <span class="text-sm text-gray-700">{{ category.name }}</span>
+                    </div>
+                  {% endfor %}
+                </div>
+                <!-- Hidden field to store selected research area IDs -->
+                <input type="hidden" id="selected_categories" name="selected_categories" value="">
+                <!-- Inline error message container -->
+                <div id="research-error" class="text-red-600 text-sm mt-2"></div>
               </div>
             {% endif %}
 
@@ -225,7 +229,7 @@
                 type="submit" 
                 class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg transition-all duration-300 shadow-md"
               >
-                {% if step == 3 %}
+                {% if step == 4 %}
                   Complete Registration
                 {% else %}
                   Next →
@@ -239,33 +243,31 @@
   </div>
 </main>
 
-<!-- Optional inline style for selected skills -->
+<!-- Optional inline style for selected items -->
 <style>
-  .skill-item.selected {
-    background-color: #dbeafe; /* Light blue highlight */
-    border: 1px solid #3b82f6; /* Blue border */
+  .skill-item.selected, .research-category-item.selected {
+    background-color: #dbeafe;
+    border: 1px solid #3b82f6;
   }
 </style>
 
 <script>
-// Ensure that Django variables are rendered as numbers
 const required = {{ min_selections|default:"0" }};
 const currentStep = {{ step|default:"0" }};
 
 document.addEventListener("DOMContentLoaded", function () {
-  // Toggle categories
+  // Toggle categories for skills (STEP 3)
   document.querySelectorAll(".category-header").forEach(header => {
     header.addEventListener("click", () => {
       const container = header.closest(".category-container");
       const subcatList = container.querySelector(".subcategories-container");
       subcatList.classList.toggle("hidden");
-      // Toggle arrow rotation
       const arrow = header.querySelector(".arrow-icon");
       arrow.classList.toggle("rotate-90");
     });
   });
 
-  // Toggle subcategories
+  // Toggle subcategories for skills
   document.querySelectorAll(".subcategory-header").forEach(subHeader => {
     subHeader.addEventListener("click", () => {
       const container = subHeader.closest(".subcategory-container");
@@ -276,9 +278,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Track selected skills
+  // Track selected skills (STEP 3)
   let selectedSkillIds = [];
-
   document.querySelectorAll(".skill-item").forEach(skillDiv => {
     skillDiv.addEventListener("click", () => {
       const skillId = skillDiv.getAttribute("data-skill-id");
@@ -293,7 +294,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Update selected skills count
   function updateSelectedCount() {
     const selectedCount = selectedSkillIds.length;
     const display = document.getElementById("selected-count");
@@ -305,22 +305,59 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // On form submit, set hidden field with selected skills
+  // Track selected research categories (STEP 4)
+  let selectedCategoryIds = [];
+  document.querySelectorAll(".research-category-item").forEach(item => {
+    item.addEventListener("click", function() {
+      const categoryId = this.getAttribute("data-category-id");
+      if (this.classList.contains("selected")) {
+        this.classList.remove("selected");
+        selectedCategoryIds = selectedCategoryIds.filter(id => id !== categoryId);
+      } else {
+        this.classList.add("selected");
+        selectedCategoryIds.push(categoryId);
+      }
+      updateSelectedCategoryCount();
+    });
+  });
+
+  function updateSelectedCategoryCount() {
+    const count = selectedCategoryIds.length;
+    const display = document.getElementById("selected-categories-count");
+    if (display) {
+      display.textContent = `Selected research areas: ${count}`;
+      display.className = count >= 1 ? "text-green-600 font-medium mb-4" : "text-gray-600 font-medium mb-4";
+    }
+  }
+
+  // On form submit, update hidden inputs for skills and research areas
   const form = document.querySelector("form");
   form.addEventListener("submit", function (event) {
     if (currentStep === 3) {
-      const hiddenInput = document.getElementById('selected_skills');
-      if (hiddenInput) {
-        hiddenInput.value = JSON.stringify(selectedSkillIds);
+      const hiddenSkills = document.getElementById('selected_skills');
+      if (hiddenSkills) {
+        hiddenSkills.value = JSON.stringify(selectedSkillIds);
       }
       if (selectedSkillIds.length < required) {
         event.preventDefault();
-        alert(`Please select at least ${required} skills.`);
+        // Optionally, display an inline error for skills if needed.
+      }
+    }
+    if (currentStep === 4) {
+      const hiddenCategories = document.getElementById('selected_categories');
+      if (hiddenCategories) {
+        hiddenCategories.value = selectedCategoryIds.join(",");
+      }
+      if (selectedCategoryIds.length < 1) {
+        event.preventDefault();
+        document.getElementById('research-error').textContent = "Please select at least one research area.";
+      } else {
+        document.getElementById('research-error').textContent = "";
       }
     }
     if (!form.checkValidity()) {
       event.preventDefault();
-      alert("Please fix the errors in the form before proceeding.");
+      // Optionally, display inline error messages for other validation issues.
     }
   });
 
@@ -346,8 +383,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Initialize count display
   updateSelectedCount();
+  updateSelectedCategoryCount();
 });
 </script>
 {% endblock content %}

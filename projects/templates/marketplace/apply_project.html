@@ -11,6 +11,18 @@
     <form method="post" class="space-y-6">
       {% csrf_token %}
       {{ form.non_field_errors }}
+
+      <!-- Роль, на которую подается пользователь -->
+      <div>
+        <label for="{{ form.applied_role.id_for_label }}" class="block text-gray-700 font-medium mb-2">
+          Select the Role You Are Applying For
+        </label>
+        {{ form.applied_role|add_class:"w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+        {% if form.applied_role.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ form.applied_role.errors|join:", " }}</p>
+        {% endif %}
+      </div>
+
       <div>
         <label for="{{ form.contribution.id_for_label }}" class="block text-gray-700 font-medium mb-2">
           How will you contribute?
