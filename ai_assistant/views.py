@@ -92,7 +92,7 @@ def call_ai_model(user_message: str, conversation_history: list) -> JsonResponse
         "model": "deepseek/deepseek-r1:free",
         "messages": conversation
     }
-    api_key = "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"  # Replace with your actual API key.
+    api_key = "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"  # Replace with your actual API key.
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
