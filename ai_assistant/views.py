@@ -29,8 +29,8 @@ Project Objectives
 - To build a resource hub offering curated tools, datasets, and tutorials to support research activities.
 - To promote interdisciplinary and global collaboration, breaking down geographic and disciplinary barriers.
 """
-
-api_key = "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"
+import os
+api_key = os.getenv("OPENROUTER_API_KEY")
 
 def get_project_context_if_relevant(user_message: str) -> str:
     lower_msg = user_message.lower()
@@ -112,6 +112,7 @@ def call_ai_model(user_message: str, conversation_history: list, image_file=None
             }
         ]
     }
+    print("🔐 DEBUG - Loaded API Key:", repr(api_key))
 
     full_history = [system_prompt] + conversation_history
     full_history.append({
@@ -124,7 +125,7 @@ def call_ai_model(user_message: str, conversation_history: list, image_file=None
             model="google/gemini-2.0-flash-001",  # or any OpenRouter-supported model
             messages=full_history,
             extra_headers={
-                "HTTP-Referer": "http://localhost:8000",
+                "HTTP-Referer": "https://scholarhub-trkt.onrender.com/",
                 "X-Title": "ScholarHub"
             }
         )
