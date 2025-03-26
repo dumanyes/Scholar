@@ -1,3 +1,4 @@
+import httpx
 from django.shortcuts import render, redirect, get_object_or_404
 import json
 import requests
@@ -9,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import models  # For aggregation queries
 from .models import ChatSession, ChatMessage
 from projects.models import Project, Skill, Category
+import asyncio
 
 # -------------------------
 # Constants and Helper Functions
@@ -215,9 +217,6 @@ def research_assistant_chat(request):
 @csrf_exempt
 @login_required
 def research_assistant_stream(request):
-    """
-    Streams the AI model's chain-of-thought in real time using SSE.
-    """
     if request.method != 'POST':
         return StreamingHttpResponse("Only POST allowed", status=405)
 
@@ -225,59 +224,31 @@ def research_assistant_stream(request):
     if not user_message:
         return StreamingHttpResponse("No message provided", status=400)
 
-    def sse_stream():
-        payload = {
-            "model": "deepseek/deepseek-r1:free",  # ensure your chosen model supports streaming
-            "stream": True,
-            "messages": [
-                {"role": "user", "content": user_message}
-            ]
-        }
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        }
-
-        try:
-            with requests.post(
-                "https://openrouter.ai/api/v1/chat/completions",
-                headers=headers,
-                json=payload,
-                stream=True
-            ) as r:
-                r.raise_for_status()
-                buffer = ""
-                for chunk in r.iter_content(chunk_size=1024, decode_unicode=True):
-                    if not chunk:
-                        continue
-                    buffer += chunk
-                    while True:
-                        line_end = buffer.find('\n')
-                        if line_end == -1:
-                            break
-                        line = buffer[:line_end].strip()
-                        buffer = buffer[line_end + 1:]
-                        if line.startswith('data: '):
+    async def async_event_stream():
+        async with httpx.AsyncClient(timeout=None) as client:
+            try:
+                async with client.stream("POST", "https://openrouter.ai/api/v1/chat/completions", json={
+                    "model": "deepseek/deepseek-r1:free",
+                    "stream": True,
+                    "messages": [{"role": "user", "content": user_message}]
+                }, headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json"
+                }) as response:
+                    async for line in response.aiter_lines():
+                        if line.startswith("data: "):
                             data_str = line[6:]
-                            if data_str == '[DONE]':
+                            if data_str == "[DONE]":
                                 yield "data: [DONE]\n\n"
                                 return
                             try:
-                                data_obj = json.loads(data_str)
-                                partial_token = ""
-                                delta = data_obj["choices"][0]["delta"]
-                                if "reasoning" in delta:
-                                    partial_token += f"\n[Thinking: {delta['reasoning']}]"
-                                if "content" in delta:
-                                    partial_token += delta["content"]
-                                if partial_token:
-                                    yield f"data: {json.dumps(partial_token)}\n\n"
+                                obj = json.loads(data_str)
+                                token = obj["choices"][0].get("delta", {}).get("content", "")
+                                if token:
+                                    yield f"data: {json.dumps(token)}\n\n"
                             except json.JSONDecodeError:
-                                pass
-        except requests.RequestException as e:
-            yield f"data: {json.dumps('Error: ' + str(e))}\n\n"
+                                continue
+            except Exception as e:
+                yield f"data: {json.dumps('Error: ' + str(e))}\n\n"
 
-    response = StreamingHttpResponse(sse_stream(), content_type='text/event-stream')
-    response['Cache-Control'] = 'no-cache'
-    response['X-Accel-Buffering'] = 'no'
-    return response
+    return StreamingHttpResponse(async_event_stream(), content_type='text/event-stream')
