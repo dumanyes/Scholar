@@ -30,6 +30,8 @@ Project Objectives
 - To promote interdisciplinary and global collaboration, breaking down geographic and disciplinary barriers.
 """
 
+api_key = "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"
+
 def get_project_context_if_relevant(user_message: str) -> str:
     lower_msg = user_message.lower()
     keywords = ['scholarhub', 'project', 'research', 'collaborat', 'match']
@@ -72,7 +74,7 @@ from django.core.files.base import ContentFile
 def call_ai_model(user_message: str, conversation_history: list, image_file=None, image_url=None) -> dict:
     client = OpenAI(
         base_url="https://openrouter.ai/api/v1",
-        api_key = "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"
+        api_key = api_key
     )
 
     # Build base message
@@ -227,7 +229,7 @@ def research_assistant_stream(request):
             ]
         }
         headers = {
-            "Authorization": f"Bearer {os.getenv('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')}",
+            "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
         }
 
