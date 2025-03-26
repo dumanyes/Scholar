@@ -116,6 +116,7 @@ def call_ai_model(user_message: str, conversation_history: list, image_file=None
     print("🔐 DEBUG - Referer:", os.getenv("OPENROUTER_REFERER"))
     if not api_key:
         return {"error": "OPENROUTER_API_KEY not set on server"}
+    referer_header = os.getenv("OPENROUTER_REFERER", "https://scholarhub-trkt.onrender.com/")
 
     full_history = [system_prompt] + conversation_history
     full_history.append({
@@ -128,7 +129,7 @@ def call_ai_model(user_message: str, conversation_history: list, image_file=None
             model="google/gemini-2.0-flash-001",  # or any OpenRouter-supported model
             messages=full_history,
             extra_headers={
-                "HTTP-Referer": os.getenv("OPENROUTER_REFERER", "https://scholarhub-trkt.onrender.com/"),
+                "HTTP-Referer": referer_header,
                 "X-Title": "ScholarHub"
             }
         )
