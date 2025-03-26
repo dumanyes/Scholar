@@ -227,7 +227,7 @@ def research_assistant_stream(request):
             ]
         }
         headers = {
-            "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
+            "Authorization": f"Bearer {os.getenv('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')}",
             "Content-Type": "application/json"
         }
 
