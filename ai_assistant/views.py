@@ -1,20 +1,18 @@
-import os
-import json
-from datetime import datetime
-
+import httpx
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse
+import json
+import requests
+from django.http import JsonResponse, StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from datetime import datetime
 from django.contrib.auth.decorators import login_required
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
-from django.db import models
-
+from django.db import models  # For aggregation queries
 from .models import ChatSession, ChatMessage
 from projects.models import Project, Skill, Category
+import asyncio
+from asgiref.sync import async_to_sync
 
-from openai import OpenAI
 
 # -------------------------
 # Constants and Helper Functions
@@ -35,7 +33,7 @@ Project Objectives
 - To build a resource hub offering curated tools, datasets, and tutorials to support research activities.
 - To promote interdisciplinary and global collaboration, breaking down geographic and disciplinary barriers.
 """
-
+import os
 api_key = os.getenv("OPENROUTER_API_KEY")
 
 def get_project_context_if_relevant(user_message: str) -> str:
@@ -72,25 +70,36 @@ def handle_db_query(message: str) -> str:
             return "No new projects found."
     return ""
 
+from openai import OpenAI
+import os
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+
 def call_ai_model(user_message: str, conversation_history: list, image_file=None, image_url=None) -> dict:
     client = OpenAI(
         base_url="https://openrouter.ai/api/v1",
-        api_key=api_key
+        api_key = api_key
     )
 
+    # Build base message
     user_content = [{"type": "text", "text": user_message}]
 
+    # Handle uploaded image
     if image_file:
         image_path = default_storage.save(f"chat_uploads/{image_file.name}", ContentFile(image_file.read()))
         full_image_url = default_storage.url(image_path)
         user_content.append({
             "type": "image_url",
-            "image_url": {"url": full_image_url}
+            "image_url": {
+                "url": full_image_url
+            }
         })
     elif image_url:
         user_content.append({
             "type": "image_url",
-            "image_url": {"url": image_url}
+            "image_url": {
+                "url": image_url
+            }
         })
 
     system_prompt = {
@@ -107,8 +116,12 @@ def call_ai_model(user_message: str, conversation_history: list, image_file=None
             }
         ]
     }
-
+    print("🔐 DEBUG - API Key Loaded:", api_key)
+    print("🔐 DEBUG - Referer:", os.getenv("OPENROUTER_REFERER"))
+    if not api_key:
+        return {"error": "OPENROUTER_API_KEY not set on server"}
     referer_header = os.getenv("OPENROUTER_REFERER", "https://scholarhub-trkt.onrender.com/")
+
     full_history = [system_prompt] + conversation_history
     full_history.append({
         "role": "user",
@@ -117,7 +130,7 @@ def call_ai_model(user_message: str, conversation_history: list, image_file=None
 
     try:
         completion = client.chat.completions.create(
-            model="google/gemini-2.0-flash-001",
+            model="google/gemini-2.0-flash-001",  # or any OpenRouter-supported model
             messages=full_history,
             extra_headers={
                 "HTTP-Referer": referer_header,
@@ -142,18 +155,24 @@ def call_ai_model(user_message: str, conversation_history: list, image_file=None
 @login_required
 def ai_home(request):
     chat_sessions = ChatSession.objects.filter(user=request.user).order_by('-started_at')
-    current_session = chat_sessions.last()
+    current_session = ChatSession.objects.filter(user=request.user).last()
     chat_history = current_session.messages.order_by('timestamp') if current_session else []
-    return render(request, 'ai_home.html', {
+
+    context = {
         'chat_sessions': chat_sessions,
         'chat_history': chat_history,
-    })
+    }
+    return render(request, 'ai_home.html', context)
 
 @login_required
 def load_chat(request, session_id):
     session = get_object_or_404(ChatSession, id=session_id, user=request.user)
-    messages = session.messages.order_by('timestamp').values('content', 'sender', 'timestamp')
-    return JsonResponse({'messages': list(messages)})
+    messages = session.messages.order_by('timestamp').values(
+        'content', 'sender', 'timestamp'
+    )
+    return JsonResponse({
+        'messages': list(messages)
+    })
 
 @login_required
 def new_chat(request):
@@ -196,3 +215,44 @@ def research_assistant_chat(request):
 
     ChatMessage.objects.create(session=chat_session, sender='assistant', content=content)
     return JsonResponse({"message": content})
+
+@csrf_exempt
+@login_required
+def research_assistant_stream(request):
+    if request.method != 'POST':
+        return StreamingHttpResponse("Only POST allowed", status=405)
+
+    user_message = request.POST.get('message', '')
+    if not user_message:
+        return StreamingHttpResponse("No message provided", status=400)
+
+    async def async_event_stream():
+        async with httpx.AsyncClient(timeout=None) as client:
+            try:
+                async with client.stream("POST", "https://openrouter.ai/api/v1/chat/completions", json={
+                    "model": "deepseek/deepseek-r1:free",
+                    "stream": True,
+                    "messages": [{"role": "user", "content": user_message}]
+                }, headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json"
+                }) as response:
+                    async for line in response.aiter_lines():
+                        if line.startswith("data: "):
+                            data_str = line[6:]
+                            if data_str == "[DONE]":
+                                yield "data: [DONE]\n\n"
+                                return
+                            try:
+                                obj = json.loads(data_str)
+                                token = obj["choices"][0].get("delta", {}).get("content", "")
+                                if token:
+                                    yield f"data: {json.dumps(token)}\n\n"
+                            except json.JSONDecodeError:
+                                continue
+            except Exception as e:
+                yield f"data: {json.dumps('Error: ' + str(e))}\n\n"
+
+    # ✅ Convert async generator into sync-compatible
+    sync_stream = async_to_sync(lambda: async_event_stream())()
+    return StreamingHttpResponse(sync_stream, content_type='text/event-stream')
