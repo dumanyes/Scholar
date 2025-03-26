@@ -11,6 +11,8 @@ from django.db import models  # For aggregation queries
 from .models import ChatSession, ChatMessage
 from projects.models import Project, Skill, Category
 import asyncio
+from asgiref.sync import async_to_sync
+
 
 # -------------------------
 # Constants and Helper Functions
@@ -251,4 +253,6 @@ def research_assistant_stream(request):
             except Exception as e:
                 yield f"data: {json.dumps('Error: ' + str(e))}\n\n"
 
-    return StreamingHttpResponse(async_event_stream(), content_type='text/event-stream')
+    # ✅ Convert async generator into sync-compatible
+    sync_stream = async_to_sync(lambda: async_event_stream())()
+    return StreamingHttpResponse(sync_stream, content_type='text/event-stream')
