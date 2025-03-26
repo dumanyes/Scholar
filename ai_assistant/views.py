@@ -72,7 +72,7 @@ from django.core.files.base import ContentFile
 def call_ai_model(user_message: str, conversation_history: list, image_file=None, image_url=None) -> dict:
     client = OpenAI(
         base_url="https://openrouter.ai/api/v1",
-        api_key = "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"
+        api_key = "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"
     )
 
     # Build base message
