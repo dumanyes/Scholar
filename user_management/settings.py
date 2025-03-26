@@ -132,12 +132,21 @@ WSGI_APPLICATION = 'user_management.wsgi.application'
 
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.parse(
+        "postgresql://db_scholar_user:TMHTE1QV2twYKYsQPN5TtqBaLh8FLwfG@dpg-cvhljg7noe9s739jakk0-a.oregon-postgres.render.com/db_scholar",
+        conn_max_age=600,
+        ssl_require=True  # Ensures secure connection to Render-hosted Postgres
+    )
 }
-DATABASES['default'] = dj_database_url.parse("postgresql://scholar_t_db_01_zzjs_user:HSBY7RS1HV4CmPHVe6f52NHmcCD4OUuL@dpg-cutif3l2ng1s73datefg-a.oregon-postgres.render.com/scholar_t_db_01_zzjs")
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+# DATABASES['default'] = dj_database_url.parse("postgresql://scholar_t_db_01_zzjs_user:HSBY7RS1HV4CmPHVe6f52NHmcCD4OUuL@dpg-cutif3l2ng1s73datefg-a.oregon-postgres.render.com/scholar_t_db_01_zzjs")
 
 #new db
 # postgresql://scholar_t_db_01_zzjs_user:HSBY7RS1HV4CmPHVe6f52NHmcCD4OUuL@dpg-cutif3l2ng1s73datefg-a.oregon-postgres.render.com/scholar_t_db_01_zzjs

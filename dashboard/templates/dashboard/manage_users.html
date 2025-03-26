@@ -1,135 +1,204 @@
 {% extends "users/base.html" %}
 {% load static %}
 {% block content %}
-<div class="container mx-auto px-4 py-6">
-    <a href="{% url 'dashboard-home' %}"
-       class="inline-block mb-4 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
-       ← Back to Dashboard
-    </a>
-    <h1 class="text-3xl font-bold mb-6">Manage Users</h1>
-
-    <!-- Filter Form -->
-    <form method="GET" class="mb-6 flex items-center gap-2">
-        <input type="text" name="search" placeholder="Search by username..." value="{{ search_query }}"
-               class="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500">
-        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-            Filter
-        </button>
-    </form>
-
-    <!-- Bulk Actions -->
-    <form method="POST" action="{% url 'dashboard-bulk-user-action' %}">
-        {% csrf_token %}
-        <table class="min-w-full bg-white border border-gray-200 rounded-lg">
-            <thead class="bg-gray-100 border-b border-gray-200">
-                <tr>
-                    <th class="px-4 py-3"><input type="checkbox" id="select-all"></th>
-                    <th class="px-4 py-3">Avatar</th>
-                    <th class="px-4 py-3">Username</th>
-                    <th class="px-4 py-3">Email</th>
-                    <th class="px-4 py-3">Bio</th>
-                    <th class="px-4 py-3">Birthdate</th>
-                    <th class="px-4 py-3">University</th>
-                    <th class="px-4 py-3">Organization</th>
-                    <th class="px-4 py-3">Position</th>
-                    <th class="px-4 py-3">Country / City</th>
-                    <th class="px-4 py-3">Reputation</th>
-                    <th class="px-4 py-3">Verified</th>
-                    <th class="px-4 py-3">Date Joined</th>
-                    <th class="px-4 py-3">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="text-sm text-gray-700">
-                {% for user in page_obj %}
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="px-4 py-3 align-top">
-                        <input type="checkbox" name="user_ids" value="{{ user.id }}">
-                    </td>
-                    <td class="px-4 py-3 align-top">
-                        {% if user.profile.avatar %}
-                            <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="w-10 h-10 rounded-full">
-                        {% else %}
-                            N/A
-                        {% endif %}
-                    </td>
-                    <td class="px-4 py-3 align-top font-semibold text-gray-800">
-                        {{ user.username }}
-                    </td>
-                    <td class="px-4 py-3 align-top">
-                        {{ user.email }}
-                    </td>
-                    <td class="px-4 py-3 align-top w-56">
-                        {{ user.profile.bio }}
-                    </td>
-                    <td class="px-4 py-3 align-top">
-                        {{ user.profile.birthdate|date:"Y-m-d"|default:"N/A" }}
-                    </td>
-                    <td class="px-4 py-3 align-top">
-                        {{ user.profile.university|default:"N/A" }}
-                    </td>
-                    <td class="px-4 py-3 align-top">
-                        {{ user.profile.organization|default:"N/A" }}
-                    </td>
-                    <td class="px-4 py-3 align-top">
-                        {{ user.profile.position|default:"N/A" }}
-                    </td>
-                    <td class="px-4 py-3 align-top">
-                        {% if user.profile.country or user.profile.city %}
-                            {{ user.profile.city }}, {{ user.profile.country }}
-                        {% else %}
-                            N/A
-                        {% endif %}
-                    </td>
-                    <td class="px-4 py-3 align-top">
-                        {{ user.profile.reputation }}
-                    </td>
-                    <td class="px-4 py-3 align-top">
-                        {{ user.profile.is_verified }}
-                    </td>
-                    <td class="px-4 py-3 align-top">
-                        {{ user.date_joined|date:"Y-m-d" }}
-                    </td>
-                    <td class="px-4 py-3 align-top">
-                        <a href="{% url 'dashboard-edit-user' user.id %}"
-                           class="inline-block px-2 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600 mb-1">
-                           Edit
-                        </a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="14" class="px-4 py-3 text-center text-gray-500">No users found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <div class="mt-4">
-            <button type="submit" name="action" value="delete"
-                    class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                    onclick="return confirm('Are you sure you want to delete selected users?');">
-                Delete Selected
-            </button>
+<div class="container mx-auto px-6 py-8 bg-gray-50 min-h-screen">
+    <div class="bg-white shadow-xl rounded-lg overflow-hidden">
+        <!-- Header Section -->
+        <div class="px-6 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tight">User Management</h1>
+                <p class="text-sm text-blue-100 mt-1">Manage and monitor user accounts</p>
+            </div>
+            <a href="{% url 'dashboard-home' %}"
+               class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-md transition-all flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                </svg>
+                Back to Dashboard
+            </a>
         </div>
-    </form>
 
-    <!-- Pagination Controls -->
-    <div class="mt-4">
-        {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}"
-               class="px-4 py-2 bg-gray-200 rounded mr-2 hover:bg-gray-300">Previous</a>
-        {% endif %}
-        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-        {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}"
-               class="px-4 py-2 bg-gray-200 rounded ml-2 hover:bg-gray-300">Next</a>
-        {% endif %}
+        <!-- New Section: User Stats Row -->
+        <!-- Make sure your view passes these counts, or replace with placeholders as needed. -->
+        <div class="px-6 py-4 bg-gray-50">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- Total Users Card -->
+                <div class="bg-blue-50 p-4 rounded-lg shadow hover:shadow-md transition transform hover:-translate-y-0.5">
+                    <h2 class="text-sm font-medium text-gray-700 mb-1">Total Users</h2>
+                    <p class="text-2xl font-bold text-blue-800">
+                        {{ page_obj.paginator.count }}
+                    </p>
+                </div>
+                <!-- Verified Users Card -->
+                <div class="bg-green-50 p-4 rounded-lg shadow hover:shadow-md transition transform hover:-translate-y-0.5">
+                    <h2 class="text-sm font-medium text-gray-700 mb-1">Verified Users</h2>
+                    <p class="text-2xl font-bold text-green-800">
+                        {{ total_verified|default:"0" }}
+                    </p>
+                </div>
+                <!-- Unverified Users Card -->
+                <div class="bg-yellow-50 p-4 rounded-lg shadow hover:shadow-md transition transform hover:-translate-y-0.5">
+                    <h2 class="text-sm font-medium text-gray-700 mb-1">Unverified Users</h2>
+                    <p class="text-2xl font-bold text-yellow-800">
+                        {{ total_unverified|default:"0" }}
+                    </p>
+                </div>
+                <!-- Staff Accounts Card -->
+                <div class="bg-purple-50 p-4 rounded-lg shadow hover:shadow-md transition transform hover:-translate-y-0.5">
+                    <h2 class="text-sm font-medium text-gray-700 mb-1">Staff Accounts</h2>
+                    <p class="text-2xl font-bold text-purple-800">
+                        {{ total_staff|default:"0" }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6">
+            <!-- Filter and Search Section -->
+            <div class="flex justify-between items-center mb-6">
+                <form method="GET" class="flex space-x-3 w-full max-w-md">
+                    <div class="relative flex-grow">
+                        <input type="text" name="search"
+                               placeholder="Search users by name, email..."
+                               value="{{ search_query }}"
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <button type="submit"
+                            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                        Search
+                    </button>
+                </form>
+            </div>
+
+            <!-- Users Table -->
+            <form method="POST" action="{% url 'dashboard-bulk-user-action' %}">
+                {% csrf_token %}
+                <div class="overflow-x-auto">
+                    <table class="w-full bg-white rounded-lg shadow-md">
+                        <thead class="bg-gray-100 border-b border-gray-200">
+                            <tr>
+                                <th class="px-4 py-3 text-left">
+                                    <input type="checkbox" id="select-all" class="form-checkbox h-4 w-4 text-blue-600 rounded">
+                                </th>
+                                <th class="px-4 py-3 text-left">Avatar</th>
+                                <th class="px-4 py-3 text-left">Username</th>
+                                <th class="px-4 py-3 text-left">Email</th>
+                                <th class="px-4 py-3 text-left">Reputation</th>
+                                <th class="px-4 py-3 text-left">Verified</th>
+                                <th class="px-4 py-3 text-left">Joined</th>
+                                <th class="px-4 py-3 text-left">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in page_obj %}
+                            <tr class="border-b hover:bg-gray-50 transition-colors">
+                                <td class="px-4 py-3">
+                                    <input type="checkbox" name="user_ids" value="{{ user.id }}"
+                                           class="form-checkbox h-4 w-4 text-blue-600 rounded">
+                                </td>
+                                <td class="px-4 py-3">
+                                    {% if user.profile.avatar %}
+                                        <img src="{{ user.profile.avatar.url }}"
+                                             alt="{{ user.username }}"
+                                             class="w-10 h-10 rounded-full object-cover">
+                                    {% else %}
+                                        <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-500">
+                                            {{ user.username.0|upper }}
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 font-semibold text-gray-800">
+                                    {{ user.username }}
+                                </td>
+                                <td class="px-4 py-3">{{ user.email }}</td>
+                                <td class="px-4 py-3">
+                                    <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                                        {{ user.profile.reputation }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    {% if user.profile.is_verified %}
+                                        <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                                            Verified
+                                        </span>
+                                    {% else %}
+                                        <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">
+                                            Unverified
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-600">
+                                    {{ user.date_joined|date:"M d, Y" }}
+                                </td>
+                                <td class="px-4 py-3">
+                                    <a href="{% url 'dashboard-edit-user' user.id %}"
+                                       class="inline-flex items-center px-3 py-1.5 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                        Edit
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="px-4 py-6 text-center text-gray-500">
+                                    <div class="flex flex-col items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                        </svg>
+                                        <p class="text-lg font-semibold text-gray-600">No users found</p>
+                                        <p class="text-sm text-gray-400 mt-2">Try adjusting your search or filter</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Bulk Actions & Pagination -->
+                <div class="mt-4 flex justify-between items-center">
+                    <button type="submit" name="action" value="delete"
+                            class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Delete Selected
+                    </button>
+
+                    <!-- Pagination Controls -->
+                    <div class="flex items-center space-x-2">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}"
+                               class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">
+                                Previous
+                            </a>
+                        {% endif %}
+                        <span class="text-sm text-gray-600">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </span>
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}"
+                               class="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">
+                                Next
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 <script>
-  document.getElementById('select-all').addEventListener('change', function() {
-      const checkboxes = document.querySelectorAll('input[name="user_ids"]');
-      checkboxes.forEach(cb => cb.checked = this.checked);
-  });
+/* Select all checkboxes */
+document.getElementById('select-all').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('input[name="user_ids"]');
+    checkboxes.forEach(cb => cb.checked = this.checked);
+});
 </script>
 {% endblock %}

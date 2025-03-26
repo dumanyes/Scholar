@@ -3,56 +3,98 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-  <title>Contact Messages</title>
+  <title>Manage Contact Messages</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-50 font-sans">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="bg-white shadow-lg rounded-lg overflow-hidden">
-      <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4">
-        <h2 class="text-2xl font-bold text-white">Contact Messages</h2>
-      </div>
+<body class="bg-gray-100 font-sans">
+  <div class="max-w-7xl mx-auto p-6">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 rounded-lg shadow-lg text-white mb-6">
+      <h1 class="text-2xl font-bold">Manage Contact Messages</h1>
+      <p class="mt-1 text-sm text-blue-50">
+        Use the filters below to search by subject and date.
+      </p>
+    </div>
 
-      <div class="p-6">
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead>
-              <tr>
-                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
-                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Message</th>
-                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted At</th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              {% for msg in page_obj %}
-              <tr class="hover:bg-gray-50 transition-colors duration-200">
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ msg.name }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ msg.email }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ msg.subject }}</td>
-                <td class="px-6 py-4 text-sm text-gray-500">
-                  <div class="max-w-xs truncate">{{ msg.message|truncatechars:100 }}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ msg.submitted_at }}</td>
-              </tr>
-              {% empty %}
-              <tr>
-                <td colspan="5" class="px-6 py-10 text-center text-sm text-gray-500">
-                  <div class="flex flex-col items-center justify-center">
-                    <svg class="h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-                    </svg>
-                    <p class="mt-2 font-medium">No messages found.</p>
-                  </div>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+    <!-- Filtering Form -->
+    <div class="bg-white shadow rounded-lg p-6 mb-6">
+      <form method="get" class="flex flex-wrap gap-4">
+        <!-- Subject Filter as Dropdown -->
+        <div>
+          <label for="subject" class="block text-sm font-medium text-gray-700">Subject</label>
+          <select name="subject" id="subject" class="mt-1 block w-64 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <option value="">All Subjects</option>
+            {% for subj in subjects %}
+              <option value="{{ subj }}" {% if subj == subject_filter %}selected{% endif %}>
+                {{ subj }}
+              </option>
+            {% endfor %}
+          </select>
         </div>
+        <!-- Start Date Filter -->
+        <div>
+          <label for="start_date" class="block text-sm font-medium text-gray-700">Start Date</label>
+          <input type="date" name="start_date" id="start_date" value="{{ start_date }}" class="mt-1 block w-48 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+        <!-- End Date Filter -->
+        <div>
+          <label for="end_date" class="block text-sm font-medium text-gray-700">End Date</label>
+          <input type="date" name="end_date" id="end_date" value="{{ end_date }}" class="mt-1 block w-48 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+        <div class="flex items-end">
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            Filter
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Table of Messages -->
+    <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Message</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted At</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {% for msg in page_obj %}
+            <tr class="hover:bg-gray-50 transition-colors duration-200">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ msg.name }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ msg.email }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ msg.subject }}</td>
+              <td class="px-6 py-4 text-sm text-gray-500">
+                <div class="max-w-xs truncate">{{ msg.message|truncatechars:100 }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ msg.submitted_at|date:"M d, Y H:i" }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <a href="{% url 'contact_message_detail' msg.id %}" class="text-blue-600 hover:underline mr-4">View</a>
+                <a href="{% url 'contact_message_delete' msg.id %}" class="text-red-600 hover:underline" onclick="return confirm('Are you sure you want to delete this message?');">Delete</a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="px-6 py-10 text-center text-sm text-gray-500">
+                <div class="flex flex-col items-center justify-center">
+                  <svg class="h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                  </svg>
+                  <p class="mt-2 font-medium">No messages found.</p>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
 
+      <!-- Pagination (same as before) -->
       {% if page_obj.has_other_pages %}
       <div class="bg-gray-50 px-6 py-3 border-t border-gray-200 flex items-center justify-between">
         <div class="flex-1 flex justify-between sm:hidden">
@@ -79,7 +121,6 @@
                 </svg>
               </a>
               {% endif %}
-
               {% for i in page_obj.paginator.page_range %}
                 {% if page_obj.number == i %}
                 <span class="relative inline-flex items-center px-4 py-2 border border-indigo-500 bg-indigo-50 text-sm font-medium text-indigo-600">{{ i }}</span>
@@ -87,7 +128,6 @@
                 <a href="?page={{ i }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">{{ i }}</a>
                 {% endif %}
               {% endfor %}
-
               {% if page_obj.has_next %}
               <a href="?page={{ page_obj.next_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                 <span class="sr-only">Next</span>

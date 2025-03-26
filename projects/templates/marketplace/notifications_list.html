@@ -1,6 +1,44 @@
 {% extends "users/base.html" %}
 {% load static %}
 {% block content %}
+    <script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#6D3AFF',
+          secondary: '#8B5CFF',
+          accent: '#FF69B4',
+          dark: '#1A1A2E',
+        }
+      }
+    }
+  }
+</script>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+
+<!-- Chart.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+<style>
+  .gradient-text {
+    background: linear-gradient(135deg, #6D3AFF 0%, #FF69B4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .feature-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .feature-card:hover {
+    transform: translateY(-5px);
+  }
+</style>
+
 <div class="min-h-screen bg-white">
   <!-- Header -->
   <header class="bg-white border-b border-gray-200 sticky top-0 z-10">

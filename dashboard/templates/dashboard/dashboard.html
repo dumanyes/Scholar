@@ -1,43 +1,269 @@
 {% extends "users/base.html" %}
 {% load static %}
 {% block content %}
-<div class="container mx-auto p-6">
-    <h1 class="text-3xl font-bold mb-6">Admin Dashboard</h1>
+<div class="min-h-screen flex bg-gray-50">
+  <!-- Sidebar Navigation -->
+  <aside class="fixed inset-y-0 left-0 w-64 bg-gray-800 text-white p-6 shadow-xl z-50">
+    <div class="mb-10">
+      <h1 class="text-2xl font-bold">Admin Panel</h1>
+    </div>
+    <nav class="mt-8">
+      <a href="{% url 'dashboard-users' %}" class="flex items-center py-3 px-4 hover:bg-gray-700 rounded transition mb-2">
+        <!-- icon omitted for brevity -->
+        Manage Users
+      </a>
+      <a href="{% url 'dashboard-projects' %}" class="flex items-center py-3 px-4 hover:bg-gray-700 rounded transition mb-2">
+        <!-- icon omitted for brevity -->
+        Manage Projects
+      </a>
+      <a href="{% url 'dashboard-contacts' %}" class="flex items-center py-3 px-4 hover:bg-gray-700 rounded transition mb-2">
+        <!-- icon omitted for brevity -->
+        Contact Messages
+      </a>
+      <a href="{% url 'dashboard-applications' %}" class="flex items-center py-3 px-4 hover:bg-gray-700 rounded transition">
+        <!-- icon omitted for brevity -->
+        Applications
+      </a>
+    </nav>
+  </aside>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Total Users Card -->
-        <div class="bg-white p-4 rounded shadow">
-            <h2 class="text-lg font-semibold mb-2">Total Users</h2>
-            <p class="text-3xl font-bold">{{ total_users }}</p>
-        </div>
-        <!-- Total Projects Card -->
-        <div class="bg-white p-4 rounded shadow">
-            <h2 class="text-lg font-semibold mb-2">Total Projects</h2>
-            <p class="text-3xl font-bold">{{ total_projects }}</p>
-        </div>
-        <!-- Top Categories Card -->
-        <div class="bg-white p-4 rounded shadow">
-            <h2 class="text-lg font-semibold mb-2">Top Categories</h2>
-            <ul>
-                {% for category in top_categories %}
-                    <li>{{ category.name }} – {{ category.num_projects }} projects</li>
-                {% empty %}
-                    <li>No categories available.</li>
-                {% endfor %}
-            </ul>
-        </div>
+  <!-- Main Content Area -->
+  <main class="ml-64 flex-1 p-6">
+    <!-- Time Filter Form -->
+    <div class="bg-white shadow-md rounded-lg p-4 mb-4">
+      <form method="get" class="flex items-center space-x-4">
+        <label for="time_filter" class="font-semibold text-gray-700">Time Filter:</label>
+        <select name="time_filter" id="time_filter" class="border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500 transition">
+          <option value="all_time" {% if time_filter == "all_time" %}selected{% endif %}>All Time</option>
+          <option value="today" {% if time_filter == "today" %}selected{% endif %}>Today</option>
+          <option value="yesterday" {% if time_filter == "yesterday" %}selected{% endif %}>Yesterday</option>
+          <option value="last_week" {% if time_filter == "last_week" %}selected{% endif %}>Last Week</option>
+          <option value="last_month" {% if time_filter == "last_month" %}selected{% endif %}>Last Month</option>
+          <option value="last_year" {% if time_filter == "last_year" %}selected{% endif %}>Last Year</option>
+        </select>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
+          Filter
+        </button>
+      </form>
     </div>
 
-    <div class="mt-6">
-        <a href="{% url 'dashboard-users' %}" class="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 mr-2">
-            Manage Users
-        </a>
-        <a href="{% url 'dashboard-projects' %}" class="inline-block px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-            Manage Projects
-        </a>
-        <a href="{% url 'dashboard-contacts' %}" class="inline-block px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
-            View Contact Messages
-        </a>
+    <!-- Metrics Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+      <!-- Total Users Card -->
+      <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
+        <h2 class="text-sm font-medium text-gray-600 mb-2">Total Users</h2>
+        <p class="text-3xl font-bold text-blue-800">{{ total_users }}</p>
+      </div>
+      <!-- Total Projects Card -->
+      <div class="bg-gradient-to-br from-green-50 to-green-100 p-5 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
+        <h2 class="text-sm font-medium text-gray-600 mb-2">Total Projects</h2>
+        <p class="text-3xl font-bold text-green-800">{{ total_projects }}</p>
+      </div>
+      <!-- Pending Applications Card -->
+      <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 p-5 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
+        <h2 class="text-sm font-medium text-gray-600 mb-2">Pending Applications</h2>
+        <p class="text-3xl font-bold text-yellow-800">{{ pending_applications_count }}</p>
+      </div>
+      <!-- Contact Messages Card -->
+      <div class="bg-gradient-to-br from-red-50 to-red-100 p-5 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
+        <h2 class="text-sm font-medium text-gray-600 mb-2">Contact Messages</h2>
+        <p class="text-3xl font-bold text-red-800">{{ total_contact_messages }}</p>
+      </div>
+      <!-- Active Projects Card -->
+      <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-5 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
+        <h2 class="text-sm font-medium text-gray-600 mb-2">Active Projects</h2>
+        <p class="text-3xl font-bold text-purple-800">{{ active_projects_count }}</p>
+      </div>
+      <!-- Inactive Projects Card -->
+      <div class="bg-gradient-to-br from-gray-100 to-gray-200 p-5 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
+        <h2 class="text-sm font-medium text-gray-600 mb-2">Inactive Projects</h2>
+        <p class="text-3xl font-bold text-gray-800">{{ inactive_projects_count }}</p>
+      </div>
+      <!-- Chat Messages Card -->
+      <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 p-5 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
+        <h2 class="text-sm font-medium text-gray-600 mb-2">Chat Messages</h2>
+        <p class="text-3xl font-bold text-indigo-800">{{ total_chat_messages }}</p>
+      </div>
+      <!-- Notifications Card -->
+      <div class="bg-gradient-to-br from-pink-50 to-pink-100 p-5 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
+        <h2 class="text-sm font-medium text-gray-600 mb-2">Notifications</h2>
+        <p class="text-3xl font-bold text-pink-800">{{ total_notifications }}</p>
+      </div>
     </div>
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <!-- Top Categories Chart Card -->
+      <div class="bg-white rounded-xl shadow-md flex flex-col" style="height: 400px;">
+        <h2 class="text-lg font-semibold m-4 text-gray-800">Top Categories</h2>
+        <div class="flex-1 relative">
+          <canvas id="categoriesChart" class="absolute inset-0 w-full h-full"></canvas>
+        </div>
+      </div>
+
+      <!-- Projects Status Chart Card -->
+      <div class="bg-white rounded-xl shadow-md flex flex-col" style="height: 400px;">
+        <h2 class="text-lg font-semibold m-4 text-gray-800">Projects Status</h2>
+        <div class="flex-1 relative">
+          <canvas id="projectsStatusChart" class="absolute inset-0 w-full h-full"></canvas>
+        </div>
+      </div>
+
+      <!-- Monthly Registrations Line Chart Card -->
+      <div class="bg-white rounded-xl shadow-md flex flex-col" style="height: 400px;">
+        <h2 class="text-lg font-semibold m-4 text-gray-800">Monthly Registrations</h2>
+        <div class="flex-1 relative">
+          <canvas id="registrationsChart" class="absolute inset-0 w-full h-full"></canvas>
+        </div>
+      </div>
+
+      <!-- Monthly Project Submissions Line Chart Card -->
+      <div class="bg-white rounded-xl shadow-md flex flex-col" style="height: 400px;">
+        <h2 class="text-lg font-semibold m-4 text-gray-800">Monthly Project Submissions</h2>
+        <div class="flex-1 relative">
+          <canvas id="projectsChart" class="absolute inset-0 w-full h-full"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Popular Projects Section -->
+    <div class="bg-white p-6 rounded-xl shadow-md">
+      <h2 class="text-lg font-semibold mb-4 text-gray-800">Popular Projects</h2>
+      <ul class="divide-y divide-gray-200">
+        {% for project in popular_projects %}
+          <li class="py-4 hover:bg-gray-50 transition rounded">
+            <div class="flex justify-between items-center">
+              <div>
+                <span class="font-semibold text-gray-800">{{ project.title }}</span>
+                <div class="text-sm text-gray-500 mt-1">
+                  Views: {{ project.view_count }}, Applications: {{ project.application_count }}
+                </div>
+              </div>
+              <span class="text-green-600 font-medium">
+                +{{ project.view_count|add:project.application_count }} Interactions
+              </span>
+            </div>
+          </li>
+        {% empty %}
+          <li class="text-gray-500 text-center py-4">No popular projects available.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </main>
 </div>
+
+<!-- Include Chart.js from a CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Make sure to set maintainAspectRatio: false so the chart can fill the container.
+  const baseChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: {
+      duration: 1000,
+      easing: 'easeOutQuart'
+    },
+    plugins: {
+      tooltip: {
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        titleColor: '#fff',
+        bodyColor: '#fff'
+      }
+    }
+  };
+
+  // Top Categories Chart
+  const ctxCategories = document.getElementById('categoriesChart').getContext('2d');
+  const categoriesChart = new Chart(ctxCategories, {
+    type: 'pie',
+    data: {
+      labels: [
+        {% for category in top_categories %}
+          "{{ category.category__name }}",
+        {% endfor %}
+      ],
+      datasets: [{
+        label: 'Projects per Category',
+        data: [
+          {% for category in top_categories %}
+            {{ category.num_projects }},
+          {% endfor %}
+        ],
+        backgroundColor: [
+          'rgba(54, 162, 235, 0.6)',
+          'rgba(255, 99, 132, 0.6)',
+          'rgba(255, 206, 86, 0.6)',
+          'rgba(75, 192, 192, 0.6)',
+          'rgba(153, 102, 255, 0.6)'
+        ],
+        borderColor: [
+          'rgba(54, 162, 235, 1)',
+          'rgba(255, 99, 132, 1)',
+          'rgba(255, 206, 86, 1)',
+          'rgba(75, 192, 192, 1)',
+          'rgba(153, 102, 255, 1)'
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: baseChartOptions
+  });
+
+  // Projects Status Chart
+  const ctxProjectsStatus = document.getElementById('projectsStatusChart').getContext('2d');
+  const projectsStatusChart = new Chart(ctxProjectsStatus, {
+    type: 'pie',
+    data: {
+      labels: ['Active', 'Inactive'],
+      datasets: [{
+        label: 'Projects Status',
+        data: [{{ active_projects_count }}, {{ inactive_projects_count }}],
+        backgroundColor: [
+          'rgba(75, 192, 192, 0.6)',
+          'rgba(255, 99, 132, 0.6)'
+        ],
+        borderColor: [
+          'rgba(75, 192, 192, 1)',
+          'rgba(255, 99, 132, 1)'
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: baseChartOptions
+  });
+
+  // Monthly Registrations Line Chart
+  const ctxRegistrations = document.getElementById('registrationsChart').getContext('2d');
+  const registrationsChart = new Chart(ctxRegistrations, {
+    type: 'line',
+    data: {
+      labels: {{ monthly_registration_labels|safe }},
+      datasets: [{
+        label: 'Monthly Registrations',
+        data: {{ monthly_registration_data|safe }},
+        fill: false,
+        borderColor: 'rgba(54, 162, 235, 1)',
+        tension: 0.1
+      }]
+    },
+    options: baseChartOptions
+  });
+
+  // Monthly Project Submissions Line Chart
+  const ctxProjects = document.getElementById('projectsChart').getContext('2d');
+  const projectsChart = new Chart(ctxProjects, {
+    type: 'line',
+    data: {
+      labels: {{ monthly_project_labels|safe }},
+      datasets: [{
+        label: 'Monthly Project Submissions',
+        data: {{ monthly_project_data|safe }},
+        fill: false,
+        borderColor: 'rgba(255, 159, 64, 1)',
+        tension: 0.1
+      }]
+    },
+    options: baseChartOptions
+  });
+</script>
 {% endblock %}

@@ -2,596 +2,462 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScholarHub AI Assistant</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50">
-    <!-- Fixed Navbar -->
-    <nav class="bg-white shadow-md border-b border-gray-300 py-4 fixed w-full top-0 z-50">
-        <div class="container mx-auto flex justify-between items-center px-4">
-            <a class="text-2xl font-semibold text-gray-900" href="/">
-                <img src="/media/photo_5274128391500590554_x-removebg-preview.png"
-                     alt="ScholarHub"
-                     class="h-10 w-auto inline-block">
-            </a>
-            <button id="mobileMenuButton" class="block lg:hidden text-gray-900 focus:outline-none">
-                <span class="text-lg">☰</span>
-            </button>
-            <div class="hidden lg:flex space-x-6">
-                <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-about' %}">About</a>
-                <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-services' %}">Services</a>
-                <a class="text-gray-900 hover:text-gray-600" href="{% url 'marketplace' %}">Marketplace</a>
-                <a class="text-gray-900 hover:text-gray-600" href="{% url 'journal_list' %}">Resource Hub</a>
-                <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-contact' %}">Contact</a>
-                <a class="text-gray-900 hover:text-gray-600" href="{% url 'ai_assistant:ai_home' %}">AI Assistant</a>
-                {% if user.is_authenticated %}
-                    <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-profile' %}">Profile</a>
-                    <a class="text-gray-900 hover:text-gray-600" href="{% url 'logout' %}">Logout</a>
-                {% else %}
-                    <a class="text-gray-900 hover:text-gray-600" href="{% url 'login' %}">Sign in</a>
-                {% endif %}
-            </div>
-        </div>
-        <div id="mobileMenu" class="lg:hidden hidden bg-white border-t border-gray-300">
-            <div class="container mx-auto px-4 py-4 space-y-4">
-                <a class="block text-gray-900 hover:text-gray-600" href="{% url 'users-about' %}">About</a>
-                <a class="block text-gray-900 hover:text-gray-600" href="{% url 'users-services' %}">Services</a>
-                <a class="block text-gray-900 hover:text-gray-600" href="{% url 'marketplace' %}">Marketplace</a>
-                <a class="block text-gray-900 hover:text-gray-600" href="{% url 'journal_list' %}">Resource Hub</a>
-                <a class="block text-gray-900 hover:text-gray-600" href="{% url 'users-contact' %}">Contact</a>
-                <a class="block text-gray-900 hover:text-gray-600" href="{% url 'ai_assistant:ai_home' %}">AI Assistant</a>
-                {% if user.is_authenticated %}
-                    <a class="block text-gray-900 hover:text-gray-600" href="{% url 'users-profile' %}">Profile</a>
-                    <a class="block text-gray-900 hover:text-gray-600" href="{% url 'logout' %}">Logout</a>
-                {% else %}
-                    <a class="block text-gray-900 hover:text-gray-600" href="{% url 'login' %}">Sign in</a>
-                {% endif %}
-            </div>
-        </div>
-    </nav>
+  <meta charset="UTF-8">
+  <title>ScholarHub AI Assistant</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Nunito+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <div class="app-container pt-20 h-screen flex flex-col">
-        <div class="flex-1 flex overflow-hidden">
-
-            <!-- Recommendations Sidebar -->
-            <aside class="w-80 backdrop-blur-md bg-white/60 border-r border-indigo-100 p-6 hidden lg:block">
-                <h3 class="text-lg font-semibold text-indigo-900 mb-4 flex items-center">
-                    <i class="fas fa-bolt text-indigo-500 mr-2"></i> Quick Access
-                </h3>
-                <div class="space-y-5">
-                    <div class="flex space-x-3">
-                <!-- New Chat Button -->
-                <a href="{% url 'ai_assistant:new_chat' %}" id="new-chat-btn"
-                   class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-md transition-all">
-                    <i class="fas fa-plus mr-2"></i> New Chat
-                </a>
-            </div>
-                    <div class="recommendation-category">
-                        <h4 class="text-sm font-medium text-indigo-700 mb-3 uppercase tracking-wider">Research Help</h4>
-                        <div class="space-y-2.5">
-                            <button class="recommendation-btn">
-                                <i class="fas fa-question-circle text-indigo-500 mr-2"></i> Research Questions
-                            </button>
-                            <button class="recommendation-btn">
-                                <i class="fas fa-chart-line text-indigo-500 mr-2"></i> Trending Topics
-                            </button>
-                            <button class="recommendation-btn">
-                                <i class="fas fa-flask text-indigo-500 mr-2"></i> Methodology Help
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="recommendation-category mt-6">
-                        <h4 class="text-sm font-medium text-indigo-700 mb-3 uppercase tracking-wider">ScholarHub</h4>
-                        <div class="space-y-2.5">
-                            <button class="recommendation-btn">
-                                <i class="fas fa-rocket text-indigo-500 mr-2"></i> New Projects
-                            </button>
-                            <button class="recommendation-btn">
-                                <i class="fas fa-code-branch text-indigo-500 mr-2"></i> Needed Skills
-                            </button>
-                            <button class="recommendation-btn">
-                                <i class="fas fa-info-circle text-indigo-500 mr-2"></i> Platform Guide
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Activity Section -->
-                <div class="mt-8">
-                <h4 class="text-sm font-medium text-indigo-700 mb-3 uppercase tracking-wider flex items-center">
-                    <i class="fas fa-clock text-indigo-500 mr-2"></i> Chat History
-                </h4>
-                <div class="space-y-2.5">
-                    {% for session in chat_sessions %}
-                    <a href="{% url 'ai_assistant:load_chat' session.id %}"
-                       class="chat-session block p-3 bg-white rounded-xl shadow-sm border border-indigo-100 text-sm hover:bg-indigo-50 transition-colors">
-                        <div class="font-medium text-indigo-800">
-                            Chat from {{ session.started_at|date:"M d, H:i" }}
-                        </div>
-                        <div class="text-xs text-gray-500 mt-1">
-                            {{ session.messages.count }} messages
-                        </div>
-                    </a>
-                    {% empty %}
-                    <p class="text-sm text-indigo-600">No chat history found.</p>
-                    {% endfor %}
-                </div>
-            </div>
-            </aside>
-
-            <!-- Chat Area -->
-            <div class="flex-1 flex flex-col bg-white/40 backdrop-blur-sm">
-                <div id="chat-container" class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar" style="padding-bottom: 120px">
-                    {% if chat_history %}
-                        {% for message in chat_history %}
-                            {% if message.sender == "assistant" %}
-                                <div class="flex gap-4 animate-fadeIn">
-                                    <div class="flex flex-col items-center">
-                                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center shadow-md">
-                                            <i class="fas fa-robot text-white"></i>
-                                        </div>
-                                        <div class="h-full w-0.5 bg-indigo-100 mt-2 mb-1 flex-1"></div>
-                                    </div>
-                                    <div class="assistant-message max-w-3xl">
-                                        <div class="markdown-content prose prose-indigo">
-                                            {{ message.content|safe }}
-                                        </div>
-                                        <div class="mt-2 text-xs text-indigo-400 flex items-center space-x-2">
-                                            <i class="fas fa-clock"></i>
-                                            <span>{{ message.timestamp|date:"h:i A" }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% else %}
-                                <div class="flex gap-4 justify-end animate-fadeIn">
-                                    <div class="user-message max-w-3xl">
-                                        <p class="whitespace-pre-wrap">{{ message.content }}</p>
-                                        <div class="mt-2 text-xs text-indigo-100 flex items-center space-x-2 justify-end">
-                                            <span>{{ message.timestamp|date:"h:i A" }}</span>
-                                            <i class="fas fa-check-double"></i>
-                                        </div>
-                                    </div>
-                                    <div class="flex flex-col items-center">
-                                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-md">
-                                            <i class="fas fa-user text-white"></i>
-                                        </div>
-                                        <div class="h-full w-0.5 bg-indigo-100 mt-2 mb-1 flex-1"></div>
-                                    </div>
-                                </div>
-                            {% endif %}
-                        {% endfor %}
-                    {% else %}
-                        <div class="h-full flex items-center justify-center">
-                            <div class="text-center max-w-3xl px-4 animate-fadeIn">
-                                <div class="w-28 h-28 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full mb-8 mx-auto flex items-center justify-center shadow-xl">
-                                    <i class="fas fa-robot text-5xl text-white"></i>
-                                </div>
-                                <h2 class="text-4xl font-bold bg-gradient-to-r from-indigo-700 to-purple-600 bg-clip-text text-transparent mb-6">How can I help with your research today?</h2>
-                                <p class="text-lg text-gray-600 mb-8">I can help find papers, explain concepts, analyze data, and more.</p>
-                            </div>
-                        </div>
-                    {% endif %}
-
-                    <!-- Loading Indicator -->
-                    <div id="loading" class="flex justify-center my-6 hidden">
-                        <div class="flex items-center space-x-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-full shadow-lg">
-                            <div class="pulse-loader"></div>
-                            <span class="font-medium">Analyzing your request...</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Fixed Input Area -->
-                <div class="border-t border-indigo-100 bg-white/80 backdrop-blur-md fixed bottom-0 w-full" style="z-index: 1000">
-                    <!-- Add this in your input area section -->
-<!-- Updated File Preview Container -->
-<div id="image-preview-container" class="mb-4 hidden">
-    <div class="relative inline-block">
-        <div id="file-preview" class="space-y-2"></div>
-        <button id="remove-image" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center shadow-md hover:bg-red-600 transition-colors">
-            <i class="fas fa-times text-xs"></i>
-        </button>
-    </div>
-</div>
-                    <div class="container mx-auto p-6 pt-4 max-w-7xl">
-                        <div class="relative">
-                            <textarea id="user-message" rows="1"
-                                class="w-full pr-24 resize-none border border-indigo-200 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-30 bg-white rounded-2xl py-4 pl-6 shadow-sm transition-all"
-                                placeholder="Message Research Assistant..."
-                                style="min-height: 56px; max-height: 200px"></textarea>
-
-                            <div class="absolute right-3 bottom-3 flex space-x-2">
-                                <input type="file" id="user-image" class="hidden" accept="image/*">
-                                <button id="attachment-button"
-                                    class="w-10 h-10 flex items-center justify-center rounded-full bg-indigo-100 border border-indigo-200 hover:bg-indigo-200 text-indigo-600 transition-colors">
-                                    <i class="fas fa-paperclip"></i>
-                                </button>
-                                <button id="send-button"
-                                    class="w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md transition-all">
-                                    <i class="fas fa-paper-plane"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
-
-    <style>
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.02); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.5); }
-
-        .assistant-message {
-            background: linear-gradient(145deg, #ffffff, #f8f9ff);
-            border: 1px solid #e0e7ff;
-            border-radius: 1.5rem;
-            border-top-left-radius: 0.5rem;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.05);
-            padding: 1.25rem;
-        }
-
-        .user-message {
-            background: linear-gradient(145deg, #4f46e5, #6366f1);
-            border: 1px solid #4338ca;
-            border-radius: 1.5rem;
-            border-top-right-radius: 0.5rem;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.15);
-            padding: 1.25rem;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.8); opacity: 0.7; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(0.8); opacity: 0.7; }
-        }
-        /* Updated User Message Background */
+  <!-- Inline Styles: Refined Color Palette and Global Styles -->
+  <style>
+    :root {
+      --primary: #1A365D;       /* Deep navy blue */
+      --primary-light: #2D4A7A; /* Lighter navy blue */
+      --secondary: #F0B429;     /* Golden accent */
+      --tertiary: #48BB78;      /* Soft green */
+      --background: #F7FAFC;    /* Off-white background */
+      --paper: #FFFFFF;         /* Pure white */
+      --text: #2D3748;          /* Dark slate for text */
+      --text-light: #718096;    /* Medium slate for secondary text */
+      --border: #E2E8F0;        /* Light gray for borders */
+    }
+    .bgg {
+      background-color: #1A365D;
+    }
+    body {
+      background-color: var(--background);
+      color: var(--text);
+      font-family: 'Nunito Sans', sans-serif;
+      line-height: 1.6;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Cormorant Garamond', serif;
+      color: var(--primary);
+    }
+    /* Navbar styles */
+    .navbar {
+      background-color: var(--paper);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    .nav-link {
+      color: var(--text);
+      font-weight: 600;
+      transition: color 0.3s;
+    }
+    .nav-link:hover {
+      color: var(--primary);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      transition: transform 0.3s, box-shadow 0.3s;
+      box-shadow: 0 4px 6px rgba(45, 55, 72, 0.1);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(45, 55, 72, 0.15);
+    }
+    .btn-secondary {
+      background-color: transparent;
+      color: var(--primary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      transition: background 0.3s, color 0.3s;
+    }
+    .btn-secondary:hover {
+      background-color: var(--primary);
+      color: white;
+    }
+    /* Chat message styles */
+    .assistant-message {
+      background: linear-gradient(145deg, var(--paper), #f8f9ff);
+      border: 1px solid var(--border);
+      border-radius: 1.5rem;
+      padding: 1.25rem;
+    }
     .user-message {
-        background: linear-gradient(145deg, #3b82f6, #2563eb);
-        border: 1px solid #1d4ed8;
-        color: white;
+      background: linear-gradient(145deg, #3b82f6, #2563eb);
+      border: 1px solid #1d4ed8;
+      color: white;
+      border-radius: 1.5rem;
+      padding: 1.25rem;
     }
+    /* Custom scrollbar */
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.02); }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.5); }
+  </style>
+</head>
+<body class="min-h-screen">
+  <!-- Updated Navbar -->
+  <nav class="navbar fixed w-full top-0 z-50">
+    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="/" class="flex items-center space-x-2">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M2 17L12 22L22 17" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M2 12L12 17L22 12" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <span class="brand-logo text-2xl" style="color: var(--primary);">
+          Scholar<span style="color: var(--secondary);">Hub</span>
+        </span>
+      </a>
+      <div class="hidden lg:flex space-x-8">
+        <a class="nav-link text-base" href="{% url 'users-about' %}">About</a>
+        <a class="nav-link text-base" href="{% url 'users-services' %}">Services</a>
+        <a class="nav-link text-base" href="{% url 'marketplace' %}">Marketplace</a>
+        <a class="nav-link text-base" href="{% url 'journal_list' %}">Resource Hub</a>
+        <a class="nav-link text-base" href="{% url 'users-contact' %}">Contact</a>
+        <a class="nav-link text-base" href="{% url 'ai_assistant:ai_home' %}">AI Assistant</a>
+      </div>
+      <div class="hidden lg:flex items-center space-x-4">
+        {% if user.is_authenticated %}
+          <a href="{% url 'users-profile' %}" class="flex items-center space-x-2 nav-link">
+            <div class="w-8 h-8 bg-primary-light rounded-full flex items-center justify-center text-white">
+              <i class="fas fa-user text-sm"></i>
+            </div>
+            <span>Profile</span>
+          </a>
+          <a href="{% url 'logout' %}" class="btn-secondary">Log Out</a>
+        {% else %}
+          <a href="{% url 'login' %}" class="btn-secondary">Sign In</a>
+          <a href="{% url 'users-register' %}" class="btn-primary">Get Started</a>
+        {% endif %}
+      </div>
+      <button id="mobileMenuButton" class="lg:hidden flex items-center justify-center w-10 h-10 rounded-md text-primary hover:bg-gray-100 transition">
+        <i class="fas fa-bars text-xl"></i>
+      </button>
+    </div>
+    <div id="mobileMenu" class="lg:hidden hidden bg-paper border-t border-gray-300">
+      <div class="container mx-auto px-6 py-4 space-y-4">
+        <a class="block nav-link text-lg font-medium" href="{% url 'users-about' %}">About</a>
+        <a class="block nav-link text-lg font-medium" href="{% url 'users-services' %}">Services</a>
+        <a class="block nav-link text-lg font-medium" href="{% url 'marketplace' %}">Marketplace</a>
+        <a class="block nav-link text-lg font-medium" href="{% url 'journal_list' %}">Resource Hub</a>
+        <a class="block nav-link text-lg font-medium" href="{% url 'users-contact' %}">Contact</a>
+        <a class="block nav-link text-lg font-medium" href="{% url 'ai_assistant:ai_home' %}">AI Assistant</a>
+        {% if user.is_authenticated %}
+          <a href="{% url 'users-profile' %}" class="flex items-center space-x-3 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors">
+            <div class="w-8 h-8 bg-primary-light rounded-full flex items-center justify-center text-white">
+              <i class="fas fa-user text-sm"></i>
+            </div>
+            <span>My Profile</span>
+          </a>
+          <a href="{% url 'logout' %}" class="btn-secondary w-full text-center mt-4">Log Out</a>
+        {% else %}
+          <a href="{% url 'login' %}" class="btn-secondary w-full text-center">Sign In</a>
+          <a href="{% url 'users-register' %}" class="btn-primary w-full text-center mt-4">Get Started</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
 
-    /* Enhanced Thinking Indicator */
-    .thinking-indicator {
-        position: fixed;
-        bottom: 120px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #e0e7ff;
-        padding: 8px 20px;
-        border-radius: 20px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.9rem;
-        color: #4f46e5;
-        box-shadow: 0 2px 10px rgba(79, 70, 229, 0.1);
+  <!-- Main Chat Interface -->
+  <div class="app-container pt-20 h-screen flex flex-col">
+    <div class="flex-1 flex overflow-hidden">
+      <!-- Sidebar (New Chat Button and Chat History) -->
+      <aside class="w-80 backdrop-blur-md bg-paper/80 border-r border-gray-200 p-6 hidden lg:block">
+{#        <h3 class="text-lg font-semibold mb-4 flex items-center" style="color: var(--primary);">#}
+{#          <i class="fas fa-bolt mr-2" style="color: var(--secondary);"></i> Quick Access#}
+{#        </h3>#}
+        <div class="space-y-5">
+          <div class="flex space-x-3">
+            <a href="{% url 'ai_assistant:new_chat' %}" id="new-chat-btn"
+               class="bgg px-4 py-2 bg-primary text-white rounded-full shadow-md transition-all hover:bg-primary-light">
+              <i class="fas fa-plus mr-2"></i> New Chat
+            </a>
+          </div>
+        </div>
+        <!-- Recent Activity Section with Scroll -->
+        <div class="mt-8">
+          <h4 class="text-sm font-medium mb-3 uppercase tracking-wider flex items-center" style="color: var(--primary);">
+            <i class="fas fa-clock mr-2" style="color: var(--secondary);"></i> Chat History
+          </h4>
+          <div class="space-y-2.5 overflow-y-auto" style="max-height: 10000px;">
+            {% for session in chat_sessions %}
+            <a href="{% url 'ai_assistant:load_chat' session.id %}"
+               class="chat-session block p-3 bg-paper rounded-xl shadow-sm border border-gray-200 text-sm hover:bg-indigo-50 transition-colors">
+              <div class="font-medium" style="color: var(--primary);">
+                Chat from {{ session.started_at|date:"M d, H:i" }}
+              </div>
+              <div class="text-xs text-gray-500 mt-1">
+                {{ session.messages.count }} messages
+              </div>
+            </a>
+            {% empty %}
+            <p class="text-sm" style="color: var(--secondary);">No chat history found.</p>
+            {% endfor %}
+          </div>
+        </div>
+      </aside>
+
+      <!-- Chat Area -->
+      <div class="flex-1 flex flex-col bg-paper/80 backdrop-blur-sm">
+        <div id="chat-container" class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar" style="padding-bottom: 120px">
+          {% if chat_history %}
+            {% for message in chat_history %}
+              {% if message.sender == "assistant" %}
+                <div class="flex gap-4 animate-fadeIn">
+                  <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center shadow-md">
+                      <i class="fas fa-robot text-blue"></i>
+                    </div>
+                    <div class="h-full w-0.5 bg-indigo-100 mt-2 mb-1 flex-1"></div>
+                  </div>
+                  <div class="assistant-message max-w-3xl">
+                    <div class="markdown-content prose" style="color: var(--text);">
+                      {{ message.content|safe }}
+                    </div>
+                    <div class="mt-2 text-xs flex items-center space-x-2" style="color: var(--text-light);">
+                      <i class="fas fa-clock"></i>
+                      <span>{{ message.timestamp|date:"h:i A" }}</span>
+                    </div>
+                  </div>
+                </div>
+              {% else %}
+                <div class="flex gap-4 justify-end animate-fadeIn">
+                  <div class="user-message max-w-3xl">
+                    <p class="whitespace-pre-wrap">{{ message.content }}</p>
+                    <div class="mt-2 text-xs flex items-center space-x-2 justify-end" style="color: white">
+                      <span>{{ message.timestamp|date:"h:i A" }}</span>
+                      <i class="fas fa-check-double"></i>
+                    </div>
+                  </div>
+                  <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-tertiary to-green-600 flex items-center justify-center shadow-md">
+                      <i class="fas fa-user text-blue"></i>
+                    </div>
+                    <div class="h-full w-0.5 bg-indigo-100 mt-2 mb-1 flex-1"></div>
+                  </div>
+                </div>
+              {% endif %}
+            {% endfor %}
+          {% else %}
+            <div class="h-full flex items-center justify-center">
+              <div class="text-center max-w-3xl px-4 animate-fadeIn">
+                <div class="w-28 h-28 bg-gradient-to-br from-primary to-secondary rounded-full mb-8 mx-auto flex items-center justify-center shadow-xl">
+                  <i class="fas fa-robot text-5xl text-blue"></i>
+                </div>
+                <h2 class="bgg text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-6">
+                  How can I help with your research today?
+                </h2>
+                <p class="text-lg" style="color: #1A365D">
+                  I can help find papers, explain concepts, analyze data, and more.
+                </p>
+              </div>
+            </div>
+          {% endif %}
+          <!-- Loading Indicator -->
+          <div id="loading" class="flex justify-center my-6 hidden">
+            <div class="bgg flex items-center space-x-3 bg-gradient-to-r from-primary to-primary-light text-white px-6 py-3 rounded-full shadow-lg">
+              <div class="pulse-loader"></div>
+              <span class="font-medium">Analyzing your request...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fixed Input Area with Quick Buttons -->
+        <div class="border-t border-indigo-100 bg-paper/80 backdrop-blur-md fixed bottom-0 w-full" style="z-index: 1000">
+          <div class="container mx-auto p-6 pt-4 max-w-7xl">
+            <!-- Quick Buttons as Tags -->
+            <div class="flex space-x-2 mb-2">
+              <button class="quick-btn px-3 py-1 rounded-full border border-indigo-200 hover:bg-indigo-100 transition-colors" data-prompt="Help me formulate research questions about...">Research Questions</button>
+              <button class="quick-btn px-3 py-1 rounded-full border border-indigo-200 hover:bg-indigo-100 transition-colors" data-prompt="What are the current trending research topics in...">Trending Topics</button>
+              <button class="quick-btn px-3 py-1 rounded-full border border-indigo-200 hover:bg-indigo-100 transition-colors" data-prompt="Suggest appropriate research methodologies for...">Methodology Help</button>
+              <button class="quick-btn px-3 py-1 rounded-full border border-indigo-200 hover:bg-indigo-100 transition-colors" data-prompt="Show me the newest projects in...">New Projects</button>
+              <button class="quick-btn px-3 py-1 rounded-full border border-indigo-200 hover:bg-indigo-100 transition-colors" data-prompt="What skills are most needed for...">Needed Skills</button>
+              <button class="quick-btn px-3 py-1 rounded-full border border-indigo-200 hover:bg-indigo-100 transition-colors" data-prompt="Explain how to use ScholarHub's...">Platform Guide</button>
+            </div>
+            <!-- Message Input Area -->
+            <div class="relative">
+              <textarea id="user-message" rows="1"
+                class="w-full pr-16 resize-none border border-indigo-200 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-30 bg-paper rounded-2xl py-4 pl-6 shadow-sm transition-all"
+                placeholder="Message Research Assistant..."
+                style="min-height: 56px; max-height: 200px"></textarea>
+
+              <div class="absolute right-3 bottom-3">
+                <button id="send-button"
+                  class="bgg w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-primary text-white shadow-md transition-all">
+                  <i class="fas fa-paper-plane"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts: Markdown, Highlight.js, Custom JS -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+  <style>
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.02); }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.5); }
+    @keyframes pulse {
+      0% { transform: scale(0.8); opacity: 0.7; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(0.8); opacity: 0.7; }
     }
-
-    /* File Preview Styles */
-    .file-preview-item {
-        background: #f1f5f9;
-        padding: 8px 12px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
+    .pulse-loader {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.7);
+      animation: pulse 1.5s infinite ease-in-out;
     }
-
-        .pulse-loader {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.7);
-            animation: pulse 1.5s infinite ease-in-out;
-        }
-        /* Add these new styles */
-    .thinking-text {
-        background-color: #f0f4ff;
-        border-left: 4px solid #4f46e5;
-        padding: 1rem;
-        margin: 1rem 0;
-        border-radius: 0.5rem;
-        color: #4b5563;
-        font-style: italic;
-        position: relative;
-    }
-
-    .thinking-text::before {
-        content: "Thinking Process";
-        display: block;
-        font-weight: 600;
-        color: #4f46e5;
-        font-size: 0.875rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .answer-text {
-        background-color: #f8fafc;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin: 1rem 0;
-    }
-    </style>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const chatContainer = document.getElementById('chat-container');
+  </style>
+  <script>
+    // Grab elements
     const textarea = document.getElementById('user-message');
     const loadingIndicator = document.getElementById('loading');
-    const newChatBtn = document.getElementById('new-chat-btn');
-    const attachmentBtn = document.getElementById('attachment-button');
-    const fileInput = document.getElementById('user-image');
-    const imagePreviewContainer = document.getElementById('image-preview-container');
-    const imagePreview = document.getElementById('image-preview');
-    const removeImageBtn = document.getElementById('remove-image');
+    const chatContainer = document.getElementById('chat-container');
+    const sendButton = document.getElementById('send-button');
 
-    // Mobile menu toggle
-    document.getElementById('mobileMenuButton').addEventListener('click', () => {
-        document.getElementById('mobileMenu').classList.toggle('hidden');
-    });
-
-    // Textarea auto-resize
-    textarea.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = Math.min(this.scrollHeight, 200) + 'px';
-    });
-
-    // Create message element
+    // Create message element function
     const createMessageElement = (content, sender, timestamp = new Date()) => {
-        const div = document.createElement('div');
-        const time = timestamp.toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-
-        if (sender === 'assistant') {
-            div.className = 'flex gap-4 animate-fadeIn';
-            div.innerHTML = `
-                <div class="flex flex-col items-center">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center shadow-md">
-                        <i class="fas fa-robot text-white"></i>
-                    </div>
-                </div>
-                <div class="assistant-message max-w-3xl">
-                    <div class="markdown-content prose prose-indigo">${marked.parse(content)}</div>
-                    <div class="mt-2 text-xs text-indigo-400 flex items-center space-x-2">
-                        <i class="fas fa-clock"></i>
-                        <span>${time}</span>
-                    </div>
-                </div>
-            `;
-        } else {
-            div.className = 'flex gap-4 justify-end animate-fadeIn';
-            div.innerHTML = `
-                <div class="user-message max-w-3xl">
-                    <p class="whitespace-pre-wrap">${content}</p>
-                    <div class="mt-2 text-xs text-indigo-100 flex items-center space-x-2 justify-end">
-                        <span>${time}</span>
-                        <i class="fas fa-check-double"></i>
-                    </div>
-                </div>
-                <div class="flex flex-col items-center">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-md">
-                        <i class="fas fa-user text-white"></i>
-                    </div>
-                </div>
-            `;
-        }
-        return div;
+      const div = document.createElement('div');
+      const time = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      if (sender === 'assistant') {
+        div.className = 'flex gap-4 animate-fadeIn';
+        div.innerHTML = `
+          <div class="flex flex-col items-center">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center shadow-md">
+              <i class="fas fa-robot text-blue"></i>
+            </div>
+            <div class="h-full w-0.5 bg-indigo-100 mt-2 mb-1 flex-1"></div>
+          </div>
+          <div class="assistant-message max-w-3xl">
+            <div class="markdown-content prose" style="color: var(--text);">
+              ${marked.parse(content)}
+            </div>
+            <div class="mt-2 text-xs flex items-center space-x-2" style="color: var(--text-light);">
+              <i class="fas fa-clock"></i>
+              <span>${time}</span>
+            </div>
+          </div>
+        `;
+      } else {
+        div.className = 'flex gap-4 justify-end animate-fadeIn';
+        div.innerHTML = `
+          <div class="user-message max-w-3xl">
+            <div class="message-content">${content}</div>
+            <div class="mt-2 text-xs flex items-center space-x-2 justify-end" style="color: var(--text-light);">
+              <span>${time}</span>
+              <i class="fas fa-check-double"></i>
+            </div>
+          </div>
+          <div class="flex flex-col items-center">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-tertiary to-green-600 flex items-center justify-center shadow-md">
+              <i class="fas fa-user text-blue"></i>
+            </div>
+            <div class="h-full w-0.5 bg-indigo-100 mt-2 mb-1 flex-1"></div>
+          </div>
+        `;
+      }
+      return div;
     };
 
-    // Send message handler
-    const sendMessage = async () => {
-        const message = textarea.value.trim();
-        const file = fileInput.files[0];
+    /**
+     * sendMessage now accepts two optional parameters:
+     * @param {string|null} displayText - The text to display in the chat (e.g. "Research Questions").
+     * @param {string|null} promptText - The text to send to the server (e.g. "Help me formulate research questions about...").
+     * If displayText is null, the function uses the textarea value.
+     */
+    const sendMessage = async (displayText = null, promptText = null) => {
+      // Determine the text to display
+      let messageToDisplay = displayText !== null ? displayText.trim() : textarea.value.trim();
+      if (!messageToDisplay) return;
 
-        if (!message && !file) return;
+      // Determine the text to send (if not provided, use the same as display text)
+      let messageToSend = promptText !== null ? promptText.trim() : messageToDisplay;
 
-        const formData = new FormData();
-        if (message) formData.append('message', message);
-        if (file) formData.append('image', file);
-        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+      const formData = new FormData();
+      formData.append('message', messageToSend);
+      formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
 
-        // Show user message immediately
-        if (message) {
-            const userMessageElement = createMessageElement(message, 'user');
-            chatContainer.appendChild(userMessageElement);
-        }
+      // Append the user message with the display text
+      const userMessageElement = createMessageElement(messageToDisplay, 'user');
+      chatContainer.appendChild(userMessageElement);
 
-        // Show image preview in chat
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const imgElement = document.createElement('img');
-                imgElement.src = e.target.result;
-                imgElement.className = 'h-32 rounded-lg border border-indigo-200 shadow-sm';
-                const fileMessageElement = createMessageElement('', 'user');
-                fileMessageElement.querySelector('.user-message').prepend(imgElement);
-                chatContainer.appendChild(fileMessageElement);
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // Clear inputs
+      // Clear the textarea if this wasn’t triggered by a quick button
+      if (displayText === null) {
         textarea.value = '';
         textarea.style.height = 'auto';
-        fileInput.value = '';
-        imagePreviewContainer.classList.add('hidden');
+      }
 
-        // Show loading
-        loadingIndicator.classList.remove('hidden');
-        chatContainer.scrollTop = chatContainer.scrollHeight;
+      loadingIndicator.classList.remove('hidden');
+      chatContainer.scrollTop = chatContainer.scrollHeight;
 
-        try {
-            const response = await fetch("{% url 'ai_assistant:research_agent' %}", {
-                method: "POST",
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: formData
-            });
-
-            const data = await response.json();
-            if (data.choices?.[0]?.message?.content) {
-                const assistantMessageElement = createMessageElement(
-                    data.choices[0].message.content,
-                    'assistant'
-                );
-                chatContainer.appendChild(assistantMessageElement);
-
-                // Highlight code
-                document.querySelectorAll('pre code').forEach(hljs.highlightElement);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'flex justify-center my-4 animate-fadeIn';
-            errorDiv.innerHTML = `
-                <div class="bg-red-100 border border-red-200 text-red-700 px-4 py-3 rounded-lg shadow-sm">
-                    <div class="flex items-center">
-                        <i class="fas fa-exclamation-circle mr-2 text-red-500"></i>
-                        <span>Error processing request. Please try again.</span>
-                    </div>
-                </div>
-            `;
-            chatContainer.appendChild(errorDiv);
-        } finally {
-            loadingIndicator.classList.add('hidden');
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+      try {
+        const response = await fetch("{% url 'ai_assistant:research_agent' %}", {
+          method: "POST",
+          headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+          body: formData
+        });
+        const data = await response.json();
+        if (data.message) {
+          const assistantMessageElement = createMessageElement(data.message, 'assistant');
+          chatContainer.appendChild(assistantMessageElement);
+          document.querySelectorAll('pre code').forEach(hljs.highlightElement);
         }
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        loadingIndicator.classList.add('hidden');
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
     };
 
-    // File preview handling
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                imagePreview.src = e.target.result;
-                imagePreviewContainer.classList.remove('hidden');
-            };
-            reader.readAsDataURL(e.target.files[0]);
-        }
+    // Event listener for quick buttons (using the new class .quick-btn)
+    document.querySelectorAll('.quick-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const promptText = btn.getAttribute('data-prompt');
+        const displayText = btn.textContent.trim();
+        sendMessage(displayText, promptText);
+      });
     });
 
-    removeImageBtn.addEventListener('click', () => {
-        imagePreviewContainer.classList.add('hidden');
-        fileInput.value = '';
-    });
-
-    // Event listeners
-    attachmentBtn.addEventListener('click', () => fileInput.click());
-    document.getElementById('send-button').addEventListener('click', sendMessage);
-
+    // Event listeners for sending message via the send button and Enter key
+    sendButton.addEventListener('click', () => sendMessage());
     textarea.addEventListener('keypress', e => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-        }
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
     });
 
-    // Quick Access buttons
-    const quickAccessPrompts = {
-        'Research Questions': 'Help me formulate research questions about...',
-        'Trending Topics': 'What are the current trending research topics in...',
-        'Methodology Help': 'Suggest appropriate research methodologies for...',
-        'New Projects': 'Show me the newest projects in...',
-        'Needed Skills': 'What skills are most needed for...',
-        'Platform Guide': 'Explain how to use ScholarHub\'s...'
-    };
-
-    document.querySelectorAll('.recommendation-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const buttonText = btn.textContent.replace(/.*»/, '').trim();
-            const prompt = quickAccessPrompts[buttonText] || buttonText;
-            textarea.value = prompt;
-            textarea.dispatchEvent(new Event('input'));
-            setTimeout(sendMessage, 100);
-        });
-    });
-
-    // Chat History loading
+    // Event listeners for chat history sessions (opening old chats)
     document.querySelectorAll('.chat-session').forEach(link => {
-        link.addEventListener('click', async (e) => {
-            e.preventDefault();
-            try {
-                const response = await fetch(link.href);
-                const data = await response.json();
-                chatContainer.innerHTML = '';
-                data.messages.forEach(msg => {
-                    const element = createMessageElement(
-                        msg.content,
-                        msg.sender,
-                        new Date(msg.timestamp)
-                    );
-                    chatContainer.appendChild(element);
-                });
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            } catch (error) {
-                console.error('Error loading chat:', error);
-            }
-        });
+      link.addEventListener('click', async (e) => {
+        e.preventDefault();
+        try {
+          const response = await fetch(link.href);
+          const data = await response.json();
+          chatContainer.innerHTML = '';
+          data.messages.forEach(msg => {
+            const element = createMessageElement(msg.content, msg.sender, new Date(msg.timestamp));
+            chatContainer.appendChild(element);
+          });
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        } catch (error) {
+          console.error('Error loading chat:', error);
+        }
+      });
     });
-
-    // Auto-scroll
-    const observer = new MutationObserver(() => {
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-    });
-    observer.observe(chatContainer, { childList: true, subtree: true });
-});
-
-
-// Corrected JavaScript variables
-const filePreviewContainer = document.getElementById('image-preview-container');
-const filePreviewContent = document.getElementById('file-preview');
-const removeFileBtn = document.getElementById('remove-image');
-
-// Updated file input change handler
-fileInput.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) {
-        filePreviewContainer.classList.remove('hidden');
-        const file = e.target.files[0];
-        const reader = new FileReader();
-
-        reader.onload = (e) => {
-            filePreviewContent.innerHTML = `
-                <div class="flex items-center space-x-3 p-2 bg-indigo-50 rounded-lg">
-                    ${file.type.startsWith('image/') ?
-                        `<img src="${e.target.result}" class="h-24 rounded-lg border border-indigo-200">` :
-                        `<div class="flex items-center space-x-3">
-                            <i class="fas fa-file text-indigo-600 text-2xl"></i>
-                            <div>
-                                <div class="text-sm font-medium text-indigo-800">${file.name}</div>
-                                <div class="text-xs text-indigo-500">${(file.size/1024).toFixed(1)}KB</div>
-                            </div>
-                        </div>`
-                    }
-                </div>
-            `;
-        };
-
-        reader.readAsDataURL(file);
-    }
-});
-
-// Remove file handler
-removeFileBtn.addEventListener('click', () => {
-    fileInput.value = '';
-    filePreviewContent.innerHTML = '';
-    filePreviewContainer.classList.add('hidden');
-});
-</script>
+  </script>
 </body>
 </html>

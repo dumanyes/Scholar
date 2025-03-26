@@ -1,4 +1,6 @@
 from django.urls import path
+
+from . import views
 from .views import (
     dashboard_view,
     manage_users_view,
@@ -18,4 +20,7 @@ urlpatterns = [
     path('projects/edit/<int:project_id>/', edit_project_view, name='dashboard-edit-project'),
     path('projects/delete/<int:project_id>/', delete_project_view, name='dashboard-delete-project'),
     path('contacts/', contact_messages_view, name='dashboard-contacts'),
+    path('applications/', views.manage_applications_view, name='dashboard-applications'),
+    path('contacts/<int:pk>/', views.contact_message_detail, name='contact_message_detail'),
+    path('contacts/<int:pk>/delete/', views.contact_message_delete, name='contact_message_delete'),
 ]

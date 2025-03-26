@@ -1,265 +1,498 @@
 {% extends "users/base.html" %}
-{% block title %}Home Page{% endblock title %}
+{% block title %}Home Page - ScholarHub{% endblock title %}
 {% block content %}
-<!-- Tailwind CSS CDN -->
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          primary: '#3b82f6',
-          secondary: '#4f46e5',
-        }
-      }
-    }
+
+<style>
+  /* Enhanced typography */
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
   }
-</script>
+  
+  .gradient-text {
+    background: linear-gradient(45deg, var(--primary) 0%, var(--primary-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+  }
+  
+  /* Enhanced cards and containers */
+  .feature-card {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+  }
 
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+  .feature-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  }
+  
+  .feature-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    width: 0;
+    background: linear-gradient(90deg, var(--secondary) 0%, var(--tertiary) 100%);
+    transition: width 0.4s ease;
+  }
+  
+  .feature-card:hover::after {
+    width: 100%;
+  }
 
-<!-- Chart.js CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  .stat-number {
+    font-family: 'Cormorant Garamond', serif;
+    letter-spacing: -0.03em;
+    font-weight: 700;
+  }
 
-<!-- Hero Section -->
-<section class="bg-gray-50 py-20">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-    <h1 class="text-4xl font-semibold text-gray-900 mb-6 leading-tight">
-      Connect. Collaborate.<br>Create Impact.
-    </h1>
-    <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-10">
-      Join a global network of researchers and innovators. Find collaborators, share resources, 
-      and accelerate your research with AI-powered tools.
-    </p>
-    <a href="{% url 'marketplace' %}" class="inline-flex items-center px-6 py-3 rounded-full bg-primary text-white font-medium hover:bg-blue-600 transition duration-200 shadow-sm hover:shadow-md space-x-2">
-      <i class="fas fa-rocket"></i>
-      <span>Get Started</span>
-    </a>
-  </div>
-</section>
+  .icon-container {
+    background: rgba(240, 180, 41, 0.15);
+    color: var(--secondary);
+    transition: all 0.3s ease;
+  }
+  
+  .feature-card:hover .icon-container {
+    transform: scale(1.1);
+    background: var(--secondary);
+    color: white;
+  }
+  
+  /* Decorative elements */
+  .blob-shape {
+    position: absolute;
+    z-index: -1;
+    opacity: 0.5;
+    filter: blur(40px);
+  }
+  
+  /* Enhanced sections */
+  .hero-section {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .hero-pattern {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background-image: radial-gradient(var(--border) 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0.4;
+    z-index: -1;
+  }
+  
+  .testimonial-card {
+    position: relative;
+    padding: 2rem;
+    border-radius: 12px;
+    background: var(--paper);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  }
+  
+  .testimonial-card::before {
+    position: absolute;
+    top: -20px;
+    left: 20px;
+    font-size: 100px;
+    color: var(--secondary);
+    opacity: 0.2;
+    font-family: 'Cormorant Garamond', serif;
+    line-height: 1;
+  }
+  
+  /* Animation classes */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+    100% { transform: translateY(0px); }
+  }
+  
+  /* Custom button styles */
+  .btn-gradient {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: white;
+    font-weight: 600;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(26, 54, 93, 0.2);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+  }
+  
+  .btn-gradient:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(26, 54, 93, 0.3);
+  }
+  
+  .btn-gradient::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+    z-index: -1;
+    transition: opacity 0.3s ease;
+    opacity: 0;
+  }
+  
+  .btn-gradient:hover::after {
+    opacity: 1;
+  }
+  
+  /* Stats counter animation */
+  .counter-animation {
+    display: inline-block;
+    animation: countUp 2s ease-out forwards;
+  }
+  
+  @keyframes countUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
 
-<!-- Stats Section with Visualizations -->
-<section class="py-16 bg-white">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-    <h2 class="text-2xl font-medium text-center text-gray-900 mb-12">Research Network Statistics</h2>
-    
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
-      <!-- Researchers Chart -->
-      <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-        <div class="mb-4 flex items-center">
-          <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-            <i class="fas fa-users text-primary"></i>
-          </div>
-          <h3 class="text-lg font-medium text-gray-900">Researchers</h3>
+<!-- Hero Section with Animation -->
+<!-- Hero Section with Animation -->
+<!-- Hero Section with Animation -->
+<section class="hero-section pt-20 pb-24 px-4">
+  <div class="hero-pattern"></div>
+  <div class="blob-shape bg-[var(--blue-muted)] opacity-10 w-96 h-96 rounded-full -top-48 -left-48"></div>
+  <div class="blob-shape bg-[var(--green-soft)] opacity-10 w-64 h-64 rounded-full top-20 right-20 animate-float"></div>
+  
+  <div class="container max-w-6xl mx-auto">
+    <div class="flex flex-col lg:flex-row items-center">
+      <!-- Left Content -->
+      <div class="lg:w-7/12 text-center lg:text-left mb-12 lg:mb-0">
+        <h1 class="hero-title text-5xl md:text-6xl font-bold mb-6 leading-none animate__animated animate__fadeInUp">
+          Where <span class="gradient-text">Research Excellence</span> Meets <span class="gradient-text">Global Collaboration</span>
+        </h1>
+        <p class="text-xl text-text-light max-w-2xl mx-auto lg:mx-0 mb-10 animate__animated animate__fadeInUp animate__delay-1s">
+          Connect with brilliant minds worldwide, accelerate discoveries, and transform your research with our AI-powered collaboration platform.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate__animated animate__fadeInUp animate__delay-2s">
+          <a href="{% url 'marketplace' %}" class="btn-gradient inline-flex items-center justify-center">
+            <i class="fas fa-rocket mr-2"></i>
+            <span>Start Your Research Journey</span>
+          </a>
+          <a href="{% url 'journal_list' %}" class="btn-secondary inline-flex items-center justify-center">
+            <i class="fas fa-book-open mr-2"></i>
+            <span>Explore Resources</span>
+          </a>
         </div>
-        <div class="h-52 relative">
-          <canvas id="researchersChart"></canvas>
-        </div>
-        <p class="text-3xl font-semibold text-primary text-center mt-4">{{ total_researchers }}</p>
       </div>
-      
-      <!-- Projects Chart -->
-      <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-        <div class="mb-4 flex items-center">
-          <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-            <i class="fas fa-project-diagram text-primary"></i>
-          </div>
-          <h3 class="text-lg font-medium text-gray-900">Active Projects</h3>
+
+      <!-- Right Image Section -->
+      <div class="lg:w-5/12 animate__animated animate__fadeInRight animate__delay-1s">
+        <div class="relative">
+          <div class="bg-[var(--blue-soft)] opacity-10 w-64 h-64 rounded-full absolute -z-10 -top-10 -right-10"></div>
+          
+          <!-- Vector Illustration -->
+          <img 
+            src="/media/img_11.png" 
+            alt="Research vector" 
+            class="rounded-xl shadow-xl relative z-10" 
+            loading="lazy"
+          />
+
+         
+          
         </div>
-        <div class="h-52 relative">
-          <canvas id="projectsChart"></canvas>
-        </div>
-        <p class="text-3xl font-semibold text-primary text-center mt-4">{{ total_projects }}</p>
-      </div>
-      
-      <!-- Countries Chart -->
-      <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-        <div class="mb-4 flex items-center">
-          <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-            <i class="fas fa-globe text-primary"></i>
-          </div>
-          <h3 class="text-lg font-medium text-gray-900">Countries</h3>
-        </div>
-        <div class="h-52 relative">
-          <canvas id="countriesChart"></canvas>
-        </div>
-        <p class="text-3xl font-semibold text-primary text-center mt-4">85+</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Lists Section -->
-<section class="py-16 bg-gray-50">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-    <h2 class="text-2xl font-medium text-center text-gray-900 mb-12">Discover Opportunities</h2>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <!-- Top Categories -->
-      <div class="bg-white rounded-lg shadow-sm p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-6 flex items-center">
-          <i class="fas fa-tags text-primary mr-2"></i> Top Categories
-        </h3>
-        <div class="space-y-4">
-          {% for category in top_categories %}
-          <div>
-            <div class="flex justify-between mb-1">
-              <span class="text-sm font-medium text-gray-700">{{ category.name }}</span>
-              <span class="text-sm font-medium text-gray-500">{{ category.count }}</span>
-            </div>
-            <div class="w-full bg-gray-200 rounded-full h-2">
-              <div class="bg-primary h-2 rounded-full" style="width: {{ category.count|add:10 }}%"></div>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-      
-      <!-- Most Needed Skills -->
-      <div class="bg-white rounded-lg shadow-sm p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-6 flex items-center">
-          <i class="fas fa-tools text-primary mr-2"></i> Most Needed Skills
-        </h3>
-        <div class="space-y-4">
-          {% for skill in most_needed_skills %}
-          <div>
-            <div class="flex justify-between mb-1">
-              <span class="text-sm font-medium text-gray-700">{{ skill.name }}</span>
-              <span class="text-sm font-medium text-gray-500">{{ skill.count }}</span>
-            </div>
-            <div class="w-full bg-gray-200 rounded-full h-2">
-              <div class="bg-primary h-2 rounded-full" style="width: {{ skill.count|add:15 }}%"></div>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
-<!-- Features Section -->
-<section class="py-16 bg-white">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-    <h2 class="text-2xl font-medium text-center text-gray-900 mb-12">Platform Features</h2>
+<!-- Stats Section with Counter Animation -->
+<section class="py-20 bg-background relative overflow-hidden">
+  <div class="blob-shape bg-primary opacity-5 w-96 h-96 rounded-full -bottom-48 -right-48"></div>
+  
+  <div class="container max-w-6xl mx-auto px-4">
+    <h2 class="text-3xl md:text-4xl font-bold text-center mb-16 font-serif">Our Global Research Community</h2>
     
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <!-- Feature 1 -->
-      <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center transition duration-300 hover:shadow-md hover:-translate-y-1">
-        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <i class="fas fa-brain text-primary"></i>
+      <div class="feature-card p-8 text-center">
+        <div class="icon-container w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+          <i class="fas fa-users text-xl"></i>
         </div>
-        <h3 class="text-lg font-medium text-gray-900 mb-3">Smart Matching</h3>
-        <p class="text-gray-600 text-sm">
-          Our AI analyzes profiles and projects to create perfect matches based on skills, interests, and research goals.
-        </p>
+        <h3 class="text-xl font-bold text-primary mb-3">Active Researchers</h3>
+        <p class="stat-number text-5xl text-secondary mb-2 counter-animation">{{ total_researchers }}+</p>
+        <p class="text-text-light">Brilliant minds collaborating</p>
       </div>
-      
-      <!-- Feature 2 -->
-      <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center transition duration-300 hover:shadow-md hover:-translate-y-1">
-        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <i class="fas fa-comments text-primary"></i>
+
+      <div class="feature-card p-8 text-center">
+        <div class="icon-container w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+          <i class="fas fa-project-diagram text-xl"></i>
         </div>
-        <h3 class="text-lg font-medium text-gray-900 mb-3">Real-time Collaboration</h3>
-        <p class="text-gray-600 text-sm">
-          Integrated workspace with chat, video conferencing, and document sharing for seamless teamwork.
-        </p>
+        <h3 class="text-xl font-bold text-primary mb-3">Research Projects</h3>
+        <p class="stat-number text-5xl text-secondary mb-2 counter-animation">{{ total_projects }}+</p>
+        <p class="text-text-light">Groundbreaking initiatives</p>
       </div>
-      
-      <!-- Feature 3 -->
-      <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center transition duration-300 hover:shadow-md hover:-translate-y-1">
-        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <i class="fas fa-chart-line text-primary"></i>
+
+      <div class="feature-card p-8 text-center">
+        <div class="icon-container w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+          <i class="fas fa-globe-americas text-xl"></i>
         </div>
-        <h3 class="text-lg font-medium text-gray-900 mb-3">Analytics Dashboard</h3>
-        <p class="text-gray-600 text-sm">
-          Track project progress, collaboration metrics, and research impact with real-time visualizations.
-        </p>
+        <h3 class="text-xl font-bold text-primary mb-3">Countries Represented</h3>
+        <p class="stat-number text-5xl text-secondary mb-2 counter-animation">85+</p>
+        <p class="text-text-light">Global research network</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Chart Initialization Scripts -->
+<!-- Features Section with Interactive Cards -->
+<section class="py-20 bg-paper relative">
+  <div class="blob-shape bg-secondary opacity-5 w-80 h-80 rounded-full top-20 left-20"></div>
+  
+  <div class="container max-w-6xl mx-auto px-4">
+    <div class="text-center max-w-3xl mx-auto mb-16">
+      <h2 class="text-3xl md:text-4xl font-bold mb-6 font-serif">Transforming Research Collaboration</h2>
+      <p class="text-text-light text-lg">Our platform brings together cutting-edge technology and human expertise to accelerate scientific discovery.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div class="feature-card p-8 flex flex-col h-full">
+        <div class="icon-container w-16 h-16 rounded-lg flex items-center justify-center mb-6">
+          <i class="fas fa-brain text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-primary mb-4">AI-Powered Matching</h3>
+        <p class="text-text-light mb-6 flex-grow">Our advanced algorithms connect you with researchers who complement your skills and accelerate your projects.</p>
+        <a href="#" class="text-secondary font-medium inline-flex items-center">
+          Learn More
+          <i class="fas fa-arrow-right ml-2 transition-transform group-hover:translate-x-1"></i>
+        </a>
+      </div>
+
+      <div class="feature-card p-8 flex flex-col h-full">
+        <div class="icon-container w-16 h-16 rounded-lg flex items-center justify-center mb-6">
+          <i class="fas fa-comments text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-primary mb-4">Seamless Collaboration</h3>
+        <p class="text-text-light mb-6 flex-grow">Integrated workspace with real-time chat, video conferencing, and document sharing in one secure platform.</p>
+        <a href="#" class="text-secondary font-medium inline-flex items-center">
+          Learn More
+          <i class="fas fa-arrow-right ml-2 transition-transform group-hover:translate-x-1"></i>
+        </a>
+      </div>
+
+      <div class="feature-card p-8 flex flex-col h-full">
+        <div class="icon-container w-16 h-16 rounded-lg flex items-center justify-center mb-6">
+          <i class="fas fa-chart-line text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-primary mb-4">Research Analytics</h3>
+        <p class="text-text-light mb-6 flex-grow">Track project progress, measure impact, and visualize your research outcomes with advanced analytics.</p>
+        <a href="#" class="text-secondary font-medium inline-flex items-center">
+          Learn More
+          <i class="fas fa-arrow-right ml-2 transition-transform group-hover:translate-x-1"></i>
+        </a>
+      </div>
+      
+      <div class="feature-card p-8 flex flex-col h-full">
+        <div class="icon-container w-16 h-16 rounded-lg flex items-center justify-center mb-6">
+          <i class="fas fa-search text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-primary mb-4">Smart Literature Search</h3>
+        <p class="text-text-light mb-6 flex-grow">Find relevant papers and research instantly with our AI-powered semantic search engine.</p>
+        <a href="#" class="text-secondary font-medium inline-flex items-center">
+          Learn More
+          <i class="fas fa-arrow-right ml-2 transition-transform group-hover:translate-x-1"></i>
+        </a>
+      </div>
+      
+      <div class="feature-card p-8 flex flex-col h-full">
+        <div class="icon-container w-16 h-16 rounded-lg flex items-center justify-center mb-6">
+          <i class="fas fa-shield-alt text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-primary mb-4">Secure Data Handling</h3>
+        <p class="text-text-light mb-6 flex-grow">Enterprise-grade security and privacy controls keep your research data protected at all times.</p>
+        <a href="#" class="text-secondary font-medium inline-flex items-center">
+          Learn More
+          <i class="fas fa-arrow-right ml-2 transition-transform group-hover:translate-x-1"></i>
+        </a>
+      </div>
+      
+      <div class="feature-card p-8 flex flex-col h-full">
+        <div class="icon-container w-16 h-16 rounded-lg flex items-center justify-center mb-6">
+          <i class="fas fa-graduation-cap text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-primary mb-4">Knowledge Repository</h3>
+        <p class="text-text-light mb-6 flex-grow">Organize and share research findings in a centralized, searchable knowledge base.</p>
+        <a href="#" class="text-secondary font-medium inline-flex items-center">
+          Learn More
+          <i class="fas fa-arrow-right ml-2 transition-transform group-hover:translate-x-1"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="py-20 bg-background relative">
+  <div class="blob-shape bg-tertiary opacity-5 w-72 h-72 rounded-full bottom-20 right-20"></div>
+  
+  <div class="container max-w-6xl mx-auto px-4">
+    <h2 class="text-3xl md:text-4xl font-bold text-center mb-16 font-serif">What Researchers Say</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div class="testimonial-card">
+        <div class="flex items-center mb-4">
+          <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white mr-4">
+            <i class="fas fa-user"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-primary">Dr. Sarah Chen</h4>
+            <p class="text-text-light text-sm">Molecular Biology, Stanford University</p>
+          </div>
+        </div>
+        <p class="text-text-light italic">"ScholarHub transformed our multi-university research project. The AI-powered tools helped us identify patterns we would have missed, and the collaboration features made working across time zones seamless."</p>
+        <div class="flex mt-4">
+          <i class="fas fa-star text-secondary"></i>
+          <i class="fas fa-star text-secondary"></i>
+          <i class="fas fa-star text-secondary"></i>
+          <i class="fas fa-star text-secondary"></i>
+          <i class="fas fa-star text-secondary"></i>
+        </div>
+      </div>
+      
+      <div class="testimonial-card">
+        <div class="flex items-center mb-4">
+          <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white mr-4">
+            <i class="fas fa-user"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-primary">Prof. James Wilson</h4>
+            <p class="text-text-light text-sm">Quantum Physics, MIT</p>
+          </div>
+        </div>
+        <p class="text-text-light italic">"Finding collaborative partners used to take months. With ScholarHub's matching algorithm, I connected with the perfect research team in days, and we've since published three groundbreaking papers together."</p>
+        <div class="flex mt-4">
+          <i class="fas fa-star text-secondary"></i>
+          <i class="fas fa-star text-secondary"></i>
+          <i class="fas fa-star text-secondary"></i>
+          <i class="fas fa-star text-secondary"></i>
+          <i class="fas fa-star text-secondary"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section with Gradient Background -->
+{#<section class="py-20 relative overflow-hidden">#}
+{#  <div class="absolute inset-0 bg-gradient-to-r from-primary to-primary-light opacity-90"></div>#}
+{#  <div class="container max-w-6xl mx-auto px-4 relative z-10">#}
+{#    <div class="bg-paper rounded-2xl p-12 shadow-xl border border-border overflow-hidden relative">#}
+{#      <div class="blob-shape bg-secondary opacity-5 w-96 h-96 rounded-full -top-48 -right-48"></div>#}
+{#      #}
+{#      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">#}
+{#        <div>#}
+{#          <h2 class="text-3xl md:text-4xl font-bold text-primary mb-6 font-serif">Ready to Transform Your Research Career?</h2>#}
+{#          <p class="text-text-light mb-8">Join thousands of researchers worldwide who are accelerating their scientific discoveries with ScholarHub.</p>#}
+{#          <ul class="space-y-4 mb-8">#}
+{#            <li class="flex items-start">#}
+{#              <div class="bg-tertiary bg-opacity-10 w-6 h-6 rounded-full flex items-center justify-center mt-1 mr-3">#}
+{#                <i class="fas fa-check text-tertiary text-sm"></i>#}
+{#              </div>#}
+{#              <span class="text-text-light">Access to global research network</span>#}
+{#            </li>#}
+{#            <li class="flex items-start">#}
+{#              <div class="bg-tertiary bg-opacity-10 w-6 h-6 rounded-full flex items-center justify-center mt-1 mr-3">#}
+{#                <i class="fas fa-check text-tertiary text-sm"></i>#}
+{#              </div>#}
+{#              <span class="text-text-light">AI-powered research tools</span>#}
+{#            </li>#}
+{#            <li class="flex items-start">#}
+{#              <div class="bg-tertiary bg-opacity-10 w-6 h-6 rounded-full flex items-center justify-center mt-1 mr-3">#}
+{#                <i class="fas fa-check text-tertiary text-sm"></i>#}
+{#              </div>#}
+{#              <span class="text-text-light">Secure collaboration workspace</span>#}
+{#            </li>#}
+{#          </ul>#}
+{#          <div class="flex flex-wrap gap-4">#}
+{#            <a href="{% url 'users-register' %}" class="btn-gradient inline-flex items-center">#}
+{#              <i class="fas fa-user-plus mr-2"></i>#}
+{#              Join ScholarHub Free#}
+{#            </a>#}
+{#            <a href="{% url 'contact' %}" class="btn-secondary inline-flex items-center">#}
+{#              <i class="fas fa-headset mr-2"></i>#}
+{#              Schedule Demo#}
+{#            </a>#}
+{#          </div>#}
+{#        </div>#}
+{#        <div class="relative hidden md:block">#}
+{#          <img src="/media/img_10.png" alt="Research collaboration" class="rounded-xl shadow-lg relative z-10" />#}
+{#          <div class="absolute -top-6 -right-6 bg-paper p-4 rounded-lg shadow-lg z-20 animate-float">#}
+{#            <div class="flex items-center space-x-3">#}
+{#              <div class="bg-secondary bg-opacity-10 w-10 h-10 rounded-full flex items-center justify-center">#}
+{#                <i class="fas fa-flask text-secondary"></i>#}
+{#              </div>#}
+{#              <div>#}
+{#                <p class="font-medium text-primary">Research Accelerated</p>#}
+{#                <p class="text-sm text-text-light">3x faster collaboration</p>#}
+{#              </div>#}
+{#            </div>#}
+{#          </div>#}
+{#        </div>#}
+{#      </div>#}
+{#    </div>#}
+{#  </div>#}
+{#</section>#}
+
+<!-- Brands/Partners Section -->
+<section class="py-16 bg-paper">
+  <div class="container max-w-6xl mx-auto px-4">
+    <h2 class="text-2xl font-bold text-center text-text-light mb-12 font-serif">Trusted by Leading Research Institutions</h2>
+    
+    <div class="flex flex-wrap justify-center items-center gap-12">
+      <div class="w-32 h-15 rounded opacity-100 flex items-center justify-center"><img 
+            src="/media/img_12.png"
+          /></div>
+      <div class="w-32 h-12 bg-gray-200 rounded opacity-60 flex items-center justify-center">University 2</div>
+      <div class="w-32 h-12 bg-gray-200 rounded opacity-60 flex items-center justify-center">Institute 3</div>
+      <div class="w-32 h-12 bg-gray-200 rounded opacity-60 flex items-center justify-center">Research Lab 4</div>
+      <div class="w-32 h-12 bg-gray-200 rounded opacity-60 flex items-center justify-center">Organization 5</div>
+    </div>
+  </div>
+</section>
+
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Researchers Chart using dynamic data
-    const researchersCtx = document.getElementById('researchersChart').getContext('2d');
-    new Chart(researchersCtx, {
-      type: 'line',
-      data: {
-        labels: {{ registration_months|safe }},
-        datasets: [{
-          label: 'New Researchers',
-          data: {{ researcher_counts|safe }},
-          borderColor: '#3b82f6',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          tension: 0.3,
-          fill: true
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          y: { beginAtZero: true, grid: { display: false } },
-          x: { grid: { display: false } }
+  // Animation for counting up stats
+  document.addEventListener('DOMContentLoaded', () => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate__animated', 'animate__fadeInUp');
         }
-      }
+      });
+    }, { threshold: 0.1 });
+    
+    document.querySelectorAll('.feature-card').forEach(card => {
+      observer.observe(card);
     });
     
-    // Projects Chart using dynamic data
-    const projectsCtx = document.getElementById('projectsChart').getContext('2d');
-    new Chart(projectsCtx, {
-      type: 'bar',
-      data: {
-        labels: {{ project_months|safe }},
-        datasets: [{
-          label: 'Active Projects',
-          data: {{ project_counts|safe }},
-          backgroundColor: '#3b82f6',
-          borderRadius: 4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          y: { beginAtZero: true, grid: { display: false } },
-          x: { grid: { display: false } }
-        }
-      }
-    });
-    
-    // Countries Chart using static sample data
-    const countriesCtx = document.getElementById('countriesChart').getContext('2d');
-    new Chart(countriesCtx, {
-      type: 'doughnut',
-      data: {
-        labels: ['North America', 'Europe', 'Asia', 'Other'],
-        datasets: [{
-          data: [30, 25, 20, 10],
-          backgroundColor: ['#279357', '#e3d903', '#60a5fa', '#b81d1d']
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: { boxWidth: 10, font: { size: 10 } }
-          }
-        }
-      }
+    document.querySelectorAll('.testimonial-card').forEach(card => {
+      observer.observe(card);
     });
   });
 </script>
+
 {% endblock content %}

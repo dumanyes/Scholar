@@ -1,0 +1,80 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% block content %}
+<div class="container mx-auto px-6 py-8 bg-gray-50 min-h-screen">
+  <div class="bg-white shadow-xl rounded-lg overflow-hidden">
+    <!-- Header Section -->
+    <div class="px-6 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-extrabold tracking-tight">Edit User: {{ user_obj.username }}</h1>
+        <p class="text-sm text-blue-100 mt-1">Update account details and profile information</p>
+      </div>
+      <a href="{% url 'dashboard-users' %}"
+         class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-md transition-all flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+        </svg>
+        Back
+      </a>
+    </div>
+
+    <div class="p-6">
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- User Form -->
+          <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+            <h2 class="text-lg font-semibold text-gray-700 mb-3">Account Info</h2>
+            {{ user_form.non_field_errors }}
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Username</label>
+                {{ user_form.username }}
+                {{ user_form.username.errors }}
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Email</label>
+                {{ user_form.email }}
+                {{ user_form.email.errors }}
+              </div>
+              <!-- Add more fields if your UserDashboardForm has them (e.g. is_staff, is_active) -->
+            </div>
+          </div>
+
+          <!-- Profile Form -->
+          <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+            <h2 class="text-lg font-semibold text-gray-700 mb-3">Profile Info</h2>
+            {{ profile_form.non_field_errors }}
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Avatar</label>
+                {{ profile_form.avatar }}
+                {{ profile_form.avatar.errors }}
+                {% if user_obj.profile.avatar %}
+                  <img src="{{ user_obj.profile.avatar.url }}" alt="{{ user_obj.username }}" class="mt-2 w-16 h-16 rounded-full object-cover">
+                {% endif %}
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Bio</label>
+                {{ profile_form.bio }}
+                {{ profile_form.bio.errors }}
+              </div>
+              <!-- Add more fields if your ProfileDashboardForm has them (e.g. is_verified, reputation) -->
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 flex justify-end space-x-4">
+          <a href="{% url 'dashboard-users' %}" class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition">
+            Cancel
+          </a>
+          <button type="submit"
+                  class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+            Save
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

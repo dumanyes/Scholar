@@ -7,10 +7,8 @@
   <meta charset="UTF-8">
   <title>Chats</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* Pulse animation for new messages */
     @keyframes pulse-new {
       0% { transform: scale(1); opacity: 1; }
       50% { transform: scale(1.05); opacity: 0.7; }
@@ -22,21 +20,16 @@
   </style>
 </head>
 <body class="flex flex-col h-screen bg-gray-50 text-gray-800 relative">
-  <!-- Connection Error Banner -->
   <div id="connection-error" class="hidden fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-full shadow z-50">
     Connection lost. Reconnecting...
   </div>
 
-  <!-- New Messages Indicator (optional) -->
   <div id="new-messages-indicator" class="hidden fixed bottom-16 left-1/2 transform -translate-x-1/2 bg-gray-200 text-gray-800 px-4 py-2 rounded-full shadow z-40 cursor-pointer">
     New messages
   </div>
 
-  <!-- Header -->
   <header class="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200 shadow">
-    <!-- Back Button -->
     <a href="{% url 'marketplace' %}" class="flex items-center text-gray-600 hover:text-gray-800 transition">
-      <!-- Heroicon: Arrow Left -->
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
       </svg>
@@ -46,13 +39,11 @@
     <div class="w-6"></div>
   </header>
 
-  <!-- Search Bar -->
   <section class="px-4 py-3 bg-white border-b border-gray-200">
     <div class="relative">
       <input type="search" name="q" placeholder="Search chats..."
              value="{{ request.GET.q }}"
              class="w-full bg-gray-50 rounded-full px-4 py-2 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 transition">
-      <!-- Heroicon: Magnifying Glass -->
       <svg class="w-5 h-5 text-gray-500 absolute top-1/2 right-4 transform -translate-y-1/2"
            fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -61,60 +52,56 @@
     </div>
   </section>
 
-  <!-- Chat List Container -->
   <main id="chat-list" class="flex-1 overflow-y-auto bg-gray-50 px-4 py-4 space-y-3">
     {% if chat_data %}
       {% for item in chat_data %}
-      <!-- Clicking this link navigates to chat_view (where messages are actually marked read) -->
-      <a href="{% url 'chat' user_id=item.other_user.id %}" data-chat-id="{{ item.room.id }}"
-         class="folder-chat flex items-center justify-between bg-white rounded-lg p-4 border border-gray-200 hover:bg-gray-100 transition relative">
-        <!-- Left: Avatar, Name, and Message Snippet -->
-        <div class="flex items-center gap-3 flex-1">
-          {% if item.other_user.profile.avatar %}
-            <img src="{{ item.other_user.profile.avatar.url }}" alt="{{ item.other_user.username }}" class="w-12 h-12 rounded-full object-cover border border-gray-300">
-          {% else %}
-            <div class="w-12 h-12 rounded-full bg-gray-400 flex items-center justify-center">
-              <span class="text-white text-lg font-bold">{{ item.other_user.username|slice:":1"|upper }}</span>
-            </div>
-          {% endif %}
-          <div class="flex-1">
-            <div class="flex items-center">
-              <span class="text-sm font-semibold">{{ item.other_user.username }}</span>
-              {% if item.unread_count > 0 %}
-                <span data-unread-id="{{ item.room.id }}" class="ml-2 bg-gray-800 text-xs text-white px-2 py-0.5 rounded-full transition duration-300">
-                  {{ item.unread_count }}
-                </span>
-              {% endif %}
-            </div>
-            <p data-snippet class="text-xs text-gray-600 truncate">
-              {% if item.last_message %}
-                {% if item.last_message.sender == request.user.id %}
-                  <span class="text-gray-500">You:</span>
+        {% if item.other_user and item.other_user.id %}
+        <a href="{% url 'chat' user_id=item.other_user.id %}" data-chat-id="{{ item.room.id }}"
+           class="folder-chat flex items-center justify-between bg-white rounded-lg p-4 border border-gray-200 hover:bg-gray-100 transition relative">
+          <div class="flex items-center gap-3 flex-1">
+            {% if item.other_user.profile.avatar %}
+              <img src="{{ item.other_user.profile.avatar.url }}" alt="{{ item.other_user.username }}" class="w-12 h-12 rounded-full object-cover border border-gray-300">
+            {% else %}
+              <div class="w-12 h-12 rounded-full bg-gray-400 flex items-center justify-center">
+                <span class="text-white text-lg font-bold">{{ item.other_user.username|slice:":1"|upper }}</span>
+              </div>
+            {% endif %}
+            <div class="flex-1">
+              <div class="flex items-center">
+                <span class="text-sm font-semibold">{{ item.other_user.username }}</span>
+                {% if item.unread_count > 0 %}
+                  <span data-unread-id="{{ item.room.id }}" class="ml-2 bg-gray-800 text-xs text-white px-2 py-0.5 rounded-full transition duration-300">
+                    {{ item.unread_count }}
+                  </span>
                 {% endif %}
-                {{ item.last_message.content|truncatechars:40 }}
-              {% else %}
-                No messages yet
-              {% endif %}
-            </p>
+              </div>
+              <p data-snippet class="text-xs text-gray-600 truncate">
+                {% if item.last_message %}
+                  {% if item.last_message.sender == request.user.id %}
+                    <span class="text-gray-500">You:</span>
+                  {% endif %}
+                  {{ item.last_message.content|truncatechars:40 }}
+                {% else %}
+                  No messages yet
+                {% endif %}
+              </p>
+            </div>
           </div>
-        </div>
-        <!-- Right: Time -->
-        <div data-time class="text-xs text-gray-600 ml-2">
-          {% if item.last_message %}
-            {{ item.last_message.timestamp|date:"H:i" }}
+          <div data-time class="text-xs text-gray-600 ml-2">
+            {% if item.last_message %}
+              {{ item.last_message.timestamp|date:"H:i" }}
+            {% endif %}
+          </div>
+          {% if item.unread_count > 0 %}
+          <div class="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1">
+            <div class="w-2 h-8 bg-gray-800 rounded-r-full"></div>
+          </div>
           {% endif %}
-        </div>
-        <!-- Unread Indicator Bar -->
-        {% if item.unread_count > 0 %}
-        <div class="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1">
-          <div class="w-2 h-8 bg-gray-800 rounded-r-full"></div>
-        </div>
+        </a>
         {% endif %}
-      </a>
       {% endfor %}
     {% else %}
       <div class="flex flex-col items-center justify-center h-full text-gray-500">
-        <!-- Heroicon: Chat -->
         <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                 d="M8 12h.01M12 12h.01M16 12h.01M21 12
@@ -131,7 +118,6 @@
     {% endif %}
   </main>
 
-  <!-- Typing Indicator (optional) -->
   <div id="typing-indicator" class="fixed bottom-4 left-4 bg-gray-100 px-3 py-2 rounded-full shadow z-30 flex items-center space-x-1" style="display: none;">
     <div class="w-2 h-2 bg-gray-800 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
     <div class="w-2 h-2 bg-gray-800 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
@@ -139,14 +125,11 @@
     <span class="text-xs text-gray-800">Typing...</span>
   </div>
 
-  <!-- Footer -->
   <footer class="border-t border-gray-200 bg-white p-4">
     <p class="text-sm text-gray-600 text-center">Select a conversation to view messages.</p>
   </footer>
 
-  <!-- Scripts -->
   <script>
-    // Debounce function to group rapid updates
     function debounce(func, delay) {
       let timer;
       return function(...args) {
@@ -155,16 +138,13 @@
       };
     }
 
-    // WebSocket for Chat List Updates with Debounce
     const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
     const chatListSocket = new WebSocket(wsScheme + "://" + window.location.host + "/ws/chat-list/");
 
-    // Called after receiving a chatlist_update from ChatListConsumer
     function updateChatItem(data) {
       if (data.chat_id) {
         const chatItem = document.querySelector(`a[data-chat-id="${data.chat_id}"]`);
         if (chatItem) {
-          // Unread badge
           const badge = chatItem.querySelector(`span[data-unread-id="${data.chat_id}"]`);
           if (badge) {
             if (parseInt(data.unread_count) === 0) {
@@ -172,19 +152,16 @@
             } else {
               badge.textContent = data.unread_count;
               badge.style.display = 'inline-block';
-              // Subtle pulse animation for new messages
               badge.classList.add('pulse-new');
               setTimeout(() => badge.classList.remove('pulse-new'), 1000);
             }
           }
-          // Update snippet
           const snippetElem = chatItem.querySelector('[data-snippet]');
           if (snippetElem && data.last_message !== undefined) {
             const senderId = parseInt(data.sender_id);
             const currentUserId = parseInt({{ current_user_id }});
             snippetElem.textContent = (senderId === currentUserId ? "You: " : "") + data.last_message;
           }
-          // Update time
           const timeElem = chatItem.querySelector('[data-time]');
           if (timeElem && data.timestamp) {
             timeElem.textContent = data.timestamp;

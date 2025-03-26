@@ -3,102 +3,421 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-    <link rel="icon" href="/media/img_4.png" type="image/x-icon">
-
-
+  <link rel="icon" href="/media/img_8.png" type="image/x-icon">
   <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/luxon@2.3.0"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.0.0"></script>
-  <title>ScholarHub</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Nunito+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+  
+  <title>{% block title %}ScholarHub{% endblock %}</title>
   <style>
     :root {
-      --primary-color: #2D2A32;
-      --accent-color: #7A6F5B;
-      --background-color: #FFFFFF;
-      --text-primary: #2D2A32;
-      --text-secondary: #5F5B54;
-      --border-color: #DCD8CF;
+      /* Refined color palette */
+      --primary: #1A365D;       /* Deep navy blue */
+      --primary-light: #2D4A7A; /* Lighter navy blue */
+      --secondary: #F0B429;     /* Golden accent */
+      --tertiary: #48BB78;      /* Soft green */
+      --background: #F7FAFC;    /* Off-white background */
+      --paper: #FFFFFF;         /* Pure white */
+      --text: #2D3748;          /* Dark slate for text */
+      --text-light: #718096;    /* Medium slate for secondary text */
+      --border: #E2E8F0;        /* Light gray for borders */
+    }
+
+    body {
+      background-color: var(--background);
+      color: var(--text);
+      font-family: 'Nunito Sans', sans-serif;
+      line-height: 1.6;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Cormorant Garamond', serif;
+      color: var(--primary);
+      letter-spacing: -0.02em;
+      font-weight: 600;
+    }
+
+    .nav-bg {
+      background-color: var(--paper);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .brand-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: 0.03em;
+    }
+
+    .brand-accent {
+      color: var(--secondary);
+    }
+
+    .nav-link {
+      color: var(--text);
+      font-weight: 600;
+      position: relative;
+      transition: color 0.3s;
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: -4px;
+      left: 0;
+      background-color: var(--secondary);
+      transition: width 0.3s ease;
+    }
+
+    .nav-link:hover {
+      color: var(--primary);
+    }
+
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      transition: all 0.3s;
+      box-shadow: 0 4px 6px rgba(45, 55, 72, 0.1);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(45, 55, 72, 0.15);
+    }
+
+    .btn-secondary {
+      background-color: transparent;
+      color: var(--primary);
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .card {
+      background-color: var(--paper);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .prose {
+      max-width: 70ch;
+      font-size: 1.05rem;
+      color: var(--text);
+    }
+
+    .prose h2 {
+      margin: 2rem 0 1rem;
+      color: var(--primary);
+    }
+
+    .prose p {
+      margin-bottom: 1.25rem;
+      color: var(--text);
+    }
+
+    .footer-bg {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .footer-heading {
+      color: white;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .footer-link {
+      color: rgba(255, 255, 255, 0.8);
+      transition: color 0.2s, transform 0.2s;
+      display: inline-block;
+    }
+
+    .footer-link:hover {
+      color: var(--secondary);
+      transform: translateX(3px);
+    }
+
+    .social-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.1);
+      transition: all 0.3s;
+    }
+
+    .social-icon:hover {
+      background-color: var(--secondary);
+      transform: translateY(-3px);
+    }
+
+    .alert {
+      border-left: 4px solid var(--tertiary);
+      background-color: rgba(72, 187, 120, 0.1);
+    }
+
+    /* Decorative elements */
+    .decoration-dot {
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(240, 180, 41, 0.15) 0%, rgba(240, 180, 41, 0) 70%);
+      z-index: -1;
     }
   </style>
 </head>
-<body class="bg-white text-gray-900 flex flex-col min-h-screen">
-  <nav class="bg-white shadow-md border-b border-gray-300 py-4">
-    <div class="container mx-auto flex justify-between items-center px-4">
-      <a class="text-2xl font-semibold text-gray-900" href="/">
-        <img src="/media/photo_5274128391500590554_x-removebg-preview.png"
-             alt="ScholarHub"
-             class="h-10 w-auto inline-block">
-      </a>
-      <!-- Hamburger for Mobile -->
-      <button id="mobileMenuButton" class="block lg:hidden text-gray-900 focus:outline-none">
-        <span class="text-lg">☰</span>
-      </button>
-      <!-- Desktop Navigation -->
-      <div class="hidden lg:flex space-x-6">
-        <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-about' %}">About</a>
-        <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-services' %}">Services</a>
-        <a class="text-gray-900 hover:text-gray-600" href="{% url 'marketplace' %}">Marketplace</a>
-      <a class="text-gray-900 hover:text-gray-600" href="{% url 'journal_list' %}">Resource Hub</a>
 
+<body class="flex flex-col min-h-screen">
+  <!-- Decorative elements -->
+  <div class="decoration-dot top-40 left-10"></div>
+  <div class="decoration-dot bottom-40 right-10"></div>
 
-        <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-contact' %}">Contact</a>
-        <a class="text-gray-900 hover:text-gray-600" href="{% url 'ai_assistant:ai_home' %}">AI Assistant</a>
-        {% if user.is_authenticated %}
-          <a class="text-gray-900 hover:text-gray-600" href="{% url 'users-profile' %}">Profile</a>
-          <a class="text-gray-900 hover:text-gray-600" href="{% url 'logout' %}">Logout</a>
-        {% else %}
-          <a class="text-gray-900 hover:text-gray-600" href="{% url 'login' %}">Sign in</a>
-        {% endif %}
+  <nav class="nav-bg fixed w-full top-0 z-50">
+    <div class="container mx-auto px-6">
+      <div class="flex justify-between items-center h-20">
+        <a class="flex items-center space-x-2" href="/">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"></path>
+            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"></path>
+            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"></path>
+          </svg>
+          <span class="brand-logo text-2xl">Scholar<span class="brand-accent">Hub</span></span>
+        </a>
+
+        <div class="hidden lg:flex items-center space-x-8">
+          <div class="flex space-x-8">
+            <a class="nav-link text-base" href="{% url 'users-about' %}">About</a>
+            <a class="nav-link text-base" href="{% url 'marketplace' %}">Marketplace</a>
+            <a class="nav-link text-base" href="{% url 'contact' %}">Contact</a>
+            <a class="nav-link text-base" href="{% url 'journal_list' %}">Resources</a>
+            <a class="nav-link text-base" href="{% url 'ai_assistant:ai_home' %}">AI Assistant</a>
+          </div>
+
+          <div class="flex items-center space-x-4 ml-6">
+            {% if user.is_authenticated %}
+              <a href="{% url 'users-profile' %}" class="flex items-center space-x-2 hover:text-primary transition-colors">
+                <div class="w-8 h-8 bg-primary-light rounded-full flex items-center justify-center text-white">
+                  <i class="fas fa-user text-sm"></i>
+                </div>
+                <span class="font-medium">Profile</span>
+              </a>
+              <a href="{% url 'logout' %}" class="btn-secondary">
+                Log Out
+              </a>
+            {% else %}
+              <a href="{% url 'login' %}" class="btn-secondary">Sign In</a>
+              <a href="{% url 'users-register' %}" class="btn-primary">
+                Get Started
+              </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <button id="mobileMenuButton" class="lg:hidden flex items-center justify-center w-10 h-10 rounded-md text-primary hover:bg-gray-100 transition">
+          <i class="fas fa-bars text-xl"></i>
+        </button>
       </div>
     </div>
-    <!-- Mobile Navigation Menu -->
-    <div id="mobileMenu" class="lg:hidden hidden bg-white border-t border-gray-300">
-      <div class="container mx-auto px-4 py-4 space-y-4">
-        <a class="block text-gray-900 hover:text-gray-600" href="{% url 'users-about' %}">About</a>
-        <a class="block text-gray-900 hover:text-gray-600" href="{% url 'users-services' %}">Services</a>
-        <a class="block text-gray-900 hover:text-gray-600" href="{% url 'marketplace' %}">Marketplace</a>
-      <a class="text-gray-900 hover:text-gray-600" href="{% url 'journal_list' %}">Resource Hub</a>
-        <a class="block text-gray-900 hover:text-gray-600" href="{% url 'users-contact' %}">Contact</a>
-        <a class="block text-gray-900 hover:text-gray-600" href="{% url 'ai_assistant:ai_home' %}">AI Assistant</a>
-        {% if user.is_authenticated %}
-          <a class="block text-gray-900 hover:text-gray-600" href="{% url 'users-profile' %}">Profile</a>
-          <a class="block text-gray-900 hover:text-gray-600" href="{% url 'logout' %}">Logout</a>
-        {% else %}
-          <a class="block text-gray-900 hover:text-gray-600" href="{% url 'login' %}">Sign in</a>
-        {% endif %}
+
+    <div id="mobileMenu" class="lg:hidden hidden nav-bg absolute w-full top-20 z-40 shadow-lg rounded-b-lg overflow-hidden">
+      <div class="container px-6 py-6 space-y-5">
+        <a class="block nav-link text-lg font-medium" href="{% url 'users-about' %}">About</a>
+        <a class="block nav-link text-lg font-medium" href="{% url 'marketplace' %}">Marketplace</a>
+        <a class="block nav-link text-lg font-medium" href="{% url 'contact' %}">Contact</a>
+        <a class="block nav-link text-lg font-medium" href="{% url 'journal_list' %}">Resources</a>
+        <a class="block nav-link text-lg font-medium" href="{% url 'ai_assistant:ai_home' %}">AI Assistant</a>
+
+        <div class="pt-5 border-t border-border">
+          {% if user.is_authenticated %}
+            <a href="{% url 'users-profile' %}" class="flex items-center space-x-3 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors">
+              <div class="w-8 h-8 bg-primary-light rounded-full flex items-center justify-center text-white">
+                <i class="fas fa-user text-sm"></i>
+              </div>
+              <span class="font-medium">My Profile</span>
+            </a>
+            <a href="{% url 'logout' %}" class="btn-secondary w-full text-center mt-4">
+              Log Out
+            </a>
+          {% else %}
+            <a href="{% url 'login' %}" class="btn-secondary w-full text-center">Sign In</a>
+            <a href="{% url 'users-register' %}" class="btn-primary w-full text-center mt-4">
+              Get Started
+            </a>
+          {% endif %}
+        </div>
       </div>
     </div>
   </nav>
-  <main class="flex-grow container mx-auto px-4 py-8">
-    {% if messages %}
-      <div class="space-y-2 mb-8">
-        {% for message in messages %}
-          <div class="p-4 bg-gray-100 border-l-4 border-blue-500 rounded-lg shadow-md">
-            {{ message }}
-          </div>
-        {% endfor %}
+
+  <main class="pt-32 pb-20 px-6 flex-grow">
+    <div class="container mx-auto ">
+      {% if messages %}
+        <div class="mb-8 space-y-4">
+          {% for message in messages %}
+            <div class="p-5 rounded-lg alert flex items-start space-x-4" role="alert">
+              <i class="fas fa-info-circle text-tertiary mt-1"></i>
+              <div>{{ message }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      
+      {% block content %}
+      <!-- Sample content for visualization -->
+      <div class="text-center mb-16">
+        <h1 class="text-4xl md:text-5xl font-bold mb-6">Advancing Research <span class="text-secondary">Together</span></h1>
+        <p class="text-xl text-text-light max-w-2xl mx-auto">Connect with researchers worldwide and leverage AI-powered tools to accelerate your scientific discoveries.</p>
+        <div class="mt-10 flex flex-wrap justify-center gap-4">
+          <a href="#" class="btn-primary">Explore Resources</a>
+          <a href="#" class="btn-secondary">Join Community</a>
+        </div>
       </div>
-    {% endif %}
-    {% block content %}{% endblock %}
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        <div class="card p-8">
+          <div class="w-14 h-14 bg-primary bg-opacity-10 rounded-lg flex items-center justify-center mb-5">
+            <i class="fas fa-search text-primary text-xl"></i>
+          </div>
+          <h3 class="text-xl font-semibold mb-3">Discover Research</h3>
+          <p class="text-text-light">Access thousands of academic journals and publications across various disciplines.</p>
+        </div>
+        
+        <div class="card p-8">
+          <div class="w-14 h-14 bg-secondary bg-opacity-10 rounded-lg flex items-center justify-center mb-5">
+            <i class="fas fa-users text-secondary text-xl"></i>
+          </div>
+          <h3 class="text-xl font-semibold mb-3">Collaborate</h3>
+          <p class="text-text-light">Connect with peers and form interdisciplinary research groups worldwide.</p>
+        </div>
+        
+        <div class="card p-8">
+          <div class="w-14 h-14 bg-tertiary bg-opacity-10 rounded-lg flex items-center justify-center mb-5">
+            <i class="fas fa-robot text-tertiary text-xl"></i>
+          </div>
+          <h3 class="text-xl font-semibold mb-3">AI Assistance</h3>
+          <p class="text-text-light">Leverage cutting-edge AI tools to analyze data and accelerate your research.</p>
+        </div>
+      </div>
+      {% endblock %}
+    </div>
   </main>
-  <footer class="bg-white border-t border-gray-300 py-6 mt-auto text-center">
-    <p class="text-gray-600">
-      © 2025 ScholarHub. All rights reserved.<br>
-      <a href="/privacy-policy" class="text-blue-600 hover:text-blue-800 transition-colors">Privacy Policy</a>
-    </p>
+
+  <footer class="footer-bg mt-auto">
+    <div class="container mx-auto px-6 py-16">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
+        <div class="mb-8">
+          <div class="flex items-center space-x-2 mb-6">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+              <path d="M2 17L12 22L22 17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+              <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            <span class="text-xl font-bold text-white">Scholar<span class="text-secondary">Hub</span></span>
+          </div>
+          <p class="text-sm text-gray-300 leading-relaxed">Connecting researchers worldwide through AI-powered collaboration tools, advancing discoveries, and fostering global scientific cooperation.</p>
+        </div>
+
+        <div>
+          <h4 class="footer-heading text-lg mb-5">About</h4>
+          <ul class="space-y-3">
+            <li><a href="{% url 'users-about' %}" class="footer-link">Our Mission</a></li>
+            <li><a href="#" class="footer-link">Team</a></li>
+            <li><a href="#" class="footer-link">Careers</a></li>
+            <li><a href="#" class="footer-link">Partners</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-heading text-lg mb-5">Resources</h4>
+          <ul class="space-y-3">
+            <li><a href="{% url 'journal_list' %}" class="footer-link">Research Hub</a></li>
+            <li><a href="#" class="footer-link">Documentation</a></li>
+            <li><a href="#" class="footer-link">Blog</a></li>
+            <li><a href="#" class="footer-link">Tutorials</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-heading text-lg mb-5">Legal</h4>
+          <ul class="space-y-3">
+            <li><a href="/privacy-policy" class="footer-link">Privacy Policy</a></li>
+            <li><a href="#" class="footer-link">Terms of Service</a></li>
+            <li><a href="#" class="footer-link">Cookie Policy</a></li>
+            <li><a href="#" class="footer-link">Data Protection</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-700 mt-12 pt-8">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+          <div class="flex space-x-4 mb-6 md:mb-0">
+            <a href="#" class="social-icon">
+              <i class="fab fa-twitter"></i>
+            </a>
+            <a href="#" class="social-icon">
+              <i class="fab fa-linkedin-in"></i>
+            </a>
+            <a href="#" class="social-icon">
+              <i class="fab fa-github"></i>
+            </a>
+            <a href="#" class="social-icon">
+              <i class="fab fa-researchgate"></i>
+            </a>
+          </div>
+          <p class="text-center text-sm text-gray-400">
+            © 2024 ScholarHub. All rights reserved.<br>
+            Empowering global research collaboration
+          </p>
+        </div>
+      </div>
+    </div>
   </footer>
+
   <script>
-    // Toggle mobile menu visibility
     const mobileMenuButton = document.getElementById("mobileMenuButton");
     const mobileMenu = document.getElementById("mobileMenu");
+
     mobileMenuButton.addEventListener("click", () => {
       mobileMenu.classList.toggle("hidden");
+      mobileMenuButton.innerHTML = mobileMenu.classList.contains("hidden") ?
+        '<i class="fas fa-bars text-xl"></i>' :
+        '<i class="fas fa-times text-xl"></i>';
+    });
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (event) => {
+      if (!mobileMenu.contains(event.target) && 
+          !mobileMenuButton.contains(event.target)) {
+        mobileMenu.classList.add('hidden');
+        mobileMenuButton.innerHTML = '<i class="fas fa-bars text-xl"></i>';
+      }
     });
   </script>
-  {% block extra_scripts %}{% endblock %}
 </body>
 </html>

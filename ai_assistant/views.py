@@ -64,55 +64,78 @@ def handle_db_query(message: str) -> str:
             return "No new projects found."
     return ""
 
-def call_ai_model(user_message: str, conversation_history: list) -> JsonResponse:
-    """
-    Sends the conversation history to the external AI API using DeepSeek R1 (free)
-    for research assistance.
-    """
-    research_system_prompt = {
+from openai import OpenAI
+import os
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+
+def call_ai_model(user_message: str, conversation_history: list, image_file=None, image_url=None) -> dict:
+    client = OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key = "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"
+    )
+
+    # Build base message
+    user_content = [{"type": "text", "text": user_message}]
+
+    # Handle uploaded image
+    if image_file:
+        image_path = default_storage.save(f"chat_uploads/{image_file.name}", ContentFile(image_file.read()))
+        full_image_url = default_storage.url(image_path)
+        user_content.append({
+            "type": "image_url",
+            "image_url": {
+                "url": full_image_url
+            }
+        })
+    elif image_url:
+        user_content.append({
+            "type": "image_url",
+            "image_url": {
+                "url": image_url
+            }
+        })
+
+    system_prompt = {
         "role": "system",
         "content": [
             {
                 "type": "text",
                 "text": (
                     "You are ScholarHub Assistant — a personal AI research assistant built to support users of the ScholarHub platform. "
-                    "Your purpose is to help students, researchers, and professionals with research guidance, collaboration matching, and navigating ScholarHub's tools. "
+                    "Your purpose is to help students, researchers, and professionals with research guidance, collaboration matching, and navigating ScholarHub’s tools. "
                     "Always respond as ScholarHub Assistant, not DeepSeek or any other provider. If asked who you are, say:\n\n"
-                    "'I'm your personal ScholarHub Assistant, here to help you with your research journey — from exploring trending topics to finding collaborators and tools.'\n\n"
-                    "Keep responses helpful, encouraging, and context-aware with regard to ScholarHub’s mission."
+                    "'I'm your personal ScholarHub Assistant, here to help you with your research journey — from exploring trending topics to finding collaborators and tools.'"
                 )
             }
         ]
     }
 
-    conversation = conversation_history.copy()
-    conversation.insert(0, research_system_prompt)
+    full_history = [system_prompt] + conversation_history
+    full_history.append({
+        "role": "user",
+        "content": user_content
+    })
 
-    payload = {
-        "model": "deepseek/deepseek-r1:free",
-        "messages": conversation
-    }
-    api_key = "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"  # Replace with your actual API key.
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://scholarhub-trkt.onrender.com",  # Update with your actual site URL.
-        "X-Title": "ScholarHub"
-    }
-    print("Payload being sent:", json.dumps(payload, indent=2))
     try:
-        response = requests.post(
-            url="https://openrouter.ai/api/v1/chat/completions",
-            headers=headers,
-            data=json.dumps(payload)
+        completion = client.chat.completions.create(
+            model="google/gemini-2.0-flash-001",  # or any OpenRouter-supported model
+            messages=full_history,
+            extra_headers={
+                "HTTP-Referer": "http://localhost:8000",
+                "X-Title": "ScholarHub"
+            }
         )
-        response.raise_for_status()
-        data = response.json()
-    except requests.exceptions.RequestException as e:
-        return JsonResponse({"error": str(e)}, status=500)
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid response from DeepSeek R1."}, status=500)
-    return JsonResponse(data)
+        return {
+            "choices": [{
+                "message": {
+                    "content": completion.choices[0].message.content
+                }
+            }]
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
 
 # -------------------------
 # Views
@@ -130,7 +153,6 @@ def ai_home(request):
     }
     return render(request, 'ai_home.html', context)
 
-
 @login_required
 def load_chat(request, session_id):
     session = get_object_or_404(ChatSession, id=session_id, user=request.user)
@@ -143,50 +165,27 @@ def load_chat(request, session_id):
 
 @login_required
 def new_chat(request):
-    # Create new session without deleting old ones
     ChatSession.objects.create(user=request.user)
     return redirect('ai_assistant:ai_home')
-
 
 @csrf_exempt
 @require_POST
 @login_required
 def research_assistant_chat(request):
-    """
-    Processes the user's chat message for research assistance using DeepSeek R1 (free).
-    """
-    user_message = request.POST.get('message', '').strip()
-    if not user_message:
-        return JsonResponse({"error": "No message provided."}, status=400)
+    user_message = request.POST.get('message', '')
+    image_url = request.POST.get('image_url')
+    image_file = request.FILES.get('image')
 
-    try:
-        # Get the most recent chat session
-        chat_session = ChatSession.objects.filter(user=request.user).latest('started_at')
-    except ChatSession.DoesNotExist:
-        # Create new session if none exists
+    if not user_message and not image_url and not image_file:
+        return JsonResponse({"error": "No message or image provided."}, status=400)
+
+    chat_session = ChatSession.objects.filter(user=request.user).order_by('-started_at').first()
+    if not chat_session:
         chat_session = ChatSession.objects.create(user=request.user)
 
-    # Check for database queries first
-    db_result = handle_db_query(user_message)
-    if db_result:
-        ChatMessage.objects.create(session=chat_session, sender='user', content=user_message)
-        ChatMessage.objects.create(session=chat_session, sender='assistant', content=db_result)
-        return JsonResponse({
-            "choices": [{
-                "message": {
-                    "content": db_result
-                }
-            }]
-        })
-
-    # Process normal chat message
     ChatMessage.objects.create(session=chat_session, sender='user', content=user_message)
 
-    # Build conversation history
-    messages_qs = chat_session.messages.order_by('timestamp')
     conversation_history = []
-
-    # Add project context if relevant
     project_context = get_project_context_if_relevant(user_message)
     if project_context:
         conversation_history.append({
@@ -194,57 +193,34 @@ def research_assistant_chat(request):
             "content": [{"type": "text", "text": project_context}]
         })
 
-    # Add historical messages
-    for msg in messages_qs:
+    for msg in chat_session.messages.order_by('timestamp'):
         conversation_history.append({
             "role": msg.sender,
             "content": [{"type": "text", "text": msg.content}]
         })
 
-    # Handle image attachments
-    image_url = request.POST.get('image_url', None)
-    if image_url and conversation_history:
-        conversation_history[-1]["content"].append({
-            "type": "image_url",
-            "image_url": {"url": image_url}
-        })
+    response_data = call_ai_model(user_message, conversation_history, image_file=image_file, image_url=image_url)
+    content = response_data.get("choices", [{}])[0].get("message", {}).get("content") or response_data.get("error", "No reply received")
 
-    # Call AI model
-    response_json = call_ai_model(user_message, conversation_history)
-    data = json.loads(response_json.content.decode('utf-8'))
-
-    # Process response
-    choices = data.get("choices", [])
-    if choices:
-        message_data = choices[0].get("message", {})
-        content = message_data.get("content", "No reply received")
-        assistant_reply = content
-    else:
-        assistant_reply = "No reply received"
-
-    # Store and return response
-    ChatMessage.objects.create(session=chat_session, sender='assistant', content=assistant_reply)
-    return JsonResponse(data)
+    ChatMessage.objects.create(session=chat_session, sender='assistant', content=content)
+    return JsonResponse({"message": content})
 
 @csrf_exempt
 @login_required
 def research_assistant_stream(request):
     """
-    Streams the AI model's chain-of-thought in real time using SSE (Server-Sent Events).
+    Streams the AI model's chain-of-thought in real time using SSE.
     """
     if request.method != 'POST':
         return StreamingHttpResponse("Only POST allowed", status=405)
 
     user_message = request.POST.get('message', '')
     if not user_message:
-        # We can SSE a quick error, or just return 400
         return StreamingHttpResponse("No message provided", status=400)
 
-    # SSE generator function
     def sse_stream():
-        # Build your OpenRouter payload with stream=True
         payload = {
-            "model": "deepseek/deepseek-r1:free",  # or any other streaming-capable model
+            "model": "deepseek/deepseek-r1:free",  # ensure your chosen model supports streaming
             "stream": True,
             "messages": [
                 {"role": "user", "content": user_message}
@@ -254,74 +230,46 @@ def research_assistant_stream(request):
             "Authorization": "Bearer <OPENROUTER_API_KEY>",
             "Content-Type": "application/json"
         }
-
         try:
-            # Make the streaming request
             with requests.post(
                 "https://openrouter.ai/api/v1/chat/completions",
                 headers=headers,
                 json=payload,
-                stream=True  # requests will let us iterate chunk by chunk
+                stream=True
             ) as r:
                 r.raise_for_status()
-
                 buffer = ""
-                # We read partial lines as they come in
                 for chunk in r.iter_content(chunk_size=1024, decode_unicode=True):
                     if not chunk:
                         continue
                     buffer += chunk
-
-                    # We attempt to parse SSE lines from 'buffer'
                     while True:
                         line_end = buffer.find('\n')
                         if line_end == -1:
                             break
-
                         line = buffer[:line_end].strip()
                         buffer = buffer[line_end + 1:]
-
-                        # SSE lines might start with 'data: '
                         if line.startswith('data: '):
                             data_str = line[6:]
                             if data_str == '[DONE]':
-                                # The model finished streaming
                                 yield "data: [DONE]\n\n"
                                 return
-
-                            # Attempt JSON parse
                             try:
                                 data_obj = json.loads(data_str)
-                                # The partial token might be in data_obj["choices"][0]["delta"]["content"]
-                                # or data_obj["choices"][0]["delta"]["reasoning"] depending on your model
                                 partial_token = ""
                                 delta = data_obj["choices"][0]["delta"]
-
-                                # If there's chain-of-thought or content
                                 if "reasoning" in delta:
-                                    # You can prefix or combine them
                                     partial_token += f"\n[Thinking: {delta['reasoning']}]"
-
                                 if "content" in delta:
                                     partial_token += delta["content"]
-
                                 if partial_token:
-                                    # SSE send
-                                    # Format: data: <partial_text>\n\n
                                     yield f"data: {json.dumps(partial_token)}\n\n"
-
                             except json.JSONDecodeError:
-                                # Could be keep-alive or SSE comment
                                 pass
-
         except requests.RequestException as e:
-            # If there's a network error or 4xx/5xx from the AI
-            # SSE an error message
             yield f"data: {json.dumps('Error: ' + str(e))}\n\n"
 
-    # Return SSE
     response = StreamingHttpResponse(sse_stream(), content_type='text/event-stream')
-    # SSE best practices
     response['Cache-Control'] = 'no-cache'
     response['X-Accel-Buffering'] = 'no'
     return response

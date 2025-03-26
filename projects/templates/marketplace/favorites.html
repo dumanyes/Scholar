@@ -8,127 +8,183 @@
 <!-- Tailwind & jQuery -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#6D3AFF',
+          secondary: '#8B5CFF',
+          accent: '#FF69B4',
+          dark: '#1A1A2E',
+        }
+      }
+    }
+  }
+</script>
 
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6">My Favorite Projects</h1>
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+
+<!-- Chart.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+<style>
+  .gradient-text {
+    background: linear-gradient(135deg, #6D3AFF 0%, #FF69B4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .feature-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .feature-card:hover {
+    transform: translateY(-5px);
+  }
+</style>
+
+
+<div class="container mx-auto px-4 py-8 mt-[30px] max-w-6xl">
+    <!-- Header Section -->
+    <div class="mb-10 text-center border-b border-gray-200 pb-8">
+        <h1 class="text-4xl font-bold text-gray-800 mb-3">Favorite Projects</h1>
+        <p class="text-gray-600">Your curated collection of saved research projects</p>
+    </div>
 
     {% if projects %}
-        <div class="space-y-6">
+        <div class="space-y-8">
             {% for project in projects %}
             <!-- Project Card -->
-            <div class="bg-white rounded-xl shadow-lg p-6 transition-all duration-200 hover:-translate-y-1">
-                <!-- Top row: Categories and Match Score -->
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <span class="inline-flex items-center px-4 py-1 bg-gray-100 rounded-full text-sm font-medium">
+            <div class="bg-white rounded-2xl shadow-sm p-8 border border-gray-100 transition-all hover:shadow-md">
+                <!-- Top Section -->
+                <div class="flex items-center justify-between mb-6">
+                    <!-- Badges -->
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center px-4 py-2 bg-gray-100 rounded-full text-sm font-medium text-gray-700">
                             {% for category in project.category.all %}
                                 {{ category.name }}{% if not forloop.last %}, {% endif %}
                             {% empty %}
-                                No category assigned
+                                No category
                             {% endfor %}
                         </span>
                         {% with match=project|skill_match:user %}
-                        <span class="inline-flex items-center ml-2 px-4 py-1 rounded-full text-sm font-medium
+                        <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium
                             {% if match > 71 %}
-                                bg-green-500 text-white
+                                bg-green-100 text-green-700
                             {% elif match > 41 %}
-                                bg-yellow-500 text-white
+                                bg-yellow-100 text-yellow-700
                             {% else %}
-                                bg-pink-500 text-white
-                            {% endif %}
-                            ">
-                            <i class="fas fa-check mr-1"></i> {{ match }}% Match
+                                bg-pink-100 text-pink-700
+                            {% endif %}">
+                            <i class="fas fa-percentage mr-2 text-sm"></i>{{ match }}% Match
                         </span>
                         {% endwith %}
                     </div>
+
                     <!-- Heart Button -->
-                    <button type="button" onclick="saveProject(event, {{ project.id }})" class="heart-btn focus:outline-none" id="fav-btn-{{ project.id }}">
+                    <button type="button" onclick="saveProject(event, {{ project.id }})"
+                            class="p-2 rounded-full hover:bg-red-50 transition-colors focus:outline-none"
+                            id="fav-btn-{{ project.id }}">
                         {% if project.id in favorite_ids %}
-                            <i class="fas fa-heart text-red-500 transition-colors"></i>
+                            <i class="fas fa-heart text-red-500 text-xl"></i>
                         {% else %}
-                            <i class="fas fa-heart text-gray-400 hover:text-red-500 transition-colors"></i>
+                            <i class="far fa-heart text-gray-400 hover:text-red-500 text-xl"></i>
                         {% endif %}
                     </button>
                 </div>
 
-                <!-- Avatar, Username, Country and City -->
-                <div class="flex items-center gap-3 mb-4">
+                <!-- User Info -->
+                <div class="flex items-center gap-4 mb-6">
                     {% if project.owner.profile.avatar %}
-                    <a href="{% url 'project-user-profile' project.owner.username %}">
+                    <a href="{% url 'project-user-profile' project.owner.username %}" class="shrink-0">
                         <img src="{{ project.owner.profile.avatar.url }}" alt="{{ project.owner.username }}"
-                             class="w-10 h-10 rounded-full object-cover border border-gray-200">
+                             class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm">
                     </a>
                     {% else %}
                     <a href="{% url 'project-user-profile' project.owner.username %}"
-                       class="w-10 h-10 rounded-full flex items-center justify-center bg-green-500 text-white font-bold">
+                       class="w-12 h-12 rounded-full flex items-center justify-center bg-primary text-white font-bold shadow-sm">
                         {{ project.owner.username|first|upper }}
                     </a>
                     {% endif %}
                     <div>
-                        <a href="{% url 'project-user-profile' project.owner.username %}" class="text-gray-700 font-medium hover:text-blue-600">
+                        <a href="{% url 'project-user-profile' project.owner.username %}"
+                           class="text-gray-800 font-medium hover:text-primary transition-colors">
                             @{{ project.owner.username }}
                         </a>
                         {% if project.owner.profile.city or project.owner.profile.country %}
-                        <p class="text-xs text-gray-500">
+                        <p class="text-sm text-gray-500">
                             {% if project.owner.profile.city %}{{ project.owner.profile.city }}{% endif %}
-                            {% if project.owner.profile.country %} - {{ project.owner.profile.country }}{% endif %}
+                            {% if project.owner.profile.country %}, {{ project.owner.profile.country }}{% endif %}
                         </p>
                         {% endif %}
                     </div>
                 </div>
 
-                <!-- Project Title -->
-                <h2 class="text-2xl font-semibold mb-4">{{ project.title }}</h2>
-
-                <!-- Description with a line clamp -->
-                <p class="text-gray-600 mb-4 line-clamp-6">
-                    {{ project.description }}
-                </p>
-
-                <!-- Project Views -->
-                <div class="mb-4 text-sm text-gray-600">
-                    <i class="fas fa-eye mr-1"></i> {{ project.view_count }} Views
+                <!-- Project Content -->
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">{{ project.title }}</h2>
+                    <p class="text-gray-600 mb-6 line-clamp-4 leading-relaxed">
+                        {{ project.description }}
+                    </p>
+                    <div class="flex items-center text-sm text-gray-500">
+                        <i class="fas fa-eye mr-2"></i>
+                        <span>{{ project.view_count }} Views</span>
+                    </div>
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="flex justify-between items-center">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-t border-gray-100 pt-6">
                     <a href="{% url 'project-detail' pk=project.pk %}"
-                       class="text-gray-900 font-semibold hover:text-blue-600 inline-flex items-center gap-2 transition-colors">
+                       class="px-6 py-3 bg-primary text-white rounded-xl hover:bg-secondary transition-colors font-medium flex items-center gap-2">
                         View Details
-                        <i class="fas fa-arrow-right"></i>
+                        <i class="fas fa-arrow-right text-sm"></i>
                     </a>
+
                     {% if project.owner != request.user %}
-                        {% if project.user_application %}
-                            {% if project.user_application.status == 'PENDING' %}
-                                <a href="{% url 'withdraw-application' project_id=project.id %}"
-                                   class="px-6 py-2 rounded-xl font-semibold transition-all bg-red-600 text-white hover:bg-red-700">
-                                    Withdraw Application
-                                </a>
-                            {% elif project.user_application.status == 'ACCEPTED' %}
-                                <a href="{% url 'chat' user_id=project.owner.id %}"
-                                   class="px-6 py-2 rounded-xl font-semibold transition-all bg-blue-600 text-white hover:bg-blue-700">
-                                    Chat
-                                </a>
+                        <div class="flex gap-3">
+                            {% if project.user_application %}
+                                {% if project.user_application.status == 'PENDING' %}
+                                    <a href="{% url 'withdraw-application' project_id=project.id %}"
+                                       class="px-6 py-3 bg-red-100 text-red-700 rounded-xl hover:bg-red-200 transition-colors font-medium">
+                                        Withdraw Application
+                                    </a>
+                                {% elif project.user_application.status == 'ACCEPTED' %}
+                                    <a href="{% url 'chat' user_id=project.owner.id %}"
+                                       class="px-6 py-3 bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 transition-colors font-medium">
+                                        Open Chat
+                                    </a>
+                                {% endif %}
                             {% else %}
-                                <button disabled class="px-6 py-2 rounded-xl font-semibold transition-all bg-gray-400 text-white">
-                                    {{ project.user_application.status|title }}
-                                </button>
+                                <a href="{% url 'apply-project' project_id=project.id %}"
+                                   class="px-6 py-3 bg-green-100 text-green-700 rounded-xl hover:bg-green-200 transition-colors font-medium">
+                                    Apply Now
+                                </a>
                             {% endif %}
-                        {% else %}
-                            <a href="{% url 'apply-project' project_id=project.id %}"
-                               class="px-6 py-2 rounded-xl font-semibold transition-all bg-blue-600 text-white hover:bg-blue-700">
-                                Apply Now
-                            </a>
-                        {% endif %}
+                        </div>
                     {% endif %}
                 </div>
             </div>
             {% endfor %}
         </div>
     {% else %}
-        <div class="text-center py-12">
-            <i class="fas fa-heart fa-2x mb-3 text-gray-400"></i>
-            <p class="text-gray-500">You have not added any projects to favorites yet.</p>
+        <!-- Empty State -->
+        <div class="bg-white rounded-2xl shadow-sm p-12 text-center border border-dashed border-gray-200">
+            <div class="flex justify-center mb-6">
+                <span class="text-5xl text-gray-300">
+                    <i class="fas fa-heart"></i>
+                </span>
+            </div>
+            <h3 class="text-xl font-medium text-gray-700 mb-2">No Favorites Yet</h3>
+            <p class="text-gray-500 mb-8 max-w-md mx-auto">
+                Start building your collection by saving interesting projects you find!
+            </p>
+            <a href="{% url 'marketplace' %}"
+               class="inline-flex items-center px-6 py-3 bg-primary text-white rounded-xl hover:bg-secondary transition-colors font-medium">
+                Explore Marketplace
+            </a>
         </div>
     {% endif %}
 </div>
@@ -146,11 +202,13 @@ function saveProject(e, projectId) {
         },
         success: function(response) {
             if(response.success) {
-                const btnIcon = $("#fav-btn-" + projectId + " i");
+                const btn = $("#fav-btn-" + projectId);
                 if(response.is_favorite) {
-                    btnIcon.removeClass("text-gray-400").addClass("text-red-500");
+                    btn.html('<i class="fas fa-heart text-red-500 text-xl"></i>');
+                    btn.addClass('text-red-500').removeClass('text-gray-400');
                 } else {
-                    btnIcon.removeClass("text-red-500").addClass("text-gray-400");
+                    btn.html('<i class="far fa-heart text-gray-400 hover:text-red-500 text-xl"></i>');
+                    btn.addClass('text-gray-400').removeClass('text-red-500');
                 }
             } else {
                 alert("Error: " + response.error);

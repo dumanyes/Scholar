@@ -13,7 +13,49 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- jQuery for AJAX -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#6D3AFF',
+          secondary: '#8B5CFF',
+          accent: '#FF69B4',
+          dark: '#1A1A2E',
+        }
+      }
+    }
+  }
+</script>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+
+<!-- Chart.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+<style>
+  .gradient-text {
+    background: linear-gradient(135deg, #6D3AFF 0%, #FF69B4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .feature-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .feature-card:hover {
+    transform: translateY(-5px);
+  }
+</style>
+
   <style>
+
     /* Utility for clamping text */
     .line-clamp-3 {
       display: -webkit-box;
@@ -21,246 +63,314 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
+    /* Smooth transitions */
+    .transition-all {
+      transition: all 0.2s ease-in-out;
+    }
+    /* Custom focus styles */
+    .focus-ring:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    }
+    .pad{
+        padding-top: 70px;
+    }
   </style>
 </head>
-<body class="bg-gray-50">
-  <div class="container mx-auto px-4 py-8 max-w-6xl">
-    <!-- Search & Filter Row -->
-    <div class="mb-8 flex flex-col items-center gap-4">
-      <!-- Search Bar -->
-      <div class="relative w-full max-w-md">
-        <form id="searchForm" method="GET" class="w-full">
-          <!-- Hidden inputs for category/time sort -->
-          <input type="hidden" id="timeSort" name="time_sort" value="{{ request.GET.time_sort }}">
-          <input type="hidden" id="selectedCategories" name="categories" value="{{ request.GET.categories }}">
+<body class="pad bg-gray-50 min-h-screen">
+  <div class="container mx-auto px-4 py-8 max-w-5xl">
+    <!-- Page Header -->
+    <div class="mb-8 text-center">
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">My Research Projects</h1>
+      <p class="text-gray-500 max-w-2xl mx-auto">Manage, organize and track all your research initiatives in one place</p>
+    </div>
 
-          <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search my projects..."
-                 class="w-full py-3 px-5 rounded-2xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none text-base">
-          <button type="submit" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-            <i class="fas fa-search"></i>
+    <!-- Search & Action Bar -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+      <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+        <!-- Search Bar -->
+        <div class="relative flex-grow">
+          <form id="searchForm" method="GET" class="w-full">
+            <input type="hidden" id="timeSort" name="time_sort" value="{{ request.GET.time_sort }}">
+            <input type="hidden" id="selectedCategories" name="categories" value="{{ request.GET.categories }}">
+
+            <div class="relative">
+              <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">
+                <i class="fas fa-search"></i>
+              </span>
+              <input type="text" name="q" value="{{ request.GET.q }}"
+                     placeholder="Search projects by title, description or category..."
+                     class="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus-ring text-gray-700">
+            </div>
+          </form>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-3">
+          <button onclick="toggleFilterDialog()" class="flex items-center px-4 py-3 bg-white border-2 border-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all focus-ring whitespace-nowrap">
+            <i class="fas fa-filter mr-2 text-gray-500"></i> Filters
           </button>
-        </form>
+          <a href="{% url 'project-create' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-5 rounded-xl transition-all focus-ring whitespace-nowrap">
+            <i class="fas fa-plus"></i>
+            New Project
+          </a>
+        </div>
       </div>
-      <!-- Create New Project & Filters -->
-      <div class="flex gap-4">
-        <a href="{% url 'project-create' %}" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all whitespace-nowrap">
-          <i class="fas fa-plus"></i>
-          Create New Project
-        </a>
-        <button onclick="toggleFilterDialog()" class="inline-flex items-center px-4 py-2 bg-white shadow rounded-xl font-medium text-gray-700 hover:shadow transition-all">
-          <i class="fas fa-filter mr-2"></i> Filters
+    </div>
+
+    <!-- Sort Controls -->
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-lg font-semibold text-gray-700">{{ projects|length }} Project{{ projects|length|pluralize }}</h2>
+
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-1 flex">
+        <button type="button" onclick="toggleTimeSort('recent')" id="sort-time-recent"
+                class="px-4 py-2 text-sm rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition flex items-center gap-1">
+          <i class="fas fa-arrow-down-short-wide text-gray-500"></i>
+          Newest
+        </button>
+        <button type="button" onclick="toggleTimeSort('old')" id="sort-time-old"
+                class="px-4 py-2 text-sm rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition flex items-center gap-1">
+          <i class="fas fa-arrow-up-short-wide text-gray-500"></i>
+          Oldest
         </button>
       </div>
     </div>
 
-    <!-- Time Sorting Controls (Improved Design) -->
-<div class="mb-8 flex items-center justify-center">
-  <div class="bg-white p-4 rounded-xl shadow flex items-center gap-4">
-    <span class="font-medium text-gray-700">Sort by Time:</span>
-    <div class="flex rounded-lg overflow-hidden border border-gray-200 shadow-sm">
-      <!-- Newest First -->
-      <button
-        type="button"
-        onclick="toggleTimeSort('recent')"
-        id="sort-time-recent"
-        class="px-4 py-2 text-sm font-medium text-blue-800 hover:bg-blue-100 transition inline-flex items-center gap-1"
-      >
-        <i class="fas fa-clock"></i>
-        Newest First
-      </button>
-      <!-- Oldest First -->
-      <button
-        type="button"
-        onclick="toggleTimeSort('old')"
-        id="sort-time-old"
-        class="px-4 py-2 text-sm font-medium text-blue-800 hover:bg-blue-100 transition inline-flex items-center gap-1"
-      >
-        <i class="fas fa-history"></i>
-        Oldest First
-      </button>
-    </div>
-  </div>
-</div>
-
-
-    <!-- My Projects (One per row) -->
-    <div class="grid grid-cols-1 gap-6">
+    <!-- Projects List -->
+    <div class="space-y-6">
       {% for project in projects %}
-      <div class="bg-white rounded-xl shadow p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-md border border-gray-100 relative">
-        <!-- Heart (Favorite) Button at Top-Right -->
-        <button onclick="saveProject({{ project.id }})"
+      <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 transition-all hover:shadow-md relative">
+        <!-- Top Badge Row -->
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+          <!-- Status Badge - Positioned prominently -->
+          <span class="rounded-full px-3 py-1 text-xs font-medium
+            {% if project.is_active %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+            {% if project.is_active %}Active{% else %}Inactive{% endif %}
+          </span>
+
+          <!-- Trending Badge -->
+          {% if project.view_count > 500 %}
+          <span class="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
+            <i class="fas fa-fire"></i> Trending
+          </span>
+          {% endif %}
+
+          <!-- Favorite Button - Positioned right -->
+          <button onclick="saveProject({{ project.id }})"
                 id="fav-btn-{{ project.id }}"
-                class="absolute top-4 right-4 p-1 rounded-full hover:bg-gray-100 transition-colors focus:outline-none"
+                class="ml-auto p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none"
                 aria-label="{% if project.id in favorite_ids %}Remove from favorites{% else %}Add to favorites{% endif %}">
           {% if project.id in favorite_ids %}
             <i class="fas fa-heart text-red-500"></i>
           {% else %}
-            <i class="fas fa-heart text-gray-400 hover:text-red-400"></i>
+            <i class="far fa-heart text-gray-400 hover:text-red-400"></i>
           {% endif %}
         </button>
-
-        <!-- Top Row: Trending Badge + Clickable Categories -->
-        <div class="flex flex-wrap items-center gap-2 mb-4">
-          {% if project.view_count > 500 %}
-          <span class="inline-flex items-center gap-1 px-2 py-1 bg-red-600 text-white text-xs font-semibold rounded-full">
-            <i class="fas fa-fire-alt"></i> Trending
-          </span>
-          {% endif %}
-          {% for category in project.category.all %}
-          <!-- Category Badge: toggles filter instead of linking to marketplace -->
-          <button type="button"
-                  onclick="toggleCategory('{{ category.id }}')"
-                  id="cat-{{ category.id }}"
-                  class="inline-flex items-center px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-sm font-medium text-gray-800">
-            {{ category.name }}
-          </button>
-          {% empty %}
-          <span class="inline-flex items-center px-3 py-1 bg-gray-100 rounded-full text-sm font-medium text-gray-800">
-            No category
-          </span>
-          {% endfor %}
         </div>
 
-        <!-- Owner Info -->
-        <div class="flex items-center gap-3 mb-4">
-          {% if project.owner.profile.avatar %}
-            <a href="{% url 'project-user-profile' project.owner.username %}">
-              <img src="{{ project.owner.profile.avatar.url }}" alt="{{ project.owner.username }}" class="w-10 h-10 rounded-full object-cover">
-            </a>
-          {% else %}
-            <a href="{% url 'project-user-profile' project.owner.username %}"
-               class="w-10 h-10 rounded-full flex items-center justify-center bg-green-500 text-white font-bold">
-              {{ project.owner.username|first|upper }}
-            </a>
-          {% endif %}
-          <div>
-            <a href="{% url 'project-user-profile' project.owner.username %}" class="text-gray-800 font-medium hover:text-blue-600 transition-colors">
-              @{{ project.owner.username }}
-            </a>
-            {% if project.owner.profile.city or project.owner.profile.country %}
-            <p class="text-xs text-gray-500">
-              {{ project.owner.profile.city }}{% if project.owner.profile.city and project.owner.profile.country %} - {% endif %}{{ project.owner.profile.country }}
-            </p>
+        <!-- Main Content Area with improved layout -->
+        <div class=" flex flex-col md:flex-row gap-6">
+          <!-- Left Column: Project Info -->
+          <div class="flex-grow">
+            <!-- Project Title -->
+            <h2 class="text-xl font-bold mb-2 text-gray-800 hover:text-blue-600 transition-colors">
+              <a href="{% url 'project-detail' pk=project.pk %}">{{ project.title }}</a>
+            </h2>
+
+            <!-- Posted Date & Time -->
+            <div class="mb-3 text-sm text-gray-500 flex items-center">
+              <i class="fas fa-calendar-alt mr-2"></i>
+              <span>{{ project.created_at|date:"M d, Y" }} ({{ project.created_at|timesince }} ago)</span>
+            </div>
+
+            <!-- Categories Row -->
+            <div class="flex flex-wrap gap-2 mb-4">
+              {% for category in project.category.all %}
+              <button type="button"
+                      onclick="toggleCategory('{{ category.id }}')"
+                      id="cat-{{ category.id }}"
+                      class="inline-flex items-center px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs font-medium text-gray-700 transition-colors">
+                {{ category.name }}
+              </button>
+              {% empty %}
+              <span class="inline-flex items-center px-3 py-1 bg-gray-100 rounded-full text-xs font-medium text-gray-600">
+                No category
+              </span>
+              {% endfor %}
+            </div>
+
+            <!-- Description with cleaner expand/collapse -->
+            <div class="mb-4">
+              <p id="desc-{{ project.id }}" class="text-gray-600 mb-2 line-clamp-3">
+                {{ project.description }}
+              </p>
+              <button onclick="toggleDescription({{ project.id }}, event)"
+                      class="text-blue-600 text-sm hover:text-blue-700 hover:underline focus:outline-none transition-colors">
+                Read more
+              </button>
+            </div>
+
+            <!-- Roles as Tag Badges -->
+            {% if project.required_roles.all %}
+            <div class="flex flex-wrap gap-2 mb-4">
+              {% for role in project.required_roles.all %}
+              <span class="inline-flex items-center px-3 py-1 bg-blue-50 rounded-full text-xs font-medium text-blue-700">
+                <i class="fas fa-user mr-1"></i> {{ role.name }}
+              </span>
+              {% endfor %}
+            </div>
             {% endif %}
           </div>
-        </div>
 
-        <!-- Project Title -->
-        <h2 class="text-2xl font-semibold mb-2 text-gray-800">{{ project.title }}</h2>
+          <!-- Right Column: Owner Info & Actions -->
+          <div class="md:w-48 flex flex-row md:flex-col gap-4 md:border-l md:pl-6 md:border-gray-100">
+            <!-- Owner Info -->
+            <div class="flex md:flex-col items-center gap-2 md:text-center">
+              {% if project.owner.profile.avatar %}
+                <a href="{% url 'project-user-profile' project.owner.username %}" class="block">
+                  <img src="{{ project.owner.profile.avatar.url }}" alt="{{ project.owner.username }}"
+                       class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm">
+                </a>
+              {% else %}
+                <a href="{% url 'project-user-profile' project.owner.username %}"
+                   class="w-12 h-12 rounded-full flex items-center justify-center bg-blue-500 text-white font-bold shadow-sm">
+                  {{ project.owner.username|first|upper }}
+                </a>
+              {% endif %}
+              <div>
+                <a href="{% url 'project-user-profile' project.owner.username %}"
+                   class="text-gray-800 font-medium hover:text-blue-600 transition-colors text-sm">
+                  @{{ project.owner.username }}
+                </a>
+                {% if project.owner.profile.city or project.owner.profile.country %}
+                <p class="text-xs text-gray-500">
+                  {{ project.owner.profile.city }}{% if project.owner.profile.city and project.owner.profile.country %}, {% endif %}{{ project.owner.profile.country }}
+                </p>
+                {% endif %}
+              </div>
+            </div>
 
-        <!-- Posted Date & Time -->
-        <div class="mb-2 text-sm text-gray-500">
-          <i class="fas fa-clock mr-1"></i>
-          Posted on {{ project.created_at|date:"M d, Y h:i A" }} ({{ project.created_at|timesince }} ago)
-        </div>
-
-        <!-- Collapsible Description -->
-        <div>
-          <p id="desc-{{ project.id }}" class="text-gray-600 mb-4 line-clamp-3">
-            {{ project.description }}
-          </p>
-          <button onclick="toggleDescription({{ project.id }}, event)" class="text-blue-600 text-sm focus:outline-none">
-            Read More
-          </button>
-        </div>
-
-        <!-- Roles as Tag Badges -->
-        {% if project.required_roles.all %}
-        <div class="flex flex-wrap gap-2 mb-4">
-          {% for role in project.required_roles.all %}
-          <span class="inline-flex items-center px-3 py-1 bg-blue-100 rounded-full text-xs font-medium text-blue-800">
-            <i class="fas fa-user mr-1"></i> {{ role.name }}
-          </span>
-          {% endfor %}
-        </div>
-        {% endif %}
-
-        <!-- Bottom Row: Project Status & Buttons -->
-        <div class="flex items-center justify-between mt-4">
-          <!-- Status Badge (Active/Inactive) -->
-          <span class="px-3 py-1 rounded-full text-xs font-medium
-            {% if project.is_active %}bg-green-100 text-green-600{% else %}bg-red-100 text-red-500{% endif %}">
-            {% if project.is_active %}Active{% else %}Inactive{% endif %}
-          </span>
-          <!-- Action Buttons: View Details & Activate/Deactivate -->
-          <div class="flex items-center gap-4">
-            <a href="{% url 'project-detail' pk=project.pk %}"
-               class="text-gray-900 font-medium hover:text-blue-600 inline-flex items-center gap-2 transition-colors">
-              View Details <i class="fas fa-arrow-right"></i>
-            </a>
-            <form method="POST" action="{% url 'project-toggle' project.id %}">
-              {% csrf_token %}
-              <button type="submit" class="px-4 py-2 rounded-xl font-medium transition-all
-                {% if project.is_active %}
-                  border border-red-500 text-red-500 hover:bg-red-50
-                {% else %}
-                  border border-green-500 text-green-500 hover:bg-green-50
-                {% endif %}">
-                {% if project.is_active %}Deactivate{% else %}Activate{% endif %}
-              </button>
-            </form>
+            <!-- Action Buttons -->
+            <div class="flex flex-col gap-2 mt-auto md:mt-4">
+              <a href="{% url 'project-detail' pk=project.pk %}"
+                 class="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-medium hover:bg-blue-100 text-center transition-colors">
+                View Details
+              </a>
+              <form method="POST" action="{% url 'project-toggle' project.id %}">
+                {% csrf_token %}
+                <button type="submit" class="w-full px-4 py-2 rounded-lg font-medium transition-colors text-sm
+                  {% if project.is_active %}
+                    bg-red-50 text-red-700 hover:bg-red-100
+                  {% else %}
+                    bg-green-50 text-green-700 hover:bg-green-100
+                  {% endif %}">
+                  {% if project.is_active %}Deactivate{% else %}Activate{% endif %}
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </div>
       {% empty %}
-      <div class="bg-gray-50 rounded-2xl p-12 text-center">
-        <div class="flex justify-center mb-4">
-          <i class="fas fa-folder-open fa-2x" style="color: #ced4da;"></i>
+      <!-- Empty State with improved styling -->
+      <div class="bg-white rounded-xl shadow-sm p-12 text-center border border-dashed border-gray-200">
+        <div class="flex justify-center mb-6">
+          <span class="text-5xl text-gray-300">
+            <i class="fas fa-folder-open"></i>
+          </span>
         </div>
-        <p class="text-gray-500 mb-6">You haven't created any projects yet</p>
-        <a href="{% url 'project-create' %}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all">
-          Start Your First Project
+        <h3 class="text-xl font-medium text-gray-700 mb-2">No projects yet</h3>
+        <p class="text-gray-500 mb-8 max-w-md mx-auto">Create your first research project to start organizing your work and collaborating with others.</p>
+        <a href="{% url 'project-create' %}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl transition-all">
+          <i class="fas fa-plus"></i> Start Your First Project
         </a>
       </div>
       {% endfor %}
     </div>
+
+    <!-- Pagination (if needed) -->
+    {% if is_paginated %}
+    <div class="mt-8 flex justify-center">
+      <nav class="inline-flex rounded-lg shadow-sm bg-white border border-gray-200 overflow-hidden">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 text-gray-700 hover:bg-gray-50 border-r border-gray-200">
+          <i class="fas fa-chevron-left"></i>
+        </a>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+          {% if num == page_obj.number %}
+          <span class="px-4 py-2 bg-blue-50 text-blue-700 font-medium">{{ num }}</span>
+          {% else %}
+          <a href="?page={{ num }}" class="px-4 py-2 text-gray-700 hover:bg-gray-50 border-r border-gray-200">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 text-gray-700 hover:bg-gray-50">
+          <i class="fas fa-chevron-right"></i>
+        </a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
   </div>
 
-  <!-- Filter Dialog -->
+  <!-- Improved Filter Dialog -->
   <div id="filterDialog" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 hidden">
-    <div class="bg-white rounded-2xl w-full max-w-lg p-6 m-4">
+    <div class="bg-white rounded-xl w-full max-w-lg p-6 m-4 shadow-lg">
       <div class="flex justify-between items-center mb-6">
-        <h3 class="text-xl font-semibold">Filter Projects</h3>
-        <button type="button" onclick="toggleFilterDialog()" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+        <h3 class="text-xl font-semibold text-gray-800">Filter Projects</h3>
+        <button type="button" onclick="toggleFilterDialog()" class="text-gray-400 hover:text-gray-600 focus:outline-none p-2 rounded-full hover:bg-gray-100">
           <i class="fas fa-times"></i>
         </button>
       </div>
+
       <form id="filterForm" method="GET" class="space-y-6">
         <!-- Status Filter -->
         <div>
-          <label class="block text-sm font-medium mb-2">Status</label>
-          <select name="status" class="w-full py-2 px-3 border rounded-lg border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-200">
-            <option value="">All</option>
-            <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
-            <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
-          </select>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Project Status</label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="flex items-center justify-center p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
+              <input type="radio" name="status" value="" class="sr-only" {% if not request.GET.status %}checked{% endif %}>
+              <span class="text-sm font-medium {% if not request.GET.status %}text-blue-700{% else %}text-gray-700{% endif %}">All</span>
+            </label>
+            <label class="flex items-center justify-center p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
+              <input type="radio" name="status" value="active" class="sr-only" {% if request.GET.status == 'active' %}checked{% endif %}>
+              <span class="text-sm font-medium {% if request.GET.status == 'active' %}text-blue-700{% else %}text-gray-700{% endif %}">Active</span>
+            </label>
+            <label class="flex items-center justify-center p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
+              <input type="radio" name="status" value="inactive" class="sr-only" {% if request.GET.status == 'inactive' %}checked{% endif %}>
+              <span class="text-sm font-medium {% if request.GET.status == 'inactive' %}text-blue-700{% else %}text-gray-700{% endif %}">Inactive</span>
+            </label>
+          </div>
         </div>
+
         <!-- Category Filter (clickable badges) -->
         <div>
-          <label class="block text-sm font-medium mb-2">Category</label>
-          <div id="filter-categories" class="flex flex-wrap gap-2">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Categories</label>
+          <div id="filter-categories" class="flex flex-wrap gap-2 bg-gray-50 p-4 rounded-lg border border-gray-200">
             <button type="button" onclick="selectAllFilterCategories()" id="filter-cat-all"
-              class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-full text-sm font-medium transition">
-              All
+              class="px-3 py-1.5 bg-white border border-gray-200 hover:border-blue-400 text-gray-800 rounded-lg text-sm font-medium transition-colors shadow-sm">
+              All Categories
             </button>
             {% for cat in all_categories %}
             <button type="button" onclick="toggleFilterCategory('{{ cat.id }}')" id="filter-cat-{{ cat.id }}"
-              class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-full text-sm font-medium transition">
+              class="px-3 py-1.5 bg-white border border-gray-200 hover:border-blue-400 text-gray-800 rounded-lg text-sm font-medium transition-colors shadow-sm">
               {{ cat.name }}
             </button>
             {% endfor %}
           </div>
           <input type="hidden" id="filterSelectedCategories" name="filter_category" value="{{ request.GET.filter_category }}">
         </div>
-        <div class="flex gap-4">
-          <button type="button" onclick="resetFilterDialog()" class="flex-1 px-6 py-3 bg-red-100 text-red-700 rounded-xl font-medium hover:bg-red-200 transition-all">
-            Clear
+
+        <!-- Action Buttons -->
+        <div class="flex gap-4 pt-4 border-t border-gray-100">
+          <button type="button" onclick="resetFilterDialog()" class="flex-1 px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-all">
+            Clear All
           </button>
-          <button type="button" onclick="toggleFilterDialog()" class="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-all">
-            Cancel
-          </button>
-          <button type="submit" class="flex-1 px-6 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-all">
-            Apply
+          <button type="submit" class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-all">
+            Apply Filters
           </button>
         </div>
       </form>
@@ -273,15 +383,31 @@
     function toggleFilterDialog() {
       const dialog = document.getElementById('filterDialog');
       dialog.classList.toggle('hidden');
+
+      // Prevent body scrolling when dialog is open
+      if (!dialog.classList.contains('hidden')) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = '';
+      }
     }
+
     // Reset Filter Dialog
     function resetFilterDialog() {
-      document.querySelector('select[name="status"]').value = "";
+      document.querySelector('input[name="status"][value=""]').checked = true;
+
       const filterBtns = document.querySelectorAll("#filter-categories button");
-      filterBtns.forEach(btn => btn.classList.remove('bg-blue-300','text-white'));
-      document.getElementById('filter-cat-all').classList.add('bg-blue-300','text-white');
+      filterBtns.forEach(btn => {
+        btn.classList.remove('bg-blue-100','border-blue-500','text-blue-700');
+        btn.classList.add('bg-white', 'border-gray-200', 'text-gray-800');
+      });
+
+      document.getElementById('filter-cat-all').classList.remove('bg-white', 'border-gray-200', 'text-gray-800');
+      document.getElementById('filter-cat-all').classList.add('bg-blue-100','border-blue-500','text-blue-700');
+
       document.getElementById('filterSelectedCategories').value = "";
     }
+
     // Toggle Category from Filter Dialog
     function toggleFilterCategory(catId) {
       let selected = document.getElementById('filterSelectedCategories').value;
@@ -290,18 +416,25 @@
       const index = selected.indexOf(catId);
       if (index > -1) {
         selected.splice(index, 1);
-        btn.classList.remove('bg-blue-300','text-white');
+        btn.classList.remove('bg-blue-100','border-blue-500','text-blue-700');
+        btn.classList.add('bg-white', 'border-gray-200', 'text-gray-800');
       } else {
         selected.push(catId);
-        btn.classList.add('bg-blue-300','text-white');
+        btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-800');
+        btn.classList.add('bg-blue-100','border-blue-500','text-blue-700');
       }
+
       document.getElementById('filterSelectedCategories').value = selected.join(',');
+
       if (selected.length === 0) {
-        document.getElementById('filter-cat-all').classList.add('bg-blue-300','text-white');
+        document.getElementById('filter-cat-all').classList.remove('bg-white', 'border-gray-200', 'text-gray-800');
+        document.getElementById('filter-cat-all').classList.add('bg-blue-100','border-blue-500','text-blue-700');
       } else {
-        document.getElementById('filter-cat-all').classList.remove('bg-blue-300','text-white');
+        document.getElementById('filter-cat-all').classList.remove('bg-blue-100','border-blue-500','text-blue-700');
+        document.getElementById('filter-cat-all').classList.add('bg-white', 'border-gray-200', 'text-gray-800');
       }
     }
+
     function selectAllFilterCategories() {
       resetFilterDialog();
       document.getElementById('filterSelectedCategories').value = "";
@@ -314,9 +447,7 @@
     }
 
     // Category Filter on the Card
-    // If you want categories in the card to filter as well, similar to marketplace:
     function toggleCategory(catId) {
-      // read the hidden input
       let selected = document.getElementById('selectedCategories').value;
       selected = selected ? selected.split(',') : [];
       const index = selected.indexOf(catId);
@@ -326,7 +457,6 @@
         selected.push(catId);
       }
       document.getElementById('selectedCategories').value = selected.join(',');
-      // submit the form
       document.getElementById('searchForm').submit();
     }
 
@@ -336,10 +466,10 @@
       const btn = event.target;
       if (desc.classList.contains('line-clamp-3')) {
         desc.classList.remove('line-clamp-3');
-        btn.textContent = 'Read Less';
+        btn.textContent = 'Read less';
       } else {
         desc.classList.add('line-clamp-3');
-        btn.textContent = 'Read More';
+        btn.textContent = 'Read more';
       }
     }
 
@@ -356,41 +486,60 @@
           if (response.success) {
             const btnIcon = $("#fav-btn-" + projectId + " i");
             if (response.is_favorite) {
-              btnIcon.removeClass("text-gray-400").addClass("text-red-500");
+              btnIcon.removeClass("far fa-heart text-gray-400").addClass("fas fa-heart text-red-500");
             } else {
-              btnIcon.removeClass("text-red-500").addClass("text-gray-400");
+              btnIcon.removeClass("fas fa-heart text-red-500").addClass("far fa-heart text-gray-400");
             }
           } else {
             alert("Error: " + response.error);
           }
         },
         error: function(xhr, status, error) {
-          alert("An error occurred: " + error);
+          console.error("An error occurred:", error);
+          alert("An error occurred. Please try again.");
         }
       });
     }
 
-    // Optionally highlight selected categories from GET params
+    // Initialize UI based on current filters
     document.addEventListener("DOMContentLoaded", function() {
-      // time sort highlight
+      // Time sort highlight
       const currentSort = "{{ time_sort|default_if_none:'recent' }}";
       if (currentSort === 'old') {
-        document.getElementById('sort-time-old').classList.add('bg-blue-300','text-white');
+        document.getElementById('sort-time-old').classList.add('bg-blue-100','text-blue-700');
       } else {
-        document.getElementById('sort-time-recent').classList.add('bg-blue-300','text-white');
+        document.getElementById('sort-time-recent').classList.add('bg-blue-100','text-blue-700');
       }
 
-      // categories highlight
+      // Categories highlight
       let catVal = "{{ request.GET.categories|default_if_none:'' }}";
       if (catVal) {
         let selectedArray = catVal.split(',');
         selectedArray.forEach(catId => {
           const catBtn = document.getElementById('cat-' + catId);
           if (catBtn) {
-            catBtn.classList.add('bg-gray-300','text-gray-800');
+            catBtn.classList.add('bg-blue-50','text-blue-700');
           }
         });
       }
+
+      // Handle ESC key to close filter dialog
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          const dialog = document.getElementById('filterDialog');
+          if (!dialog.classList.contains('hidden')) {
+            toggleFilterDialog();
+          }
+        }
+      });
+
+      // Close dialog when clicking outside
+      const dialog = document.getElementById('filterDialog');
+      dialog.addEventListener('click', function(e) {
+        if (e.target === dialog) {
+          toggleFilterDialog();
+        }
+      });
     });
   </script>
 </body>

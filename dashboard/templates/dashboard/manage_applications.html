@@ -1,0 +1,43 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% block content %}
+<div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6">Manage Applications</h1>
+
+    {% if applications %}
+    <table class="min-w-full bg-white shadow rounded">
+        <thead>
+            <tr>
+                <th class="py-2 px-4 border-b">ID</th>
+                <th class="py-2 px-4 border-b">Project</th>
+                <th class="py-2 px-4 border-b">Applicant</th>
+                <th class="py-2 px-4 border-b">Applied At</th>
+                <th class="py-2 px-4 border-b">Status</th>
+                <th class="py-2 px-4 border-b">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for application in applications %}
+            <tr>
+                <td class="py-2 px-4 border-b">{{ application.id }}</td>
+                <td class="py-2 px-4 border-b">
+                    <a href="{{ application.project.get_absolute_url }}" class="text-blue-600 hover:underline">
+                        {{ application.project.title }}
+                    </a>
+                </td>
+                <td class="py-2 px-4 border-b">{{ application.applicant.username }}</td>
+                <td class="py-2 px-4 border-b">{{ application.applied_at|date:"M d, Y H:i" }}</td>
+                <td class="py-2 px-4 border-b">{{ application.get_status_display }}</td>
+                <td class="py-2 px-4 border-b">
+                    <a href="{% url 'project-detail' application.project.id %}" class="text-green-600 hover:underline">View</a>
+                    {# Add additional actions here if needed, e.g., update status, delete #}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No applications found.</p>
+    {% endif %}
+</div>
+{% endblock %}

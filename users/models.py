@@ -1,4 +1,5 @@
 import os
+import sys
 
 from django.conf import settings
 from django.utils import timezone
@@ -113,12 +114,19 @@ from django.dispatch import receiver
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
-    if created:
+    # Skip signal during migrate/makemigrations
+    if 'migrate' in sys.argv or 'makemigrations' in sys.argv:
+        return
+    if created and not hasattr(instance, 'profile'):
         Profile.objects.create(user=instance)
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
+    # Skip signal during migrate/makemigrations
+    if 'migrate' in sys.argv or 'makemigrations' in sys.argv:
+        return
     try:
-        instance.profile.save()
+        if hasattr(instance, 'profile'):
+            instance.profile.save()
     except Profile.DoesNotExist:
-        Profile.objects.create(user=instance)
+        pass  # Just ignore if profile wasn't created yet
