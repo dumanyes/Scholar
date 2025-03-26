@@ -227,9 +227,10 @@ def research_assistant_stream(request):
             ]
         }
         headers = {
-            "Authorization": "Bearer <OPENROUTER_API_KEY>",
+            "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
             "Content-Type": "application/json"
         }
+
         try:
             with requests.post(
                 "https://openrouter.ai/api/v1/chat/completions",
