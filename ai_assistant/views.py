@@ -120,7 +120,7 @@ def call_ai_model(user_message: str, conversation_history: list, image_file=None
     print("🔐 DEBUG - Referer:", os.getenv("OPENROUTER_REFERER"))
     if not api_key:
         return {"error": "OPENROUTER_API_KEY not set on server"}
-    referer_header = os.getenv("OPENROUTER_REFERER", "https://scholarhub-trkt.onrender.com/")
+    referer_header = os.getenv("OPENROUTER_REFERER", "https://scholarhub.kz/")
 
     full_history = [system_prompt] + conversation_history
     full_history.append({
