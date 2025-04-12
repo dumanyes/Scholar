@@ -8,20 +8,20 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Nunito+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
-  
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <title>{% block title %}ScholarHub{% endblock %}</title>
+
   <style>
     :root {
-      /* Refined color palette */
-      --primary: #1A365D;       /* Deep navy blue */
-      --primary-light: #2D4A7A; /* Lighter navy blue */
-      --secondary: #F0B429;     /* Golden accent */
-      --tertiary: #48BB78;      /* Soft green */
-      --background: #F7FAFC;    /* Off-white background */
-      --paper: #FFFFFF;         /* Pure white */
-      --text: #2D3748;          /* Dark slate for text */
-      --text-light: #718096;    /* Medium slate for secondary text */
-      --border: #E2E8F0;        /* Light gray for borders */
+      --primary: #1A365D;
+      --primary-light: #2D4A7A;
+      --secondary: #F0B429;
+      --tertiary: #48BB78;
+      --background: #F7FAFC;
+      --paper: #FFFFFF;
+      --text: #2D3748;
+      --text-light: #718096;
+      --border: #E2E8F0;
     }
 
     body {
@@ -124,8 +124,20 @@
 
     .prose {
       max-width: 70ch;
-      font-size: 1.05rem;
+      font-size: 1rem;
       color: var(--text);
+    }
+
+    @media (min-width: 640px) {
+      .prose {
+        font-size: 1.05rem;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .prose {
+        font-size: 1.125rem;
+      }
     }
 
     .prose h2 {
@@ -181,7 +193,6 @@
       background-color: rgba(72, 187, 120, 0.1);
     }
 
-    /* Decorative elements */
     .decoration-dot {
       position: absolute;
       width: 150px;
@@ -189,6 +200,15 @@
       border-radius: 50%;
       background: radial-gradient(circle, rgba(240, 180, 41, 0.15) 0%, rgba(240, 180, 41, 0) 70%);
       z-index: -1;
+    }
+
+    #mobileMenu {
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .icon {
+      height: 40px;
     }
   </style>
 </head>
@@ -201,13 +221,17 @@
   <nav class="nav-bg fixed w-full top-0 z-50">
     <div class="container mx-auto px-6">
       <div class="flex justify-between items-center h-20">
-        <a class="flex items-center space-x-2" href="/">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"></path>
-            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"></path>
-            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"></path>
-          </svg>
-          <span class="brand-logo text-2xl">Scholar<span class="brand-accent">Hub</span></span>
+{#        <a class="flex items-center space-x-2" href="/">#}
+{#          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">#}
+{#            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"></path>#}
+{#            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"></path>#}
+{#            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"></path>#}
+{#          </svg>#}
+{#          <span class="brand-logo text-2xl">Scholar<span class="brand-accent">Hub</span></span>#}
+{#        </a>#}
+      
+      <a class="flex items-center space-x-2" href="/">
+          <img src="/media/photo_5274128391500590554_x-removebg-preview.png" class="icon">
         </a>
 
         <div class="hidden lg:flex items-center space-x-8">

@@ -1,11 +1,18 @@
 from django import forms
-from .models import Project, Skill, MaxWordsValidator, ProjectApplication, RequiredRole
-
+from .models import Project, Skill, MaxWordsValidator, ProjectApplication, RequiredRole, Language
 
 class ProjectForm(forms.ModelForm):
-    # Override the default field so that we accept a comma-separated string.
+    # Skills: Must be at least one (validation in clean_skills_required)
     skills_required = forms.CharField(widget=forms.HiddenInput(), required=True)
-    required_roles = forms.CharField(widget=forms.HiddenInput(), required=False)
+    # Required roles: Now set as required so that the user must select at least one.
+    required_roles = forms.CharField(widget=forms.HiddenInput(), required=True)
+
+    languages = forms.ModelMultipleChoiceField(
+        queryset=Language.objects.all(),
+        required=True,
+        widget=forms.CheckboxSelectMultiple,  # Or use SelectMultiple for dropdown style
+        help_text="Select at least one language"
+    )
 
     class Meta:
         model = Project
@@ -33,6 +40,23 @@ class ProjectForm(forms.ModelForm):
             }),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # If editing an existing project, prepopulate hidden fields with current values.
+        if self.instance and self.instance.pk:
+            skills = ",".join(str(skill.id) for skill in self.instance.skills_required.all())
+            roles = ",".join(str(role.id) for role in self.instance.required_roles.all())
+            self.fields['skills_required'].initial = skills
+            self.fields['required_roles'].initial = roles
+            print("DEBUG: ProjectForm __init__ - skills_required initial:", skills)
+            print("DEBUG: ProjectForm __init__ - required_roles initial:", roles)
+
+    def clean_languages(self):
+        langs = self.cleaned_data.get('languages')
+        if not langs:
+            raise forms.ValidationError("Please select at least one language.")
+        return langs
+
     def clean_title(self):
         title = self.cleaned_data.get('title')
         if not title:
@@ -51,24 +75,21 @@ class ProjectForm(forms.ModelForm):
 
     def clean_skills_required(self):
         data = self.cleaned_data.get('skills_required', '')
-        skill_ids = [id.strip() for id in data.split(',') if id.strip()]
+        if isinstance(data, list):
+            skill_ids = data
+        else:
+            skill_ids = [id.strip() for id in data.split(',') if id.strip()]
         if not skill_ids:
             raise forms.ValidationError("At least one skill is required.")
         if len(skill_ids) > 15:
             raise forms.ValidationError("You can select at most 15 skills.")
         return skill_ids
 
-    def clean_languages(self):
-        languages_str = self.data.get('languages', '')
-        language_ids = [lid.strip() for lid in languages_str.split(',') if lid.strip()]
-        if not language_ids:
-            raise forms.ValidationError("Please select at least one language.")
-        return language_ids
-
     def clean_required_roles(self):
         roles_str = self.data.get('required_roles', '')
         role_ids = [rid.strip() for rid in roles_str.split(',') if rid.strip()]
-        # Since required_roles is optional, we simply return an empty list if none selected.
+        if not role_ids:
+            raise forms.ValidationError("Please select at least one required role.")
         return role_ids
 
     def clean(self):
@@ -85,7 +106,6 @@ class ProjectForm(forms.ModelForm):
 
 
 class ProjectApplicationForm(forms.ModelForm):
-    # You might want to require contribution text, or make it optional
     message = forms.CharField(
         required=False,
         widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'Optional message to the project owner'}),
@@ -98,7 +118,7 @@ class ProjectApplicationForm(forms.ModelForm):
         help_text="Please explain how your skills and experience will help the project."
     )
     applied_role = forms.ModelChoiceField(
-        queryset=RequiredRole.objects.none(),  # по умолчанию пустой QuerySet
+        queryset=RequiredRole.objects.none(),  # Default to an empty QuerySet.
         required=True,
         label="Выберите роль, на которую вы подаетесь",
         widget=forms.Select(attrs={
@@ -115,9 +135,6 @@ class ProjectApplicationForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if project:
             self.fields['applied_role'].queryset = project.required_roles.all()
-
-
-# projects/forms.py
 
 
 class ProjectDashboardForm(forms.ModelForm):
@@ -142,4 +159,3 @@ class ProjectDashboardForm(forms.ModelForm):
             'languages': forms.CheckboxSelectMultiple,
             'required_roles': forms.CheckboxSelectMultiple,
         }
-

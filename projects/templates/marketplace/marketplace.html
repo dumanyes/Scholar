@@ -13,30 +13,12 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.tailwindcss.com"></script>
 
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
 
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 
-<!-- Chart.js CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-
-<style>
-    {#.bgg{#}
-    {#    background-color: #2e64ae;#}
-    {##}
-    {##}
-
-  .feature-card {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .feature-card:hover {
-    transform: translateY(-5px);
-  }
-</style>
-
-  <!-- jQuery (for AJAX and DOM manipulation) -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <style>
     /* Line clamp utility */
     .line-clamp-3 {
@@ -51,6 +33,40 @@
     .heart-btn:active {
       transform: scale(1.2);
     }
+    :root {
+    --primary: #1A365D;
+    --primary-light: #2D4A7A;
+    --secondary: #F0B429;
+    --tertiary: #48BB78;
+    --background: #F7FAFC;
+    --paper: #FFFFFF;
+    --text: #2D3748;
+    --text-light: #718096;
+    --border: #E2E8F0;
+  }
+    .bg-primary { background-color: var(--primary); }
+  .bg-primary-light { background-color: var(--primary-light); }
+  .bg-secondary { background-color: var(--secondary); }
+  .bg-tertiary { background-color: var(--tertiary); }
+  .bg-background { background-color: var(--background); }
+  .bg-paper { background-color: var(--paper); }
+  .bg-border { background-color: var(--border); }
+
+  .text-primary { color: var(--primary); }
+  .text-primary-light { color: var(--primary-light); }
+  .text-secondary { color: var(--secondary); }
+  .text-tertiary { color: var(--tertiary); }
+  .text-text { color: var(--text); }
+  .text-text-light { color: var(--text-light); }
+
+  .border-primary { border-color: var(--primary); }
+  .border-secondary { border-color: var(--secondary); }
+  .border-tertiary { border-color: var(--tertiary); }
+  .border-border { border-color: var(--border); }
+
+  .hover\:bg-border:hover { background-color: var(--border); }
+  .hover\:text-primary-light:hover { color: var(--primary-light); }
+  .hover\:stroke-secondary:hover { stroke: var(--secondary); }
     .modal {
       background: rgba(0, 0, 0, 0.4);
     }
@@ -104,490 +120,490 @@
 <body class="bg-gray-50">
   <div class="container mx-auto px-4 py-8">
     <!-- Header & Navigation Buttons with added top margin -->
-<div class="text-center mb-8 mt-10">
-  <h1 class="text-4xl font-bold mb-6 text-gray-800">Explore Research Projects</h1>
-  <div class="flex flex-wrap justify-center gap-4">
-    <a href="{% url 'my-projects' %}" class="inline-flex items-center px-5 py-2.5 bg-white shadow-md rounded-lg font-medium text-gray-700 hover:shadow-lg hover:bg-gray-50 transition-all">
-      <i class="fas fa-folder-open mr-2.5"></i> My Projects
-    </a>
-    <a href="{% url 'my-requests' %}" class="inline-flex items-center px-5 py-2.5 bg-white shadow-md rounded-lg font-medium text-gray-700 hover:shadow-lg hover:bg-gray-50 transition-all">
-      <i class="fas fa-paper-plane mr-2.5"></i> My Requests
-    </a>
-    <a href="{% url 'favorites' %}" class="inline-flex items-center px-5 py-2.5 bg-white shadow-md rounded-lg font-medium text-gray-700 hover:shadow-lg hover:bg-gray-50 transition-all">
-      <i class="fas fa-heart mr-2.5"></i> Favorites
-    </a>
-    {% if current_query or time_filter or selected_categories|join:"" or selected_skills|join:"" %}
-      <button onclick="toggleFilterDialog()" class="inline-flex items-center px-5 py-2.5 bg-blue-100 shadow-md rounded-lg font-medium text-blue-700 hover:shadow-lg hover:bg-blue-50 transition-all">
-        <i class="fas fa-filter mr-2.5"></i> Filters (Active)
-      </button>
-    {% else %}
-      <button onclick="toggleFilterDialog()" class="inline-flex items-center px-5 py-2.5 bg-white shadow-md rounded-lg font-medium text-gray-700 hover:shadow-lg hover:bg-gray-50 transition-all">
-        <i class="fas fa-filter mr-2.5"></i> Filters
-      </button>
-    {% endif %}
-    <a href="{% url 'chat_list' %}" class="inline-flex items-center px-5 py-2.5 bg-white shadow-md rounded-lg font-medium text-gray-700 hover:shadow-lg hover:bg-gray-50 transition-all relative">
-      <i class="fas fa-comments mr-2.5"></i> Chats
-      <span id="unread-count-badge" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full text-xs w-6 h-6 flex items-center justify-center shadow-sm" style="display: {% if unread_chat_count and unread_chat_count > 0 %}flex{% else %}none{% endif %};">
-        {{ unread_chat_count|default:"0" }}
-      </span>
-    </a>
-    <a href="{% url 'notifications_list' %}" class="inline-flex items-center px-5 py-2.5 bg-white shadow-md rounded-lg font-medium text-gray-700 hover:shadow-lg hover:bg-gray-50 transition-all relative">
-      <i class="fas fa-bell mr-2.5"></i> Notifications
-      <span id="notifications-badge" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full text-xs w-6 h-6 flex items-center justify-center shadow-sm" style="display: {% if notifications_count and notifications_count > 0 %}flex{% else %}none{% endif %};">
-        {{ notifications_count|default:"0" }}
-      </span>
-    </a>
-  </div>
-</div>
-
-<!-- Search Bar -->
-<div class="relative max-w-2xl mx-auto mb-8">
-  <form id="searchForm" method="GET">
-    <div class="relative">
-      <i class="fas fa-search absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-      <input type="text" id="searchInput" name="q" value="{{ current_query }}" placeholder="Search research projects..."
-             class="w-full px-6 py-4 pl-14 rounded-xl border-2 border-gray-200 bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all focus:outline-none">
-      <button type="submit" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition-all">
-        <i class="fas fa-search"></i>
-      </button>
-    </div>
-  </form>
-</div>
-
-<!-- Active Filters Display -->
-{% if current_query or time_filter or selected_categories|join:"" or selected_skills|join:"" %}
-  <div class="mb-8 bg-gray-50 p-4 rounded-xl shadow-sm border border-gray-100">
-    <h4 class="font-semibold mb-3 text-gray-700">Active Filters:</h4>
-    <div class="flex flex-wrap gap-2">
-      {% if current_query %}
-        <span class="px-4 py-1.5 bg-white border border-gray-200 rounded-full text-sm shadow-sm">Search: "{{ current_query }}"</span>
-      {% endif %}
-      {% if time_filter %}
-        <span class="px-4 py-1.5 bg-white border border-gray-200 rounded-full text-sm shadow-sm">
-          Time:
-          {% if time_filter == 'last_24_hours' %}Last 24 Hours{% elif time_filter == 'last_week' %}Last Week{% elif time_filter == 'last_month' %}Last Month{% elif time_filter == 'last_year' %}Last Year{% elif time_filter == 'custom' %}
-            {% if date_from and date_to %}{{ date_from }} to {{ date_to }}{% else %}Custom Range{% endif %}
-          {% endif %}
-        </span>
-      {% endif %}
-      {% for cat in selected_categories %}
-        {% if cat %}
-          {% for category in all_categories %}
-            {% if category.id|stringformat:"s" == cat %}
-              <span class="px-4 py-1.5 bg-white border border-gray-200 rounded-full text-sm shadow-sm">Category: {{ category.name }}</span>
-            {% endif %}
-          {% endfor %}
+    <div class="text-center mb-8 mt-10">
+      <h1 class="text-4xl font-bold mb-6 text-gray-800">Explore Research Projects</h1>
+      <div class="flex flex-wrap justify-center gap-4">
+        <a href="{% url 'my-projects' %}" class="inline-flex items-center px-5 py-2.5 bg-white shadow-md rounded-lg font-medium text-gray-700 hover:shadow-lg hover:bg-gray-50 transition-all">
+          <i class="fas fa-folder-open mr-2.5"></i> My Projects
+        </a>
+        <a href="{% url 'my-requests' %}" class="inline-flex items-center px-5 py-2.5 bg-white shadow-md rounded-lg font-medium text-gray-700 hover:shadow-lg hover:bg-gray-50 transition-all">
+          <i class="fas fa-paper-plane mr-2.5"></i> My Requests
+        </a>
+        <a href="{% url 'favorites' %}" class="inline-flex items-center px-5 py-2.5 bg-white shadow-md rounded-lg font-medium text-gray-700 hover:shadow-lg hover:bg-gray-50 transition-all">
+          <i class="fas fa-heart mr-2.5"></i> Favorites
+        </a>
+        {% if current_query or time_filter or selected_categories|join:"" or selected_skills|join:"" %}
+          <button onclick="toggleFilterDialog()" class="inline-flex items-center px-5 py-2.5 bg-blue-100 shadow-md rounded-lg font-medium text-blue-700 hover:shadow-lg hover:bg-blue-50 transition-all">
+            <i class="fas fa-filter mr-2.5"></i> Filters (Active)
+          </button>
+        {% else %}
+          <button onclick="toggleFilterDialog()" class="inline-flex items-center px-5 py-2.5 bg-white shadow-md rounded-lg font-medium text-gray-700 hover:shadow-lg hover:bg-gray-50 transition-all">
+            <i class="fas fa-filter mr-2.5"></i> Filters
+          </button>
         {% endif %}
-      {% endfor %}
-      {% for skill in selected_skills %}
-        {% if skill %}
-          <span class="px-4 py-1.5 bg-white border border-gray-200 rounded-full text-sm shadow-sm">Skill: {{ skill }}</span>
-        {% endif %}
-      {% endfor %}
-    </div>
-  </div>
-{% endif %}
-
-<!-- Profile Completion Alert -->
-{% if request.user.profile.categories.all|length == 0 or request.user.profile.skills.all|length == 0 %}
-  <div class="bg-yellow-50 border-l-4 border-yellow-500 text-yellow-700 p-6 mb-8 rounded-r-lg shadow-sm">
-    <div class="flex items-center">
-      <i class="fas fa-exclamation-circle text-yellow-500 text-xl mr-3"></i>
-      <div>
-        {% if request.user.profile.categories.all|length == 0 and request.user.profile.skills.all|length == 0 %}
-          <p class="font-medium">To see the recommended projects, you need to indicate your preferred research areas and select your skills.</p>
-        {% elif request.user.profile.categories.all|length == 0 %}
-          <p class="font-medium">To see the recommended projects, you need to indicate your preferred research areas.</p>
-        {% elif request.user.profile.skills.all|length == 0 %}
-          <p class="font-medium">To see the recommended projects, you need to select your skills.</p>
-        {% endif %}
-        <a href="{% url 'users-edit-profile' %}" class="inline-block mt-2 text-blue-600 hover:text-blue-800 font-semibold underline">Update your profile →</a>
+        <a href="{% url 'chat_list' %}" class="inline-flex items-center px-5 py-2.5 bg-white shadow-md rounded-lg font-medium text-gray-700 hover:shadow-lg hover:bg-gray-50 transition-all relative">
+          <i class="fas fa-comments mr-2.5"></i> Chats
+          <span id="unread-count-badge" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full text-xs w-6 h-6 flex items-center justify-center shadow-sm" style="display: {% if unread_chat_count and unread_chat_count > 0 %}flex{% else %}none{% endif %};">
+            {{ unread_chat_count|default:"0" }}
+          </span>
+        </a>
+        <a href="{% url 'notifications_list' %}" class="inline-flex items-center px-5 py-2.5 bg-white shadow-md rounded-lg font-medium text-gray-700 hover:shadow-lg hover:bg-gray-50 transition-all relative">
+          <i class="fas fa-bell mr-2.5"></i> Notifications
+          <span id="notifications-badge" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full text-xs w-6 h-6 flex items-center justify-center shadow-sm" style="display: {% if notifications_count and notifications_count > 0 %}flex{% else %}none{% endif %};">
+            {{ notifications_count|default:"0" }}
+          </span>
+        </a>
       </div>
     </div>
-  </div>
-{% endif %}
+
+    <!-- Search Bar -->
+    <div class="relative max-w-2xl mx-auto mb-8">
+      <form id="searchForm" method="GET">
+        <div class="relative">
+          <i class="fas fa-search absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          <input type="text" id="searchInput" name="q" value="{{ current_query }}" placeholder="Search research projects..."
+                 class="w-full px-6 py-4 pl-14 rounded-xl border-2 border-gray-200 bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all focus:outline-none">
+          <button type="submit" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition-all">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Active Filters Display -->
+    {% if current_query or time_filter or selected_categories|join:"" or selected_skills|join:"" %}
+      <div class="mb-8 bg-gray-50 p-4 rounded-xl shadow-sm border border-gray-100">
+        <h4 class="font-semibold mb-3 text-gray-700">Active Filters:</h4>
+        <div class="flex flex-wrap gap-2">
+          {% if current_query %}
+            <span class="px-4 py-1.5 bg-white border border-gray-200 rounded-full text-sm shadow-sm">Search: "{{ current_query }}"</span>
+          {% endif %}
+          {% if time_filter %}
+            <span class="px-4 py-1.5 bg-white border border-gray-200 rounded-full text-sm shadow-sm">
+              Time:
+              {% if time_filter == 'last_24_hours' %}Last 24 Hours{% elif time_filter == 'last_week' %}Last Week{% elif time_filter == 'last_month' %}Last Month{% elif time_filter == 'last_year' %}Last Year{% elif time_filter == 'custom' %}
+                {% if date_from and date_to %}{{ date_from }} to {{ date_to }}{% else %}Custom Range{% endif %}
+              {% endif %}
+            </span>
+          {% endif %}
+          {% for cat in selected_categories %}
+            {% if cat %}
+              {% for category in all_categories %}
+                {% if category.id|stringformat:"s" == cat %}
+                  <span class="px-4 py-1.5 bg-white border border-gray-200 rounded-full text-sm shadow-sm">Category: {{ category.name }}</span>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+          {% endfor %}
+          {% for skill in selected_skills %}
+            {% if skill %}
+              <span class="px-4 py-1.5 bg-white border border-gray-200 rounded-full text-sm shadow-sm">Skill: {{ skill }}</span>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Profile Completion Alert -->
+    {% if request.user.profile.categories.all|length == 0 or request.user.profile.skills.all|length == 0 %}
+      <div class="bg-yellow-50 border-l-4 border-yellow-500 text-yellow-700 p-6 mb-8 rounded-r-lg shadow-sm">
+        <div class="flex items-center">
+          <i class="fas fa-exclamation-circle text-yellow-500 text-xl mr-3"></i>
+          <div>
+            {% if request.user.profile.categories.all|length == 0 and request.user.profile.skills.all|length == 0 %}
+              <p class="font-medium">To see the recommended projects, you need to indicate your preferred research areas and select your skills.</p>
+            {% elif request.user.profile.categories.all|length == 0 %}
+              <p class="font-medium">To see the recommended projects, you need to indicate your preferred research areas.</p>
+            {% elif request.user.profile.skills.all|length == 0 %}
+              <p class="font-medium">To see the recommended projects, you need to select your skills.</p>
+            {% endif %}
+            <a href="{% url 'users-edit-profile' %}" class="inline-block mt-2 text-blue-600 hover:text-blue-800 font-semibold underline">Update your profile →</a>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Filter Modal Dialog with Scrolling Enabled -->
+    <div id="filterDialog" class="fixed inset-0 flex items-center justify-center z-50 hidden modal">
+      <div class="modal-content bg-white rounded-2xl w-full max-w-lg p-6 m-4 relative overflow-y-auto max-h-[90vh]">
+        <button type="button" onclick="toggleFilterDialog()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times"></i>
+        </button>
+        <h3 class="text-xl font-semibold mb-4">Filter Projects</h3>
+        <form id="filterForm" method="GET" class="space-y-6">
+          <!-- Time Filter -->
+          <div>
+            <label class="block text-sm font-medium mb-2">Filter by Time:</label>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" onclick="setTimeFilter('')" id="time-any" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 rounded-full text-sm font-medium transition">Any Time</button>
+              <button type="button" onclick="setTimeFilter('last_24_hours')" id="time-24" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 rounded-full text-sm font-medium transition">Last 24 Hours</button>
+              <button type="button" onclick="setTimeFilter('last_week')" id="time-week" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 rounded-full text-sm font-medium transition">Last Week</button>
+              <button type="button" onclick="setTimeFilter('last_month')" id="time-month" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 rounded-full text-sm font-medium transition">Last Month</button>
+              <button type="button" onclick="setTimeFilter('last_year')" id="time-year" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 rounded-full text-sm font-medium transition">Last Year</button>
+              <button type="button" onclick="toggleCustomDate()" id="time-custom-btn" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 rounded-full text-sm font-medium transition">Custom Range</button>
+            </div>
+            <input type="hidden" id="time_filter" name="time_filter" value="{{ time_filter }}">
+            <div id="custom-date-range" class="mt-2 hidden flex gap-2">
+              <input type="date" name="date_from" id="date_from" class="border p-2 rounded" placeholder="From" value="{{ date_from }}">
+              <input type="date" name="date_to" id="date_to" class="border p-2 rounded" placeholder="To" value="{{ date_to }}">
+            </div>
+          </div>
+
+          <!-- Skills Filter -->
+          <div class="relative">
+            <label class="block text-sm font-medium mb-2">Filter by Skills:</label>
+            <input type="text" id="skills_search" class="border p-2 rounded w-full" placeholder="Type a skill...">
+            <div id="skills_suggestions" class="hidden"></div>
+            <div id="selected_skills_container" class="mt-2 flex flex-wrap gap-2">
+              {% for skill in selected_skills %}
+                {% if skill %}
+                  <span class="skill-tag" data-name="{{ skill }}">
+                    {{ skill }} <button type="button" onclick="removeSkillTag('{{ skill }}')" class="text-xs">&times;</button>
+                  </span>
+                {% endif %}
+              {% endfor %}
+            </div>
+            <input type="hidden" id="selected_skills" name="skills" value="{{ selected_skills|join:'||' }}">
+          </div>
+
+          <!-- Categories Filter -->
+          <div>
+            <label class="block text-sm font-medium mb-2">Filter by Categories:</label>
+            <div id="categories_filter" class="flex flex-wrap gap-2">
+              <button type="button" onclick="setCategoryFilter('')" id="cat-all" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 rounded-full text-sm font-medium transition">
+                All
+              </button>
+              {% for cat in all_categories %}
+              <button type="button" onclick="toggleCategoryFilter('{{ cat.id }}')" id="cat-btn-{{ cat.id }}" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 rounded-full text-sm font-medium transition">
+                {{ cat.name }}
+              </button>
+              {% endfor %}
+            </div>
+            <input type="hidden" id="filterSelectedCategories" name="categories" value="{{ selected_categories|join:',' }}">
+          </div>
+
+          <!-- Apply & Clear Buttons -->
+          <div class="flex gap-4 justify-end">
+            <button type="button" onclick="clearFilters()" class="px-4 py-2 bg-red-100 text-red-700 rounded-xl font-medium hover:bg-red-200 transition">Clear</button>
+            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition">Apply Filters</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <!-- End of Filter Modal Dialog -->
+
     <!-- Recommended Projects Slider (only if no filters are active) -->
-    {% if not current_query and not time_filter and selected_categories|join:"" == "" and selected_skills|join:"" == "" and recommended_projects %}
-  <div class="mb-16">
-    <!-- Section Header -->
-    <div class="flex items-center justify-between mb-6">
-      <h2 class="text-3xl font-bold text-gray-800">Recommended for You</h2>
-      <a href="{% url 'view-all-recommended' %}" class="text-blue-600 font-semibold hover:text-blue-800 transition-colors flex items-center">
-        View All <i class="fas fa-chevron-right ml-2 text-sm"></i>
+{% if not current_query and not time_filter and selected_categories|join:"" == "" and selected_skills|join:"" == "" and recommended_projects %}
+  <div class="mb-16 px-4 md:px-0">
+    <!-- Section Header with custom colors -->
+    <div class="flex items-center justify-between mb-8">
+      <div class="flex items-center">
+        <span class="mr-3 text-secondary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-star"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        </span>
+        <h2 class="text-3xl font-bold text-primary">Recommended for You</h2>
+      </div>
+      <a href="{% url 'view-all-recommended' %}" class="px-4 py-2 bg-secondary text-primary font-medium rounded-full hover:bg-opacity-80 transition-all shadow-md flex items-center text-sm">
+        View All <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-2"><path d="M9 18l6-6-6-6"></path></svg>
       </a>
     </div>
 
-    <!-- Slider Navigation -->
-    <div class="flex justify-end gap-2 mb-4">
-      <button id="slideLeft" class="p-2 bg-white rounded-full shadow-md hover:bg-gray-50 text-gray-600 focus:outline-none">
-        <i class="fas fa-chevron-left"></i>
+    <!-- Slider Navigation with custom colors -->
+    <div class="flex justify-end gap-3 mb-6">
+      <button id="slideLeft" class="p-3 bg-paper rounded-full shadow-lg hover:shadow-xl transition-all focus:outline-none border-2 border-border group">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary group-hover:text-primary-light transition-colors"><path d="M15 18l-6-6 6-6"></path></svg>
       </button>
-      <button id="slideRight" class="p-2 bg-white rounded-full shadow-md hover:bg-gray-50 text-gray-600 focus:outline-none">
-        <i class="fas fa-chevron-right"></i>
+      <button id="slideRight" class="p-3 bg-paper rounded-full shadow-lg hover:shadow-xl transition-all focus:outline-none border-2 border-border group">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary group-hover:text-primary-light transition-colors"><path d="M9 18l6-6-6-6"></path></svg>
       </button>
     </div>
 
-    <!-- Project Cards -->
-    <div id="recommendedSlider" class="flex gap-6 overflow-hidden pb-4">
+    <!-- Project Cards with custom colors -->
+    <div id="recommendedSlider" class="flex gap-6 overflow-hidden pb-6 snap-x snap-mandatory">
       {% for project in recommended_projects %}
-        <div class="flex flex-col min-h-[600px] max-w-[500px] flex-shrink-0 bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg border border-gray-100 relative">
-          <!-- Favorite Button (Heart) -->
-          <button onclick="saveProject({{ project.id }})" id="fav-btn-{{ project.id }}" class="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none" aria-label="{% if project.id in favorite_ids %}Remove from favorites{% else %}Add to favorites{% endif %}">
+        <div class="flex flex-col min-h-[550px] w-[320px] md:w-[380px] flex-shrink-0 bg-paper rounded-3xl shadow-lg p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl border border-border relative snap-center">
+          <!-- Custom top border decoration -->
+          <div class="absolute top-0 left-0 w-full h-2 bg-secondary rounded-t-3xl"></div>
+
+          <!-- Favorite Button (Heart) with custom colors -->
+          <button onclick="saveProject({{ project.id }})" id="fav-btn-{{ project.id }}" class="absolute top-4 right-4 p-2.5 rounded-full hover:bg-background transition-all focus:outline-none transform hover:scale-110" aria-label="{% if project.id in favorite_ids %}Remove from favorites{% else %}Add to favorites{% endif %}">
             {% if project.id in favorite_ids %}
-              <i class="fas fa-heart text-red-500 text-lg"></i>
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="#F0B429" stroke="#F0B429" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heart"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
             {% else %}
-              <i class="fas fa-heart text-gray-300 hover:text-red-400 text-lg"></i>
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heart hover:stroke-secondary"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
             {% endif %}
           </button>
 
-          <!-- Badges Container -->
-          <div class="flex flex-wrap items-center gap-2 mb-2">
-            <!-- Trending Badge -->
+          <!-- Badges Container with custom colors -->
+          <div class="flex flex-wrap items-center gap-2 mb-4 mt-2">
+            <!-- Trending Badge with custom colors -->
             {% if project.view_count > 500 %}
-              <span class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-full shadow-sm">
-                <i class="fas fa-fire-alt mr-1"></i> Trending
+              <span class="inline-flex items-center gap-1 px-3 py-1.5 bg-tertiary text-paper text-xs font-semibold rounded-full shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3s-1.5-2-1.5-2"></path><path d="M15 7c-1 2-2 3.5-2 5a2.5 2.5 0 0 0 5 0c0-3-1-5.5-1.5-6.5"></path><path d="M12 2c-1 1-3 3.5-3 5.5a3.5 3.5 0 0 0 7 0c0-2-1.5-4.5-2.5-5.5"></path></svg>
+                Trending
               </span>
             {% endif %}
-            <!-- Categories -->
+            <!-- Categories with custom colors -->
             {% for category in project.category.all %}
-              <a href="#" onclick="setCategoryFilter('{{ category.id }}')" class="inline-flex items-center px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-xs font-medium text-gray-800 transition-colors shadow-sm">
+              <a href="#" onclick="setCategoryFilter('{{ category.id }}')" class="inline-flex items-center px-3 py-1.5 bg-background hover:bg-border rounded-full text-xs font-medium text-primary transition-all shadow-sm border border-border">
                 {{ category.name }}
               </a>
             {% endfor %}
           </div>
 
-          <!-- FAISS Match Badge below Categories -->
+          <!-- FAISS Match Badge with custom colors -->
           {% if request.user.profile.categories.all|length and request.user.profile.skills.all|length and project.faiss_score %}
             <div class="mb-5">
-              <span class="bgg inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-blue-500 text-white shadow-sm">
-                <i class="fas fa-star mr-1"></i> {{ project.faiss_score }}% Match
+              <span class="inline-flex items-center px-4 py-2 rounded-full text-xs font-medium bg-primary text-white shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                {{ project.faiss_score }}% Match for You
               </span>
             </div>
           {% endif %}
 
-          <!-- Owner Info -->
-          <div class="flex items-center gap-3 mb-5">
-            <a href="{% url 'project-user-profile' project.owner.username %}" class="block">
-              <img src="{{ project.owner.profile.avatar_url }}" alt="{{ project.owner.username }}" class="w-12 h-12 rounded-full object-cover border-2 border-gray-100 shadow-sm">
+          <!-- Owner Info with custom colors -->
+          <div class="flex items-center gap-4 mb-5">
+            <a href="{% url 'project-user-profile' project.owner.username %}" class="block group">
+              <div class="w-14 h-14 rounded-full p-1 bg-secondary shadow-md overflow-hidden transform group-hover:scale-105 transition-all">
+                <img src="{{ project.owner.profile.avatar_url }}" alt="{{ project.owner.username }}" class="w-full h-full rounded-full object-cover border-2 border-paper">
+              </div>
             </a>
             <div>
-              <a href="{% url 'project-user-profile' project.owner.username %}" class="text-gray-800 font-semibold hover:text-blue-600 transition-colors">
+              <a href="{% url 'project-user-profile' project.owner.username %}" class="text-text font-semibold hover:text-primary-light transition-colors">
                 @{{ project.owner.username }}
               </a>
               {% if project.owner.profile.city or project.owner.profile.country %}
-                <p class="text-xs text-gray-500 flex items-center mt-1">
-                  <i class="fas fa-map-marker-alt mr-1 text-gray-400"></i>
+                <p class="text-xs text-text-light flex items-center mt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1 text-secondary"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                   {{ project.owner.profile.city }}{% if project.owner.profile.city and project.owner.profile.country %} · {% endif %}{{ project.owner.profile.country }}
                 </p>
               {% endif %}
             </div>
           </div>
 
-          <!-- Project Title -->
-          <h2 class="text-xl font-bold mb-2 text-gray-800 line-clamp-2">{{ project.title }}</h2>
+          <!-- Project Title with custom colors -->
+          <h2 class="text-xl font-bold mb-2 text-primary line-clamp-2 hover:text-primary-light transition-colors">{{ project.title }}</h2>
 
-          <!-- Posted Date -->
-          <div class="mb-3 text-sm text-gray-500 flex items-center">
-            <i class="fas fa-clock mr-2 text-gray-400"></i>
+          <!-- Posted Date with custom colors -->
+          <div class="mb-4 text-sm text-text-light flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 text-secondary"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             Posted {{ project.created_at|timesince }} ago
           </div>
 
-          <!-- Collapsible Description -->
+          <!-- Collapsible Description with custom colors -->
           <div class="mb-5">
-            <p id="desc-rec-{{ project.id }}" class="text-gray-600 mb-2 line-clamp-3 text-sm">
+            <p id="desc-rec-{{ project.id }}" class="text-text mb-3 line-clamp-3 text-sm leading-relaxed">
               {{ project.description }}
             </p>
-            <button onclick="toggleDescription('desc-rec-{{ project.id }}', event)" class="text-blue-600 text-sm font-medium hover:text-blue-800 focus:outline-none transition-colors">
-              Read More
+            <button onclick="toggleDescription('desc-rec-{{ project.id }}', event)" class="px-4 py-2 text-sm font-medium text-primary bg-background hover:bg-border rounded-full focus:outline-none transition-colors flex items-center">
+              <span>Read More</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1"><path d="M6 9l6 6 6-6"></path></svg>
             </button>
           </div>
-
-          <!-- Separator Line -->
-          <div class="border-t border-gray-100 my-4"></div>
-
-          <!-- Project Details Section -->
-          <div class="space-y-4">
-            <!-- Required Roles -->
-            {% if project.required_roles.all %}
-              <div class="flex flex-wrap gap-2">
-                {% for role in project.required_roles.all %}
-                  <span class="inline-flex items-center px-3 py-1.5 bg-blue-50 border border-blue-100 rounded-full text-xs font-medium text-blue-700">
-                    <i class="fas fa-user-tag mr-1.5"></i> {{ role.name }}
-                  </span>
-                {% endfor %}
-              </div>
-            {% endif %}
-
-            <!-- Skill Match Bar with Improved Design -->
-            {% with match=project|skill_match:user %}
-              <div>
-                <div class="flex justify-between items-center mb-1.5">
-                  <p class="text-sm font-medium text-gray-700">Skill Match</p>
-                  <p class="text-sm font-semibold
-                    {% if match <= 40 %}text-yellow-600
-                    {% elif match <= 70 %}text-green-600
-                    {% else %}text-blue-600{% endif %}">
-                    {{ match }}%
-                  </p>
-                </div>
-                <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                  {% if match <= 40 %}
-                    <div class="h-2.5 rounded-full bg-yellow-500" style="width: {{ match }}%;"></div>
-                  {% elif match <= 70 %}
-                    <div class="h-2.5 rounded-full bg-green-500" style="width: {{ match }}%;"></div>
-                  {% else %}
-                    <div class="h-2.5 rounded-full bg-blue-500" style="width: {{ match }}%;"></div>
-                  {% endif %}
-                </div>
-              </div>
-            {% endwith %}
-
-            <!-- View Count -->
-            <div class="text-sm text-gray-500 flex items-center">
-              <i class="fas fa-eye mr-2 text-gray-400"></i>
-              <span>{{ project.view_count }} Views</span>
-            </div>
-          </div>
-
-          <!-- Action Buttons (aligned at bottom) -->
-          <div class="mt-auto flex items-center gap-3">
-            <a href="{% url 'project-detail' pk=project.pk %}" class="flex-1 py-2.5 rounded-lg border border-gray-300 text-center font-medium text-gray-700 hover:bg-gray-50 transition-all">
-              View Details
-            </a>
-            {% if project.owner != request.user %}
-              {% if project.application_status %}
-                {% if project.application_status == 'PENDING' %}
-                  <a href="{% url 'withdraw-application' project_id=project.id %}" class="flex-1 py-2.5 rounded-lg font-medium bg-red-600 text-white hover:bg-red-700 transition-all text-center">
-                    Withdraw
-                  </a>
-                {% elif project.application_status == 'ACCEPTED' %}
-                  <a href="{% url 'chat' user_id=project.owner.id %}" class="flex-1 py-2.5 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 transition-all text-center">
-                    Chat
-                  </a>
-                {% else %}
-                  <button disabled class="flex-1 py-2.5 rounded-lg font-medium bg-gray-300 text-white text-center cursor-not-allowed">
-                    {{ project.application_status|title }}
-                  </button>
-                {% endif %}
-              {% else %}
-                <a href="{% url 'apply-project' project_id=project.id %}" class="bgg flex-1 py-2.5 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 transition-all text-center">
-                  Apply Now
-                </a>
-              {% endif %}
-            {% endif %}
-          </div>
         </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination Dots with custom colors -->
+    <div class="flex justify-center mt-6 gap-2">
+      {% for project in recommended_projects %}
+        <button class="w-3 h-3 rounded-full bg-border hover:bg-secondary focus:bg-primary transition-colors focus:outline-none slider-dot" data-index="{{ forloop.counter0 }}"></button>
       {% endfor %}
     </div>
   </div>
-
-  <!-- JavaScript for carousel functionality -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const slider = document.getElementById('recommendedSlider');
-      const leftBtn = document.getElementById('slideLeft');
-      const rightBtn = document.getElementById('slideRight');
-      const cardWidth = slider.querySelector('div').offsetWidth + 24; // card width + gap
-
-      leftBtn.addEventListener('click', function() {
-        slider.scrollBy({ left: -cardWidth, behavior: 'smooth' });
-      });
-
-      rightBtn.addEventListener('click', function() {
-        slider.scrollBy({ left: cardWidth, behavior: 'smooth' });
-      });
-    });
-  </script>
 {% endif %}
-<!-- All Projects Section -->
-{% if projects %}
-  <div class="mb-16">
-    <!-- Section Header with subtle decoration -->
-    <div class="flex items-center mb-8">
-      <h2 class="text-3xl font-bold text-gray-800">All Projects</h2>
-      <div class="ml-4 h-1 bg-blue-500 w-16 rounded-full"></div>
-    </div>
 
-    <!-- Projects Grid -->
-    <div class="grid grid-cols-1 gap-8">
-      {% for project in projects %}
-        <div class="bg-white rounded-xl shadow-md p-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg border border-gray-100 relative overflow-hidden">
-          <!-- Card with two columns layout on larger screens -->
-          <div class="md:flex">
-            <!-- Left Column - Project Summary -->
-            <div class="p-6 md:w-2/3">
-              <!-- Favorite Button -->
-              <button onclick="saveProject({{ project.id }})" id="fav-btn-{{ project.id }}" class="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none" aria-label="{% if project.id in favorite_ids %}Remove from favorites{% else %}Add to favorites{% endif %}">
-                {% if project.id in favorite_ids %}
-                  <i class="fas fa-heart text-red-500 text-lg"></i>
-                {% else %}
-                  <i class="fas fa-heart text-gray-300 hover:text-red-400 text-lg"></i>
-                {% endif %}
-              </button>
-
-              <!-- Badges & Categories Row -->
-              <div class="flex flex-wrap items-center gap-2 mb-5">
-                <!-- Trending Badge -->
-                {% if project.view_count > 500 %}
-                  <span class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-full shadow-sm">
-                    <i class="fas fa-fire-alt mr-1"></i> Trending
-                  </span>
-                {% endif %}
-
-                <!-- Categories -->
-                {% for category in project.category.all %}
-                  <a href="#" onclick="setCategoryFilter('{{ category.id }}')" class="inline-flex items-center px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-xs font-medium text-gray-800 transition-colors shadow-sm">
-                    {{ category.name }}
-                  </a>
-                {% endfor %}
-
-                <!-- FAISS Match Badge -->
-                {% if request.user.profile.categories.all|length and request.user.profile.skills.all|length %}
-                  {% if project.faiss_score %}
-                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-blue-500 text-white shadow-sm">
-                      <i class="fas fa-star mr-1"></i> {{ project.faiss_score }}% Match
-                    </span>
-                  {% endif %}
-                {% endif %}
-              </div>
-
-              <!-- Project Title with better typography -->
-              <h2 class="text-2xl font-bold mb-3 text-gray-800 line-clamp-2">{{ project.title }}</h2>
-
-              <!-- Posted Date with Icon -->
-              <div class="mb-4 text-sm text-gray-500 flex items-center">
-                <i class="fas fa-clock mr-2 text-gray-400"></i>
-                Posted {{ project.created_at|timesince }} ago
-              </div>
-
-              <!-- Owner Info with better layout -->
-              <div class="flex items-center gap-3 mb-5 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                <a href="{% url 'project-user-profile' project.owner.username %}">
-                  <img src="{{ project.owner.profile.avatar_url }}" alt="{{ project.owner.username }}" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm">
-                </a>
-                <div>
-                  <a href="{% url 'project-user-profile' project.owner.username %}" class="text-gray-800 font-semibold hover:text-blue-600 transition-colors">
-                    @{{ project.owner.username }}
-                  </a>
-                  {% if project.owner.profile.city or project.owner.profile.country %}
-                    <p class="text-xs text-gray-500 flex items-center mt-1">
-                      <i class="fas fa-map-marker-alt mr-1 text-gray-400"></i>
-                      {{ project.owner.profile.city }}{% if project.owner.profile.city and project.owner.profile.country %} · {% endif %}{{ project.owner.profile.country }}
-                    </p>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Collapsible Description with better styling -->
-              <div class="mb-5">
-                <p id="desc-all-{{ project.id }}" class="text-gray-600 mb-2 line-clamp-3 text-sm">
-                  {{ project.description }}
-                </p>
-                <button onclick="toggleDescription('desc-all-{{ project.id }}', event)" class="text-blue-600 text-sm font-medium hover:text-blue-800 focus:outline-none transition-colors flex items-center">
-                  <span class="read-more-text">Read More</span>
-                  <span class="read-less-text hidden">Read Less</span>
-                  <i class="fas fa-chevron-down ml-1 read-more-icon"></i>
-                  <i class="fas fa-chevron-up ml-1 read-less-icon hidden"></i>
-                </button>
-              </div>
-            </div>
-
-            <!-- Right Column - Stats and Actions -->
-            <div class="bg-gray-50 p-6 md:w-1/3 border-t md:border-t-0 md:border-l border-gray-100">
-              <!-- Required Roles -->
-              {% if project.required_roles.all %}
-                <div class="mb-6">
-                  <h4 class="text-sm font-semibold text-gray-700 mb-3">Required Roles:</h4>
-                  <div class="flex flex-wrap gap-2">
-                    {% for role in project.required_roles.all %}
-                      <span class="inline-flex items-center px-3 py-1.5 bg-blue-50 border border-blue-100 rounded-full text-xs font-medium text-blue-700">
-                        <i class="fas fa-user-tag mr-1.5"></i> {{ role.name }}
-                      </span>
-                    {% endfor %}
-                  </div>
-                </div>
-              {% endif %}
-
-              <!-- Skill Match Bar with improved design -->
-              {% with match=project|skill_match:user %}
-                <div class="mb-6">
-                  <div class="flex justify-between items-center mb-1.5">
-                    <h4 class="text-sm font-semibold text-gray-700">Skill Match</h4>
-                    <p class="text-sm font-semibold
-                      {% if match <= 30 %}text-yellow-600
-                      {% elif match <= 60 %}text-green-600
-                      {% else %}text-blue-600{% endif %}">
-                      {{ match }}%
-                    </p>
-                  </div>
-                  <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                    {% if match <= 30 %}
-                      <div class="h-2.5 rounded-full bg-yellow-500" style="width: {{ match }}%;"></div>
-                    {% elif match <= 60 %}
-                      <div class="h-2.5 rounded-full bg-green-500" style="width: {{ match }}%;"></div>
-                    {% else %}
-                      <div class="h-2.5 rounded-full bg-blue-500" style="width: {{ match }}%;"></div>
-                    {% endif %}
-                  </div>
-                </div>
-              {% endwith %}
-
-              <!-- Project Stats -->
-              <div class="mb-6 p-4 bg-white rounded-lg border border-gray-100 shadow-sm">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="flex items-center text-sm text-gray-600">
-                    <i class="fas fa-eye mr-2 text-gray-400"></i>
-                    <span>{{ project.view_count }} Views</span>
-                  </div>
-                  <div class="flex items-center text-sm text-gray-600">
-                    <i class="fas fa-calendar-alt mr-2 text-gray-400"></i>
-                    <span>{{ project.created_at|date:"M d, Y" }}</span>
-                  </div>
-                </div>
-                <div class="flex items-center text-sm text-gray-600">
-                  <i class="fas fa-hourglass-half mr-2 text-gray-400"></i>
-                  <span>Posted {{ project.created_at|timesince }} ago</span>
-                </div>
-              </div>
-
-              <!-- Action Buttons with cleaner layout -->
-              <div class="space-y-3">
-                <a href="{% url 'project-detail' pk=project.pk %}" class="w-full py-2.5 rounded-lg border border-gray-300 text-center font-medium text-gray-700 hover:bg-gray-50 transition-all flex items-center justify-center">
-                  <span>View Details</span>
-                  <i class="fas fa-arrow-right ml-2"></i>
-                </a>
-
-                {% if project.owner != request.user %}
-                  {% if project.application_status %}
-                    {% if project.application_status == 'PENDING' %}
-                      <a href="{% url 'withdraw-application' project_id=project.id %}" class="w-full py-2.5 rounded-lg font-medium bg-red-600 text-white hover:bg-red-700 transition-all text-center flex items-center justify-center">
-                        <i class="fas fa-times-circle mr-2"></i>
-                        <span>Withdraw Application</span>
-                      </a>
-                    {% elif project.application_status == 'ACCEPTED' %}
-                      <a href="{% url 'chat' user_id=project.owner.id %}" class="w-full py-2.5 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 transition-all text-center flex items-center justify-center">
-                        <i class="fas fa-comment mr-2"></i>
-                        <span>Chat with Owner</span>
-                      </a>
-                    {% else %}
-                      <button disabled class="w-full py-2.5 rounded-lg font-medium bg-gray-300 text-white text-center cursor-not-allowed flex items-center justify-center">
-                        <i class="fas fa-info-circle mr-2"></i>
-                        <span>{{ project.application_status|title }}</span>
-                      </button>
-                    {% endif %}
-                  {% else %}
-                    <a href="{% url 'apply-project' project_id=project.id %}" class="w-full py-2.5 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 transition-all text-center flex items-center justify-center">
-                      <i class="fas fa-paper-plane mr-2"></i>
-                      <span>Apply Now</span>
-                    </a>
-                  {% endif %}
-                {% endif %}
-              </div>
-            </div>
-          </div>
+    <!-- All Projects Section -->
+    {% if projects %}
+      <div class="mb-16">
+        <!-- Section Header with subtle decoration -->
+        <div class="flex items-center mb-8">
+          <h2 class="text-3xl font-bold text-gray-800">All Projects</h2>
+          <div class="ml-4 h-1 bg-blue-500 w-16 rounded-full"></div>
         </div>
-      {% endfor %}
-    </div>
+
+        <!-- Projects Grid -->
+        <div class="grid grid-cols-1 gap-8">
+          {% for project in projects %}
+            <div class="bg-white rounded-xl shadow-md p-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg border border-gray-100 relative overflow-hidden">
+              <div class="md:flex">
+                <!-- Left Column - Project Summary -->
+                <div class="p-6 md:w-2/3">
+                  <!-- Favorite Button -->
+                  <button onclick="saveProject({{ project.id }})" id="fav-btn-{{ project.id }}" class="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 shadow-md focus:outline-none" aria-label="{% if project.id in favorite_ids %}Remove from favorites{% else %}Add to favorites{% endif %}">
+                    {% if project.id in favorite_ids %}
+                      <i class="fas fa-heart text-red-500 text-lg"></i>
+                    {% else %}
+                      <i class="fas fa-heart text-gray-300 hover:text-red-400 text-lg"></i>
+                    {% endif %}
+                  </button>
+
+                  <!-- Badges & Categories Row -->
+                  <div class="flex flex-wrap items-center gap-2 mb-5">
+                    {% if project.view_count > 500 %}
+                      <span class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-full shadow-sm">
+                        <i class="fas fa-fire-alt mr-1"></i> Trending
+                      </span>
+                    {% endif %}
+                    {% for category in project.category.all %}
+                      <a href="#" onclick="setCategoryFilter('{{ category.id }}')" class="inline-flex items-center px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-xs font-medium text-gray-800 transition-colors shadow-sm">
+                        {{ category.name }}
+                      </a>
+                    {% endfor %}
+                    {% if request.user.profile.categories.all|length and request.user.profile.skills.all|length and project.faiss_score %}
+                      <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-blue-500 text-white shadow-sm">
+                        <i class="fas fa-star mr-1"></i> {{ project.faiss_score }}% Match
+                      </span>
+                    {% endif %}
+                  </div>
+
+                  <!-- Project Title -->
+                  <h2 class="text-2xl font-bold mb-3 text-gray-800 line-clamp-2">{{ project.title }}</h2>
+
+                  <!-- Posted Date -->
+                  <div class="mb-4 text-sm text-gray-500 flex items-center">
+                    <i class="fas fa-clock mr-2 text-gray-400"></i>
+                    Posted {{ project.created_at|timesince }} ago
+                  </div>
+
+                  <!-- Owner Info -->
+                  <div class="flex items-center gap-3 mb-5 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                    <a href="{% url 'project-user-profile' project.owner.username %}">
+                      <img src="{{ project.owner.profile.avatar_url }}" alt="{{ project.owner.username }}" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm">
+                    </a>
+                    <div>
+                      <a href="{% url 'project-user-profile' project.owner.username %}" class="text-gray-800 font-semibold hover:text-blue-600 transition-colors">
+                        @{{ project.owner.username }}
+                      </a>
+                      {% if project.owner.profile.city or project.owner.profile.country %}
+                        <p class="text-xs text-gray-500 flex items-center mt-1">
+                          <i class="fas fa-map-marker-alt mr-1 text-gray-400"></i>
+                          {{ project.owner.profile.city }}{% if project.owner.profile.city and project.owner.profile.country %} · {% endif %}{{ project.owner.profile.country }}
+                        </p>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <!-- Collapsible Description -->
+                  <div class="mb-5">
+                    <p id="desc-all-{{ project.id }}" class="text-gray-600 mb-2 line-clamp-3 text-sm">
+                      {{ project.description }}
+                    </p>
+                    <button onclick="toggleDescription('desc-all-{{ project.id }}', event)" class="text-blue-600 text-sm font-medium hover:text-blue-800 focus:outline-none transition-colors flex items-center">
+                      <span class="read-more-text">Read More</span>
+                      <span class="read-less-text hidden">Read Less</span>
+                      <i class="fas fa-chevron-down ml-1 read-more-icon"></i>
+                      <i class="fas fa-chevron-up ml-1 read-less-icon hidden"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Right Column - Stats and Actions -->
+                <div class="bg-gray-50 p-6 md:w-1/3 border-t md:border-t-0 md:border-l border-gray-100">
+                  <!-- Required Roles -->
+                  {% if project.required_roles.all %}
+                    <div class="mb-6">
+                      <h4 class="text-sm font-semibold text-gray-700 mb-3">Required Roles:</h4>
+                      <div class="flex flex-wrap gap-2">
+                        {% for role in project.required_roles.all %}
+                          <span class="inline-flex items-center px-3 py-1.5 bg-blue-50 border border-blue-100 rounded-full text-xs font-medium text-blue-700">
+                            <i class="fas fa-user-tag mr-1.5"></i> {{ role.name }}
+                          </span>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  {% endif %}
+
+                  <!-- Skill Match Bar -->
+                  {% with match=project|skill_match:user %}
+                    <div class="mb-6">
+                      <div class="flex justify-between items-center mb-1.5">
+                        <h4 class="text-sm font-semibold text-gray-700">Skill Match</h4>
+                        <p class="text-sm font-semibold
+                          {% if match <= 30 %}text-yellow-600
+                          {% elif match <= 60 %}text-green-600
+                          {% else %}text-blue-600{% endif %}">
+                          {{ match }}%
+                        </p>
+                      </div>
+                      <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                        {% if match <= 30 %}
+                          <div class="h-2.5 rounded-full bg-yellow-500" style="width: {{ match }}%;"></div>
+                        {% elif match <= 60 %}
+                          <div class="h-2.5 rounded-full bg-green-500" style="width: {{ match }}%;"></div>
+                        {% else %}
+                          <div class="h-2.5 rounded-full bg-blue-500" style="width: {{ match }}%;"></div>
+                        {% endif %}
+                      </div>
+                    </div>
+                  {% endwith %}
+
+                  <!-- Project Stats -->
+                  <div class="mb-6 p-4 bg-white rounded-lg border border-gray-100 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                      <div class="flex items-center text-sm text-gray-600">
+                        <i class="fas fa-eye mr-2 text-gray-400"></i>
+                        <span>{{ project.view_count }} Views</span>
+                      </div>
+                      <div class="flex items-center text-sm text-gray-600">
+                        <i class="fas fa-calendar-alt mr-2 text-gray-400"></i>
+                        <span>{{ project.created_at|date:"M d, Y" }}</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center text-sm text-gray-600">
+                      <i class="fas fa-hourglass-half mr-2 text-gray-400"></i>
+                      <span>Posted {{ project.created_at|timesince }} ago</span>
+                    </div>
+                  </div>
+
+                  <!-- Action Buttons -->
+                  <div class="space-y-3">
+                    <a href="{% url 'project-detail' pk=project.pk %}" class="w-full py-2.5 rounded-lg border border-gray-300 text-center font-medium text-gray-700 hover:bg-gray-50 transition-all flex items-center justify-center">
+                      <span>View Details</span>
+                      <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
+                    {% if project.owner != request.user %}
+                      {% if project.application_status %}
+                        {% if project.application_status == 'PENDING' %}
+                          <a href="{% url 'withdraw-application' project_id=project.id %}" class="w-full py-2.5 rounded-lg font-medium bg-red-600 text-white hover:bg-red-700 transition-all text-center flex items-center justify-center">
+                            <i class="fas fa-times-circle mr-2"></i>
+                            <span>Withdraw Application</span>
+                          </a>
+                        {% elif project.application_status == 'ACCEPTED' %}
+                          <a href="{% url 'chat' user_id=project.owner.id %}" class="w-full py-2.5 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 transition-all text-center flex items-center justify-center">
+                            <i class="fas fa-comment mr-2"></i>
+                            <span>Chat with Owner</span>
+                          </a>
+                        {% else %}
+                          <button disabled class="w-full py-2.5 rounded-lg font-medium bg-gray-300 text-white text-center cursor-not-allowed flex items-center justify-center">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <span>{{ project.application_status|title }}</span>
+                          </button>
+                        {% endif %}
+                      {% else %}
+                        <a href="{% url 'apply-project' project_id=project.id %}" class="w-full py-2.5 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 transition-all text-center flex items-center justify-center">
+                          <i class="fas fa-paper-plane mr-2"></i>
+                          <span>Apply Now</span>
+                        </a>
+                      {% endif %}
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% empty %}
+            <div class="mb-6 break-inside-avoid p-8 border-dashed rounded-2xl text-center border border-gray-200 text-gray-500">
+              <i class="fas fa-folder-open text-3xl mb-4"></i>
+              <h3 class="text-xl font-semibold mb-2">No projects yet</h3>
+              <p class="mb-4">Create your first research project and let your creativity shine!</p>
+              <a href="{% url 'project-create' %}" class="inline-flex items-center px-5 py-2 rounded-full font-semibold shadow-md hover:shadow-lg transition transform hover:-translate-y-1 bg-blue-500 text-white">
+                <i class="fas fa-plus mr-2"></i> Start Your First Project
+              </a>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
 
     <!-- Pagination Controls -->
     {% if is_paginated %}
@@ -599,7 +615,6 @@
               Previous
             </a>
           {% endif %}
-
           {% for num in page_obj.paginator.page_range %}
             {% if page_obj.number == num %}
               <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-700">
@@ -611,7 +626,6 @@
               </a>
             {% endif %}
           {% endfor %}
-
           {% if page_obj.has_next %}
             <a href="?page={{ page_obj.next_page_number }}" class="relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
               Next
@@ -622,38 +636,36 @@
       </div>
     {% endif %}
   </div>
-{% endif %}
-  </div>
 
-<!-- Enhanced toggle description script -->
-<script>
-  function toggleDescription(id, event) {
-    const desc = document.getElementById(id);
-    const button = event.currentTarget;
-    const readMoreText = button.querySelector('.read-more-text');
-    const readLessText = button.querySelector('.read-less-text');
-    const readMoreIcon = button.querySelector('.read-more-icon');
-    const readLessIcon = button.querySelector('.read-less-icon');
+  <!-- Enhanced toggle description script -->
+  <script>
+    function toggleDescription(id, event) {
+      const desc = document.getElementById(id);
+      const button = event.currentTarget;
+      const readMoreText = button.querySelector('.read-more-text');
+      const readLessText = button.querySelector('.read-less-text');
+      const readMoreIcon = button.querySelector('.read-more-icon');
+      const readLessIcon = button.querySelector('.read-less-icon');
 
-    if (desc.classList.contains('line-clamp-3')) {
-      desc.classList.remove('line-clamp-3');
-      readMoreText.classList.add('hidden');
-      readLessText.classList.remove('hidden');
-      readMoreIcon.classList.add('hidden');
-      readLessIcon.classList.remove('hidden');
-    } else {
-      desc.classList.add('line-clamp-3');
-      readMoreText.classList.remove('hidden');
-      readLessText.classList.add('hidden');
-      readMoreIcon.classList.remove('hidden');
-      readLessIcon.classList.add('hidden');
+      if (desc.classList.contains('line-clamp-3')) {
+        desc.classList.remove('line-clamp-3');
+        readMoreText.classList.add('hidden');
+        readLessText.classList.remove('hidden');
+        readMoreIcon.classList.add('hidden');
+        readLessIcon.classList.remove('hidden');
+      } else {
+        desc.classList.add('line-clamp-3');
+        readMoreText.classList.remove('hidden');
+        readLessText.classList.add('hidden');
+        readMoreIcon.classList.remove('hidden');
+        readLessIcon.classList.add('hidden');
+      }
     }
-  }
-</script>
+  </script>
 
   <!-- Filter Modal Dialog -->
   <div id="filterDialog" class="fixed inset-0 flex items-center justify-center z-50 hidden modal">
-    <div class="bg-white rounded-2xl w-full max-w-lg p-6 m-4 relative">
+    <div class="modal-content bg-white rounded-2xl w-full max-w-lg p-6 m-4 relative overflow-y-auto max-h-[90vh]">
       <button type="button" onclick="toggleFilterDialog()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
         <i class="fas fa-times"></i>
       </button>
@@ -685,27 +697,20 @@
           <div id="selected_skills_container" class="mt-2 flex flex-wrap gap-2">
             {% for skill in selected_skills %}
               {% if skill %}
-                <span class="skill-tag" data-name="{{ skill }}">
-                  {{ skill }} <button type="button" onclick="removeSkillTag('{{ skill }}')" class="text-xs">&times;</button>
-                </span>
+                <span class="skill-tag" data-name="{{ skill }}">{{ skill }} <button type="button" onclick="removeSkillTag('{{ skill }}')" class="text-xs">&times;</button></span>
               {% endif %}
             {% endfor %}
           </div>
           <input type="hidden" id="selected_skills" name="skills" value="{{ selected_skills|join:'||' }}">
-
         </div>
 
         <!-- Categories Filter -->
         <div>
           <label class="block text-sm font-medium mb-2">Filter by Categories:</label>
           <div id="categories_filter" class="flex flex-wrap gap-2">
-            <button type="button" onclick="setCategoryFilter('')" id="cat-all" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 rounded-full text-sm font-medium transition">
-              All
-            </button>
+            <button type="button" onclick="setCategoryFilter('')" id="cat-all" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 rounded-full text-sm font-medium transition">All</button>
             {% for cat in all_categories %}
-            <button type="button" onclick="toggleCategoryFilter('{{ cat.id }}')" id="cat-btn-{{ cat.id }}" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 rounded-full text-sm font-medium transition">
-              {{ cat.name }}
-            </button>
+            <button type="button" onclick="toggleCategoryFilter('{{ cat.id }}')" id="cat-btn-{{ cat.id }}" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 rounded-full text-sm font-medium transition">{{ cat.name }}</button>
             {% endfor %}
           </div>
           <input type="hidden" id="filterSelectedCategories" name="categories" value="{{ selected_categories|join:',' }}">
@@ -719,197 +724,265 @@
       </form>
     </div>
   </div>
-  <!-- JavaScript Section -->
-    <!-- Scripts -->
-<!-- In your filter modal section, update the hidden input -->
-<input type="hidden" id="selected_skills" name="skills" value="{{ selected_skills|join:'||' }}">
+  <!-- End of Filter Modal Dialog -->
 
-<!-- Scripts -->
-<script>
-  // Toggle Filter Modal
-  function toggleFilterDialog() {
-    const dialog = document.getElementById('filterDialog');
-    dialog.classList.toggle('hidden');
-  }
-  // -------------------------
-  // Time Filter Functions
-  function setTimeFilter(value) {
-    document.getElementById('time_filter').value = value;
-    const buttons = ['time-any', 'time-24', 'time-week', 'time-month', 'time-year'];
-    buttons.forEach(id => {
-      document.getElementById(id).classList.remove('bg-blue-300', 'text-white');
-    });
-    if (value === '') {
-      document.getElementById('time-any').classList.add('bg-blue-300', 'text-white');
-    } else if (value === 'last_24_hours') {
-      document.getElementById('time-24').classList.add('bg-blue-300', 'text-white');
-    } else if (value === 'last_week') {
-      document.getElementById('time-week').classList.add('bg-blue-300', 'text-white');
-    } else if (value === 'last_month') {
-      document.getElementById('time-month').classList.add('bg-blue-300', 'text-white');
-    } else if (value === 'last_year') {
-      document.getElementById('time-year').classList.add('bg-blue-300', 'text-white');
+  <!-- Scripts for Filter Modal and Other Functionalities -->
+  <script>
+    // Toggle Filter Modal
+    function toggleFilterDialog() {
+      const dialog = document.getElementById('filterDialog');
+      dialog.classList.toggle('hidden');
     }
-    if (value !== 'custom') {
+    // -------------------------
+    // Time Filter Functions
+    function setTimeFilter(value) {
+      document.getElementById('time_filter').value = value;
+      const buttons = ['time-any', 'time-24', 'time-week', 'time-month', 'time-year'];
+      buttons.forEach(id => {
+        document.getElementById(id).classList.remove('bg-blue-300', 'text-white');
+      });
+      if (value === '') {
+        document.getElementById('time-any').classList.add('bg-blue-300', 'text-white');
+      } else if (value === 'last_24_hours') {
+        document.getElementById('time-24').classList.add('bg-blue-300', 'text-white');
+      } else if (value === 'last_week') {
+        document.getElementById('time-week').classList.add('bg-blue-300', 'text-white');
+      } else if (value === 'last_month') {
+        document.getElementById('time-month').classList.add('bg-blue-300', 'text-white');
+      } else if (value === 'last_year') {
+        document.getElementById('time-year').classList.add('bg-blue-300', 'text-white');
+      }
+      if (value !== 'custom') {
+        document.getElementById('custom-date-range').classList.add('hidden');
+      }
+    }
+    function toggleCustomDate() {
+      const customDiv = document.getElementById('custom-date-range');
+      if (customDiv.classList.contains('hidden')) {
+        customDiv.classList.remove('hidden');
+        setTimeFilter('custom');
+      } else {
+        customDiv.classList.add('hidden');
+        setTimeFilter('');
+      }
+    }
+    // -------------------------
+    // Skills Filter Functions
+    $("#skills_search").on("input", function() {
+      const query = $(this).val();
+      if (query.length < 2) {
+        $("#skills_suggestions").addClass("hidden");
+        return;
+      }
+      $.ajax({
+        url: "{% url 'search-skills' %}",
+        data: { query: query },
+        success: function(response) {
+          const suggestions = response.skills;
+          let html = "";
+          suggestions.forEach(function(skill) {
+            const regex = new RegExp("(" + query + ")", "gi");
+            const skillNameHighlighted = skill.name.replace(regex, "<strong>$1</strong>");
+            html += `<div class="p-2 hover:bg-gray-200 cursor-pointer" data-name="${skill.name}">
+                        ${skillNameHighlighted}
+                     </div>`;
+          });
+          $("#skills_suggestions").html(html).removeClass("hidden");
+        }
+      });
+    });
+    $("#skills_suggestions").on("click", "div", function() {
+      const skillName = $(this).data("name");
+      if ($("#selected_skills").val().split("||").indexOf(String(skillName)) === -1) {
+        addSkillTag(skillName);
+      }
+      $("#skills_search").val("");
+      $("#skills_suggestions").addClass("hidden").empty();
+    });
+    function addSkillTag(skillName) {
+      let current = $("#selected_skills").val();
+      let arr = current ? current.split("||") : [];
+      arr.push(skillName);
+      $("#selected_skills").val(arr.join("||"));
+      $("#selected_skills_container").append(
+        `<span class="skill-tag" data-name="${skillName}">${skillName} <button type="button" onclick="removeSkillTag('${skillName}')" class="text-xs">&times;</button></span>`
+      );
+    }
+    function removeSkillTag(skillName) {
+      let arr = $("#selected_skills").val().split("||");
+      arr = arr.filter(function(item) { return item !== skillName; });
+      $("#selected_skills").val(arr.join("||"));
+      $(`#selected_skills_container span[data-name="${skillName}"]`).remove();
+    }
+    // -------------------------
+    // Categories Filter Functions
+    function toggleCategoryFilter(catId) {
+      let current = document.getElementById('filterSelectedCategories').value;
+      let selected = current ? current.split(',') : [];
+      const btn = document.getElementById('cat-btn-' + catId);
+      const index = selected.indexOf(catId);
+      if (index > -1) {
+        selected.splice(index, 1);
+        btn.classList.remove('bg-blue-300', 'text-white');
+      } else {
+        selected.push(catId);
+        btn.classList.add('bg-blue-300', 'text-white');
+      }
+      document.getElementById('filterSelectedCategories').value = selected.join(',');
+    }
+    function setCategoryFilter(catId) {
+      document.getElementById('filterSelectedCategories').value = catId;
+      document.getElementById('filterForm').submit();
+    }
+    function clearFilters() {
+      document.getElementById('time_filter').value = "";
+      $("#selected_skills").val("");
+      $("#selected_skills_container").empty();
+      document.getElementById('filterSelectedCategories').value = "";
+      const catButtons = document.querySelectorAll("#categories_filter button");
+      catButtons.forEach(btn => btn.classList.remove('bg-blue-300', 'text-white'));
+      document.getElementById('date_from').value = "";
+      document.getElementById('date_to').value = "";
+      const timeButtons = ['time-any', 'time-24', 'time-week', 'time-month', 'time-year'];
+      timeButtons.forEach(id => document.getElementById(id).classList.remove('bg-blue-300', 'text-white'));
       document.getElementById('custom-date-range').classList.add('hidden');
     }
-  }
-  function toggleCustomDate() {
-    const customDiv = document.getElementById('custom-date-range');
-    if (customDiv.classList.contains('hidden')) {
-      customDiv.classList.remove('hidden');
-      setTimeFilter('custom');
-    } else {
-      customDiv.classList.add('hidden');
-      setTimeFilter('');
-    }
-  }
-  // -------------------------
-  // Skills Filter Functions
-  $("#skills_search").on("input", function() {
-    const query = $(this).val();
-    if (query.length < 2) {
-      $("#skills_suggestions").addClass("hidden");
-      return;
-    }
-    $.ajax({
-      url: "{% url 'search-skills' %}",
-      data: { query: query },
-      success: function(response) {
-        const suggestions = response.skills;
-        let html = "";
-        suggestions.forEach(function(skill) {
-          const regex = new RegExp("(" + query + ")", "gi");
-          const skillNameHighlighted = skill.name.replace(regex, "<strong>$1</strong>");
-          html += `<div class="p-2 hover:bg-gray-200 cursor-pointer" data-name="${skill.name}">
-                      ${skillNameHighlighted}
-                   </div>`;
-        });
-        $("#skills_suggestions").html(html).removeClass("hidden");
+    // -------------------------
+    // Collapsible Description in Filter Modal
+    function toggleDescription(descId, event) {
+      const desc = document.getElementById(descId);
+      const btn = event.currentTarget;
+      if (desc.classList.contains('line-clamp-3')) {
+        desc.classList.remove('line-clamp-3');
+        btn.textContent = 'Read Less';
+      } else {
+        desc.classList.add('line-clamp-3');
+        btn.textContent = 'Read More';
       }
-    });
-  });
-  $("#skills_suggestions").on("click", "div", function() {
-    const skillName = $(this).data("name");
-    if ($("#selected_skills").val().split("||").indexOf(String(skillName)) === -1) {
-      addSkillTag(skillName);
     }
-    $("#skills_search").val("");
-    $("#skills_suggestions").addClass("hidden").empty();
-  });
-  function addSkillTag(skillName) {
-    let current = $("#selected_skills").val();
-    let arr = current ? current.split("||") : [];
-    arr.push(skillName);
-    $("#selected_skills").val(arr.join("||"));
-    $("#selected_skills_container").append(
-      `<span class="skill-tag" data-name="${skillName}">${skillName} <button type="button" onclick="removeSkillTag('${skillName}')" class="text-xs">&times;</button></span>`
-    );
-  }
-  function removeSkillTag(skillName) {
-    let arr = $("#selected_skills").val().split("||");
-    arr = arr.filter(function(item) { return item !== skillName; });
-    $("#selected_skills").val(arr.join("||"));
-    $(`#selected_skills_container span[data-name="${skillName}"]`).remove();
-  }
-  // -------------------------
-  // Categories Filter Functions
-  function toggleCategoryFilter(catId) {
-    let current = document.getElementById('filterSelectedCategories').value;
-    let selected = current ? current.split(',') : [];
-    const btn = document.getElementById('cat-btn-' + catId);
-    const index = selected.indexOf(catId);
-    if (index > -1) {
-      selected.splice(index, 1);
-      btn.classList.remove('bg-blue-300', 'text-white');
-    } else {
-      selected.push(catId);
-      btn.classList.add('bg-blue-300', 'text-white');
-    }
-    document.getElementById('filterSelectedCategories').value = selected.join(',');
-  }
-  function setCategoryFilter(catId) {
-    document.getElementById('filterSelectedCategories').value = catId;
-    document.getElementById('filterForm').submit();
-  }
-  function clearFilters() {
-    document.getElementById('time_filter').value = "";
-    $("#selected_skills").val("");
-    $("#selected_skills_container").empty();
-    document.getElementById('filterSelectedCategories').value = "";
-    const catButtons = document.querySelectorAll("#categories_filter button");
-    catButtons.forEach(btn => btn.classList.remove('bg-blue-300', 'text-white'));
-    document.getElementById('date_from').value = "";
-    document.getElementById('date_to').value = "";
-    const timeButtons = ['time-any', 'time-24', 'time-week', 'time-month', 'time-year'];
-    timeButtons.forEach(id => document.getElementById(id).classList.remove('bg-blue-300', 'text-white'));
-    document.getElementById('custom-date-range').classList.add('hidden');
-  }
-  // -------------------------
-  // Collapsible Description
-  function toggleDescription(descId, event) {
-    const desc = document.getElementById(descId);
-    const btn = event.target;
-    if (desc.classList.contains('line-clamp-3')) {
-      desc.classList.remove('line-clamp-3');
-      btn.textContent = 'Read Less';
-    } else {
-      desc.classList.add('line-clamp-3');
-      btn.textContent = 'Read More';
-    }
-  }
-  // -------------------------
-  // AJAX for saving favorites
-  function saveProject(projectId) {
-    $.ajax({
-      type: "POST",
-      url: "{% url 'toggle-favorite' %}",
-      data: {
-        project_id: projectId,
-        csrfmiddlewaretoken: "{{ csrf_token }}"
-      },
-      success: function(response) {
-        if (response.success) {
-          const btnIcon = $("#fav-btn-" + projectId + " i");
-          if (response.is_favorite) {
-            btnIcon.removeClass("text-gray-400").addClass("text-red-500");
+    // -------------------------
+    // AJAX for saving favorites
+    function saveProject(projectId) {
+      $.ajax({
+        type: "POST",
+        url: "{% url 'toggle-favorite' %}",
+        data: {
+          project_id: projectId,
+          csrfmiddlewaretoken: "{{ csrf_token }}"
+        },
+        success: function(response) {
+          if (response.success) {
+            const btnIcon = $("#fav-btn-" + projectId + " i");
+            if (response.is_favorite) {
+              btnIcon.removeClass("text-gray-400").addClass("text-red-500");
+            } else {
+              btnIcon.removeClass("text-red-500").addClass("text-gray-400");
+            }
           } else {
-            btnIcon.removeClass("text-red-500").addClass("text-gray-400");
+            alert("Error: " + response.error);
           }
-        } else {
-          alert("Error: " + response.error);
-        }
-      },
-      error: function(xhr, status, error) {
-        alert("An error occurred: " + error);
-      }
-    });
-  }
-  // -------------------------
-  // Auto slider for Recommended Projects
-  $(document).ready(function(){
-    var slider = document.getElementById('recommendedSlider');
-    if(slider){
-      setInterval(function(){
-        slider.scrollBy({left: 310, behavior: 'smooth'});
-        if(slider.scrollLeft + slider.clientWidth >= slider.scrollWidth){
-          slider.scrollTo({left: 0, behavior: 'smooth'});
-        }
-      }, 2700); // every 2.7 seconds, adjust as needed
-    }
-    // Prepopulate filter modal on page load
-    var tf = $("#time_filter").val();
-    if (tf) {
-      setTimeFilter(tf);
-    }
-    var cats = $("#filterSelectedCategories").val();
-    if (cats) {
-      cats.split(",").forEach(function(catId) {
-        if (catId) {
-          $("#cat-btn-" + catId).addClass("bg-blue-300 text-white");
+        },
+        error: function(xhr, status, error) {
+          alert("An error occurred: " + error);
         }
       });
     }
+    // -------------------------
+    // Auto slider for Recommended Projects
+    $(document).ready(function(){
+      var slider = document.getElementById('recommendedSlider');
+      if(slider){
+        setInterval(function(){
+          slider.scrollBy({left: 310, behavior: 'smooth'});
+          if(slider.scrollLeft + slider.clientWidth >= slider.scrollWidth){
+            slider.scrollTo({left: 0, behavior: 'smooth'});
+          }
+        }, 2700);
+      }
+      // Prepopulate filter modal on page load
+      var tf = $("#time_filter").val();
+      if (tf) {
+        setTimeFilter(tf);
+      }
+      var cats = $("#filterSelectedCategories").val();
+      if (cats) {
+        cats.split(",").forEach(function(catId) {
+          if (catId) {
+            $("#cat-btn-" + catId).addClass("bg-blue-300 text-white");
+          }
+        });
+      }
+    });
+  </script>
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const slider = document.getElementById('recommendedSlider');
+    const dots = document.querySelectorAll('.slider-dot');
+    const slideLeft = document.getElementById('slideLeft');
+    const slideRight = document.getElementById('slideRight');
+
+    let currentIndex = 0;
+
+    // Update active dot
+    function updateDots() {
+      dots.forEach((dot, index) => {
+        if (index === currentIndex) {
+          dot.classList.add('bg-primary');
+          dot.classList.remove('bg-border');
+        } else {
+          dot.classList.add('bg-border');
+          dot.classList.remove('bg-primary');
+        }
+      });
+    }
+
+    // Click on dot to navigate to that slide
+    dots.forEach((dot, index) => {
+      dot.addEventListener('click', () => {
+        currentIndex = index;
+        const cards = slider.querySelectorAll('div[class*="flex-shrink-0"]');
+        if (cards[index]) {
+          cards[index].scrollIntoView({ behavior: 'smooth', inline: 'start' });
+          updateDots();
+        }
+      });
+    });
+
+    // Handle navigation buttons
+    slideLeft.addEventListener('click', () => {
+      const cards = slider.querySelectorAll('div[class*="flex-shrink-0"]');
+      if (currentIndex > 0) {
+        currentIndex--;
+        cards[currentIndex].scrollIntoView({ behavior: 'smooth', inline: 'start' });
+        updateDots();
+      }
+    });
+
+    slideRight.addEventListener('click', () => {
+      const cards = slider.querySelectorAll('div[class*="flex-shrink-0"]');
+      if (currentIndex < cards.length - 1) {
+        currentIndex++;
+        cards[currentIndex].scrollIntoView({ behavior: 'smooth', inline: 'start' });
+        updateDots();
+      }
+    });
+
+    // Initial state
+    updateDots();
+
+    // Toggle description function
+    window.toggleDescription = function(id, event) {
+      const desc = document.getElementById(id);
+      const button = event.target.closest('button');
+
+      if (desc.classList.contains('line-clamp-3')) {
+        desc.classList.remove('line-clamp-3');
+        button.innerHTML = '<span>Show Less</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1"><path d="M18 15l-6-6-6 6"></path></svg>';
+      } else {
+        desc.classList.add('line-clamp-3');
+        button.innerHTML = '<span>Read More</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1"><path d="M6 9l6 6 6-6"></path></svg>';
+      }
+    };
   });
 </script>
 </body>

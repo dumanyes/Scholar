@@ -24,7 +24,7 @@ DEBUG = True
 #     # etc.
 # ]
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'scholar-d6c0.onrender.com', 'scholarhub.up.railway.app', 'scholarhub-trkt.onrender.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'scholarhub.kz', 'scholar-d6c0.onrender.com', 'scholarhub.up.railway.app', 'scholarhub-trkt.onrender.com']
 # 'scholar-d6c0.onrender.com'
 
 
@@ -130,14 +130,24 @@ WSGI_APPLICATION = 'user_management.wsgi.application'
 
 
 
-
 DATABASES = {
-    'default': dj_database_url.parse(
-        "postgresql://db_scholar_user:TMHTE1QV2twYKYsQPN5TtqBaLh8FLwfG@dpg-cvhljg7noe9s739jakk0-a.oregon-postgres.render.com/db_scholar",
-        conn_max_age=600,
-        ssl_require=True  # Ensures secure connection to Render-hosted Postgres
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'scholarhub',
+        'USER': 'scholaruser',
+        'PASSWORD': 'strongpassword',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
 }
+
+# DATABASES = {
+#     'default': dj_database_url.parse(
+#         "postgresql://db_scholar_user:TMHTE1QV2twYKYsQPN5TtqBaLh8FLwfG@dpg-cvhljg7noe9s739jakk0-a.oregon-postgres.render.com/db_scholar",
+#         conn_max_age=600,
+#         ssl_require=True  # Ensures secure connection to Render-hosted Postgres
+#     )
+# }
 
 
 # DATABASES = {

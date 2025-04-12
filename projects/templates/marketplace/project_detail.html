@@ -344,6 +344,12 @@
   </section>
   {% endif %}
 
+  <!-- Кнопка для перехода к рекомендациям проектов -->
+  <div class="flex justify-center mt-8">
+    <a href="{% url 'project-recommendations' project.id %}" class="...">Рекомендации проектов</a>
+
+  </div>
+
   <!-- Back to Marketplace -->
   <footer class="mt-8">
     <a href="{% url 'marketplace' %}" class="inline-flex items-center gap-2 py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition">

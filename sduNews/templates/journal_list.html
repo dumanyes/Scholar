@@ -11,38 +11,48 @@
         </p>
     </div>
 
-    <!-- Journals List -->
-    <div class="max-w-7xl mx-auto space-y-8">
+    <!-- Journals Grid -->
+    <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {% for journal in journals %}
-            <!-- Карточка журнала -->
-            <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow overflow-hidden flex flex-col md:flex-row">
+            <!-- Journal Card -->
+            <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-2 overflow-hidden flex flex-col">
                 {% if journal.image_url %}
-                    <!-- Блок с изображением -->
-                    <div class="md:w-1/3">
-                        <img src="{{ journal.image_url }}" alt="{{ journal.title }}" class="w-full h-auto object-cover">
-                    </div>
+                <!-- Image Container -->
+                <div class="relative aspect-square overflow-hidden">
+                    <img src="{{ journal.image_url }}" alt="{{ journal.title }}"
+                         class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
+                </div>
                 {% endif %}
-                <!-- Блок с информацией о журнале -->
-                <div class="p-6 md:w-2/3">
-                    <h2 class="text-2xl font-semibold text-gray-900 mb-2">{{ journal.title }}</h2>
-                    <!-- Выводим описание с сохранением переносов -->
-                    <p class="text-gray-600 mb-4 whitespace-pre-line">{{ journal.description }}</p>
-                    
-                    <!-- Ссылки -->
-                    <div class="flex space-x-4">
+
+                <!-- Content Container -->
+                <div class="p-6 flex flex-col flex-grow">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-3">{{ journal.title }}</h2>
+
+                    <div class="flex-grow">
+                        <p class="text-gray-600 mb-4 line-clamp-3 hover:line-clamp-none transition-all">
+                            {{ journal.description }}
+                        </p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-4 flex flex-wrap gap-3">
                         {% if journal.view_link %}
-                            <a href="{{ journal.view_link }}" class="text-blue-600 hover:underline">View Journal</a>
-                        {% else %}
-                            <a href="{{ journal.journal_url }}" class="text-blue-600 hover:underline">Visit Journal</a>
+                        <a href="{{ journal.view_link }}"
+                           class="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors text-sm font-medium">
+                            View Journal
+                        </a>
                         {% endif %}
                         {% if journal.current_issue_link %}
-                            <a href="{{ journal.current_issue_link }}" class="text-blue-600 hover:underline">Current Issue</a>
+                        <a href="{{ journal.current_issue_link }}"
+                           class="px-4 py-2 border border-blue-600 text-blue-600 rounded-full hover:bg-blue-50 transition-colors text-sm font-medium">
+                            Current Issue
+                        </a>
                         {% endif %}
                     </div>
                 </div>
             </div>
         {% empty %}
-            <p class="text-center text-gray-600">No journals found.</p>
+            <p class="text-center text-gray-600 col-span-full">No journals found.</p>
         {% endfor %}
     </div>
 </div>

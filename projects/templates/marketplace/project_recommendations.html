@@ -1,0 +1,303 @@
+{% extends "users/base.html" %}
+{% load static %}
+{% load project_tags %}
+
+{% block content %}
+<style>
+  @keyframes pulse-sent {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(0.98); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .skill-match-bar {
+    transition: width 0.8s ease-in-out;
+  }
+  .user-card:hover .user-avatar {
+    transform: translateY(-5px);
+  }
+  .category-chip {
+    transition: all 0.2s ease;
+  }
+  .category-chip:hover {
+    transform: translateY(-2px);
+  }
+  /* Состояние отправленного приглашения (например, красный фон) */
+  .invite-btn-sent {
+    animation: pulse-sent 0.75s ease-out;
+    background-color: #dc2626 !important;
+  }
+</style>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- ПИН-КАРТОЧКА проекта (закреплена сверху) -->
+  <div class="mb-12">
+    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl shadow-lg p-8 border border-blue-100">
+      <div class="flex flex-col md:flex-row gap-8">
+        <!-- Детали проекта -->
+        <div class="flex-1">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="flex-1">
+              <div class="flex flex-wrap gap-2 mb-4">
+                {% for category in project.category.all %}
+                  <span class="category-chip px-3 py-1.5 bg-white/80 backdrop-blur-sm text-blue-800 rounded-full text-sm font-medium border border-blue-200 shadow-sm hover:shadow-md">
+                    {{ category.name }}
+                  </span>
+                {% endfor %}
+              </div>
+              <h1 class="text-4xl font-bold text-gray-900 mb-3">{{ project.title }}</h1>
+              <div class="flex items-center text-sm text-gray-600 space-x-4">
+                <span class="flex items-center">
+                  <i class="fas fa-clock mr-2 text-blue-500"></i>
+                  Posted {{ project.created_at|timesince }} ago
+                </span>
+                <span class="flex items-center">
+                  <i class="fas fa-eye mr-2 text-blue-500"></i>
+                  {{ project.view_count }} views
+                </span>
+              </div>
+            </div>
+          </div>
+          <p class="text-gray-700 text-lg leading-relaxed mb-6">{{ project.description }}</p>
+          <div class="flex flex-wrap gap-3">
+            <a href="{% url 'project-detail' pk=project.pk %}"
+               class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-sm transition-all duration-300 hover:shadow-md">
+              View Project Details
+            </a>
+            {% if project.owner != request.user %}
+              {% if project.application_status %}
+                {% if project.application_status == 'PENDING' %}
+                  <a href="{% url 'withdraw-application' project_id=project.id %}"
+                     class="px-6 py-3 bg-red-100 hover:bg-red-200 text-red-700 rounded-xl font-semibold transition-all duration-300">
+                    Withdraw Application
+                  </a>
+                {% elif project.application_status == 'ACCEPTED' %}
+                  <a href="{% url 'chat' user_id=project.owner.id %}"
+                     class="px-6 py-3 bg-green-100 hover:bg-green-200 text-green-700 rounded-xl font-semibold transition-all duration-300">
+                    <i class="fas fa-comments mr-2"></i>Start Chat
+                  </a>
+                {% endif %}
+              {% else %}
+                <a href="{% url 'apply-project' project_id=project.id %}"
+                   class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold shadow-sm transition-all duration-300 hover:shadow-md">
+                  Apply Now
+                </a>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+        <!-- Карточка автора проекта -->
+        <div class="w-full md:w-80 flex-shrink-0">
+          <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="flex items-center gap-4 mb-4">
+              <a href="{% url 'project-user-profile' project.owner.username %}"
+                 class="user-avatar transition-transform duration-300">
+                <img src="{{ project.owner.profile.avatar_url }}"
+                     class="w-14 h-14 rounded-full border-3 border-white shadow-lg object-cover">
+              </a>
+              <div>
+                <a href="{% url 'project-user-profile' project.owner.username %}"
+                   class="text-lg font-semibold text-gray-900 hover:text-blue-600">
+                  @{{ project.owner.username }}
+                </a>
+                {% if project.owner.profile.city or project.owner.profile.country %}
+                  <div class="text-sm text-gray-500 mt-1">
+                    <i class="fas fa-map-marker-alt mr-1"></i>
+                    {{ project.owner.profile.city|default:"" }}{% if project.owner.profile.city and project.owner.profile.country %}, {% endif %}
+                    {{ project.owner.profile.country|default:"" }}
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+            <div class="space-y-2 text-sm text-gray-600">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Раздел "Recommended Teammates" -->
+  <div class="mb-8">
+    <div class="mb-8">
+      <h2 class="text-3xl font-bold text-gray-900 mb-2">Recommended Teammates</h2>
+      <p class="text-gray-600 text-lg">
+        Discover potential collaborators based on skill matches and project requirements.
+      </p>
+    </div>
+    {% if recommended_users %}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for user in recommended_users %}
+          <div class="user-card bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-200">
+            <!-- Заголовок карточки пользователя -->
+            <div class="p-6 text-center border-b border-gray-100">
+              <a href="{% url 'project-user-profile' user.username %}" class="block">
+                <div class="inline-block relative mb-4">
+                  <img src="{{ user.profile.avatar_url }}"
+                       class="user-avatar w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover transition-transform duration-300">
+
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-1">{{ user.get_full_name|default:user.username }}</h3>
+                <p class="text-sm text-gray-500">{{ user.profile.headline|default:"Collaborator" }}</p>
+              </a>
+            </div>
+            <!-- Раздел "Skills" -->
+            <div class="p-6 pt-4">
+              <div class="mb-5">
+                <div class="flex justify-between items-center mb-4">
+                  <span class="text-sm font-semibold text-gray-700">Skill Match</span>
+                  <span class="text-sm font-bold text-blue-600">{{ user.match_score }}%</span>
+                </div>
+                <div class="relative pt-1">
+                  <div class="overflow-hidden h-3 bg-gray-200 rounded-full">
+                    <div class="skill-match-bar h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full"
+                         style="width: {{ user.match_score }}%;"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="mb-6">
+                <h4 class="text-sm font-semibold text-gray-700 mb-3">Project Skills Match</h4>
+                <div class="flex flex-wrap gap-2">
+                  {% for skill in project.skills_required.all %}
+                    <span class="px-3 py-1.5 rounded-full text-xs font-medium
+                      {% if skill in user.profile.skills.all %}
+                        bg-green-100 text-green-800 border border-green-200
+                      {% else %}
+                        bg-gray-100 text-gray-600 border border-gray-200
+                      {% endif %}">
+                      {{ skill.name }}
+                    </span>
+                  {% endfor %}
+                </div>
+              </div>
+              <div class="space-y-3">
+                <button onclick="handleInvite(this, '{% url 'invite_user_to_project' project_id=project.id user_id=user.id %}',
+                                        '{% url 'cancel_invite_user_to_project' project_id=project.id user_id=user.id %}')"
+                        data-invited="{{ user.invited|yesno:'true,false' }}"
+                        class="invite-btn w-full flex items-center justify-center px-4 py-3 rounded-xl font-semibold transition-all duration-300
+                          {% if user.invited %}
+                            bg-red-100 text-red-700 hover:bg-red-200
+                          {% else %}
+                            bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md
+                          {% endif %}">
+                  <span class="invite-btn-text {% if user.invited %}hidden{% endif %}">
+                    <i class="fas fa-user-plus mr-2"></i> Invite Collaborator
+                  </span>
+                  <span class="invite-btn-sent-text {% if not user.invited %}hidden{% endif %}">
+                    <i class="fas fa-times mr-2"></i> Cancel Invite
+                  </span>
+                </button>
+                <a href="{% url 'project-user-profile' user.username %}"
+                   class="block w-full text-center px-4 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl font-medium transition-colors">
+                  View Full Profile
+                </a>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+        <div class="max-w-md mx-auto">
+          <div class="mb-6 text-blue-500">
+            <i class="fas fa-users-slash text-6xl"></i>
+          </div>
+          <h3 class="text-2xl font-bold text-gray-900 mb-3">No Matches Found</h3>
+          <p class="text-gray-600 mb-6">
+            We couldn't find any users matching your project requirements. Try adjusting your skills list or project description.
+          </p>
+          <button class="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors">
+            Edit Project Requirements
+          </button>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Animate progress bars on scroll into view
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const bar = entry.target.querySelector('.skill-match-bar');
+          if (bar) {
+            bar.style.transition = 'width 0.8s ease-in-out';
+          }
+        }
+      });
+    }, { threshold: 0.5 });
+    document.querySelectorAll('.user-card').forEach(card => {
+      observer.observe(card);
+    });
+  });
+
+  async function handleInvite(button, inviteUrl, cancelUrl) {
+    const originalHTML = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+    try {
+      const url = button.dataset.invited === "true" ? cancelUrl : inviteUrl;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken'),
+          'Content-Type': 'application/json'
+        },
+        credentials: 'same-origin'
+      });
+      if (!response.ok) throw new Error('Request failed');
+      const data = await response.json();
+      button.dataset.invited = button.dataset.invited === "true" ? "false" : "true";
+      if (button.dataset.invited === "true") {
+        button.classList.remove('bg-blue-600', 'hover:bg-blue-700', 'hover:shadow-md');
+        button.classList.add('bg-red-100', 'text-red-700', 'hover:bg-red-200');
+      } else {
+        button.classList.remove('bg-red-100', 'text-red-700', 'hover:bg-red-200');
+        button.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-700', 'hover:shadow-md');
+      }
+      const textElement = button.querySelector('.invite-btn-text');
+      const sentTextElement = button.querySelector('.invite-btn-sent-text');
+      if (textElement && sentTextElement) {
+        textElement.classList.toggle('hidden');
+        sentTextElement.classList.toggle('hidden');
+      }
+      button.style.animation = 'pulse-sent 0.6s ease-out';
+      console.log('Invitation state toggled successfully');
+    } catch (error) {
+      console.error('Error:', error);
+      showToast('An error occurred. Please try again.', 'error');
+    } finally {
+      button.disabled = false;
+      button.innerHTML = originalHTML;
+    }
+  }
+
+  function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `fixed bottom-6 right-6 px-6 py-3 rounded-xl text-white font-medium shadow-lg
+                      ${type === 'success' ? 'bg-green-500' : 'bg-red-500'}
+                      animate-slide-up`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.remove();
+    }, 3000);
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+</script>
+{% endblock %}

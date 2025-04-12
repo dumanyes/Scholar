@@ -48,6 +48,36 @@ def other_participant(room, user):
     """Return the other participant in a 1-on-1 chat."""
     return room.participants.exclude(id=user.id).first()
 
+@register.filter
+def skill_in_profile(skill, user):
+    if not user.is_authenticated or not hasattr(user, 'profile'):
+        return False
+
+    skill_name = skill.name  # skill is a Skill object
+    skill_clean = skill_name.strip(string.punctuation).strip().lower()
+
+    user_skills_lower = []
+    for s in user.profile.skills.all():
+        s_clean = s.name.strip(string.punctuation).strip().lower()
+        user_skills_lower.append(s_clean)
+
+    return skill_clean in user_skills_lower
+
+
+
+def get_skill_match(self, user):
+    if not user.is_authenticated or not hasattr(user, 'profile'):
+        return 0
+    required_skills = {skill.name.lower() for skill in self.skills_required.all()}
+    if not required_skills:
+        return 0  # If no required skills, set match to 0 instead of 100.
+
+    user_skills = {skill.name.lower() for skill in user.profile.skills.all()}
+    if not user_skills:
+        return 0
+    match_count = len(required_skills & user_skills)
+    return round((match_count / len(required_skills)) * 100)
+
 
 
 

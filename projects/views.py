@@ -1,7 +1,7 @@
 from urllib import request
-
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy, reverse
 from django.views import View
@@ -9,22 +9,68 @@ from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, UpdateView, DeleteView, CreateView, ListView
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, render, redirect
-from django.db.models import Q, OuterRef, Subquery, CharField, Case, When, Count, Exists
+from django.db.models import Q, OuterRef, Subquery, CharField, Case, When, Count, Exists, Sum
 import json
+from datetime import timedelta
+from django.utils import timezone
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-from .forms import ProjectForm, ProjectApplicationForm
+from .forms import ProjectApplicationForm, ProjectForm
 from .models import (
     Notification, SkillsCategory, Skill, Language, RequiredRole,
     ChatFolder, ChatRoom, FavoriteProject, Project, ProjectApplication,
-    Category, ChatMessage
+    Category, ChatMessage, User, ProjectInvitation, PinnedProject
 )
-from datetime import timedelta
-from django.utils import timezone
-from django.db.models import Q, OuterRef, Subquery, CharField, Case, When
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView
 from projects.models import Project, ProjectApplication, Category, ChatMessage, ChatRoom
 from projects.recommendation import rank_projects_with_faiss, recommend_projects_for_user
+
+# ---------------------------
+# Helper functions for reverse recommendations
+# ---------------------------
+from sklearn.feature_extraction.text import TfidfVectorizer
+from numpy.linalg import norm
+import numpy as np
+
+def compute_faiss_match(project, user):
+    """
+    Computes a FAISS-based similarity percentage between a project's profile and a user's profile.
+    """
+    # Build the project profile text
+    project_text = " ".join([skill.name for skill in project.skills_required.all()])
+    project_text += " " + (project.project_mission or "")
+    project_text += " " + (project.project_objectives or "")
+    project_text += " " + (project.description or "")
+    project_text += " " + " ".join([cat.name for cat in project.category.all()])
+
+    # Build the user profile text
+    user_skills_text = " ".join([skill.name for skill in user.profile.skills.all()])
+    bio_text = user.profile.bio or ""
+    user_categories_text = " ".join([cat.name for cat in user.profile.categories.all()])
+    user_text = " ".join([user_skills_text, bio_text, user_categories_text])
+
+    vectorizer = TfidfVectorizer()
+    texts = [project_text, user_text]
+    try:
+        vectors = vectorizer.fit_transform(texts).toarray()
+        if norm(vectors[0]) == 0 or norm(vectors[1]) == 0:
+            return 0.0
+        cos_sim = np.dot(vectors[0], vectors[1]) / (norm(vectors[0]) * norm(vectors[1]) + 1e-8)
+    except Exception:
+        cos_sim = 0.0
+    return round(cos_sim * 100, 2)
+
+def get_matched_skills(project, user):
+    """
+    Returns a list of (skill_id, skill_name) tuples that are required by the project
+    and also present in the user's profile.
+    """
+    required_skills = {skill.name.lower() for skill in project.skills_required.all()}
+    user_skills = [(skill.id, skill.name) for skill in user.profile.skills.all()]
+    return [(skill_id, skill_name) for skill_id, skill_name in user_skills if skill_name.lower() in required_skills]
+
+# ---------------------------
+# Views
+# ---------------------------
 
 class MarketplaceView(LoginRequiredMixin, ListView):
     model = Project
@@ -33,23 +79,18 @@ class MarketplaceView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         queryset = Project.objects.filter(is_active=True)
-
         # --- Filter by Clickable Categories ---
         categories_param = self.request.GET.get('categories', '')
         if categories_param:
             cat_ids = [cid.strip() for cid in categories_param.split(',') if cid.strip()]
             if cat_ids:
                 queryset = queryset.filter(category__id__in=cat_ids).distinct()
-
         # --- Filter by Skills ---
-        # New code that uses skill names:
         skills_param = self.request.GET.get('skills', '')
         if skills_param:
-            # Split by the delimiter "||" instead of comma.
             skill_names = [s.strip() for s in skills_param.split('||') if s.strip()]
             if skill_names:
                 queryset = queryset.filter(skills_required__name__in=skill_names).distinct()
-
         # --- Text Search Filtering ---
         q = self.request.GET.get('q', '')
         if q:
@@ -59,7 +100,6 @@ class MarketplaceView(LoginRequiredMixin, ListView):
                 Q(project_mission__icontains=q) |
                 Q(project_objectives__icontains=q)
             )
-
         # --- Time-Based Filtering ---
         time_filter = self.request.GET.get('time_filter', '')
         if time_filter:
@@ -81,7 +121,6 @@ class MarketplaceView(LoginRequiredMixin, ListView):
                 date_to = self.request.GET.get('date_to')
                 if date_from and date_to:
                     queryset = queryset.filter(created_at__range=[date_from, date_to])
-
         # --- Ordering ---
         time_sort = self.request.GET.get('time_sort', '')
         if time_sort == 'recent':
@@ -89,7 +128,6 @@ class MarketplaceView(LoginRequiredMixin, ListView):
         elif time_sort == 'old':
             queryset = queryset.order_by('created_at')
         else:
-            # Use FAISS recommendations if available.
             projects_list = list(queryset)
             if projects_list:
                 recommended_order, faiss_scores = rank_projects_with_faiss(projects_list, self.request.user)
@@ -102,28 +140,21 @@ class MarketplaceView(LoginRequiredMixin, ListView):
                 return projects_with_score
             else:
                 queryset = queryset.order_by('-created_at')
-
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Unread notifications
         unread_notifications = self.request.user.notifications.filter(read=False).order_by('-created_at')
         notifications_count = unread_notifications.count()
-
-        # Unread chat messages (excluding those sent by the current user)
         unread_chat_count = ChatMessage.objects.filter(
             room__participants=self.request.user,
             read=False
         ).exclude(sender=self.request.user).count()
-
         favorite_ids = self.request.user.favorite_projects.values_list('project_id', flat=True)
-
         context.update({
             'all_categories': Category.objects.all(),
             'user_skills': {s.name.lower() for s in self.request.user.profile.skills.all()},
             'selected_categories': self.request.GET.get('categories', '').split(','),
-            # Split using "||" instead of comma!
             'selected_skills': self.request.GET.get('skills', '').split('||'),
             'current_query': self.request.GET.get('q', ''),
             'time_sort': self.request.GET.get('time_sort', ''),
@@ -137,14 +168,12 @@ class MarketplaceView(LoginRequiredMixin, ListView):
             'favorite_ids': list(favorite_ids)
         })
         context['skill_categories'] = SkillsCategory.objects.prefetch_related('subcategories__skills').all()
-
         # Recommended projects section
         recommended = recommend_projects_for_user(self.request.user, top_n=9)
         for project in recommended:
             user_app = project.applications.filter(applicant=self.request.user).first()
             project.application_status = user_app.status if user_app else None
         context['recommended_projects'] = recommended
-
         if not self.request.user.profile.categories.exists():
             context['recommended_projects'] = []
             context['recommended_projects_message'] = (
@@ -156,7 +185,6 @@ class MarketplaceView(LoginRequiredMixin, ListView):
                 user_app = project.applications.filter(applicant=self.request.user).first()
                 project.application_status = user_app.status if user_app else None
             context['recommended_projects'] = recommended
-
         return context
 
 
@@ -313,7 +341,6 @@ class ApplyProjectView(View):
         if ProjectApplication.objects.filter(project=project, applicant=request.user).exists():
             messages.info(request, "You have already applied to this project.")
             return redirect('project-detail', pk=project.id)
-        # Pass the project instance so the form can limit the roles
         form = ProjectApplicationForm(project=project)
         context = {'project': project, 'form': form}
         return render(request, 'marketplace/apply_project.html', context)
@@ -323,7 +350,6 @@ class ApplyProjectView(View):
         if ProjectApplication.objects.filter(project=project, applicant=request.user).exists():
             messages.info(request, "You have already applied to this project.")
             return redirect('project-detail', pk=project.id)
-        # Pass the project instance into the form initialization
         form = ProjectApplicationForm(request.POST, project=project)
         if form.is_valid():
             application = form.save(commit=False)
@@ -334,15 +360,11 @@ class ApplyProjectView(View):
             project.application_count = project.applications.count()
             project.save(update_fields=['application_count'])
             messages.success(request, 'Your application has been submitted successfully!')
-
-            # Notification for the project owner
             Notification.objects.create(
                 user=project.owner,
                 message=f"{request.user.username} sent a request to join your project '{project.title}'.",
                 link=reverse('project-detail', kwargs={'pk': project.pk})
             )
-
-            # Notification for the applicant themselves
             Notification.objects.create(
                 user=request.user,
                 message=f"You applied to the project '{project.title}'.",
@@ -352,7 +374,6 @@ class ApplyProjectView(View):
         else:
             context = {'project': project, 'form': form}
             return render(request, 'marketplace/apply_project.html', context)
-
 
 
 class DeleteApplicationView(LoginRequiredMixin, DeleteView):
@@ -378,29 +399,79 @@ def withdraw_application(request, project_id):
     return redirect('marketplace')
 
 
+from django.views.generic import ListView
+from django.db.models import Q, Count, Sum
+from django.contrib.auth.mixins import LoginRequiredMixin
+from projects.models import Project, Category
+from .models import PinnedProject
+
 class MyProjectsView(LoginRequiredMixin, ListView):
     template_name = 'marketplace/my_projects.html'
     context_object_name = 'projects'
+    paginate_by = 10
 
     def get_queryset(self):
         qs = Project.objects.filter(owner=self.request.user)
-        # Time sorting: defaults to 'recent'; if 'old' is specified, order ascending by created_at.
-        time_sort = self.request.GET.get('time_sort', 'recent')
-        if time_sort == 'old':
-            qs = qs.order_by('created_at')
-        else:
-            qs = qs.order_by('-created_at')
+
+        # Search query filtering
+        query = self.request.GET.get('q')
+        if query:
+            qs = qs.filter(
+                Q(title__icontains=query) |
+                Q(description__icontains=query)
+            )
+        # Status filtering
+        status = self.request.GET.get('status')
+        if status == 'active':
+            qs = qs.filter(is_active=True)
+        elif status == 'inactive':
+            qs = qs.filter(is_active=False)
+        # Category filtering
+        categories = self.request.GET.get('categories')
+        if categories:
+            category_ids = [int(cid) for cid in categories.split(',') if cid]
+            qs = qs.filter(category__id__in=category_ids).distinct()
+        # Date range filtering
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        if start_date and end_date:
+            qs = qs.filter(created_at__date__range=[start_date, end_date])
+        # Sorting (default: newest first)
+        sort = self.request.GET.get('sort', '-created_at')
+        qs = qs.order_by(sort)
         return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Add all categories for filtering (if needed in the template)
-        context['all_categories'] = Category.objects.all()
-        # Pass the current sorting parameter to the template
-        context['time_sort'] = self.request.GET.get('time_sort', 'recent')
-        # Also include any status filter if needed (e.g., active/inactive)
-        context['status'] = self.request.GET.get('status', '')
+        all_projects = self.get_queryset()
+
+        # Pinned projects: last 5 pinned by the user
+        pinned_projects = PinnedProject.objects.filter(user=self.request.user)\
+            .select_related('project').order_by('-pinned_at')[:5]
+
+        # Analytics / Statistics
+        stats = all_projects.aggregate(
+            active_count=Count('id', filter=Q(is_active=True)),
+            total_views=Sum('view_count'),
+            total_applications=Sum('application_count')
+        )
+
+        context.update({
+            'pinned_projects': [pp.project for pp in pinned_projects],
+            'active_count': stats['active_count'] or 0,
+            'inactive_count': all_projects.count() - (stats['active_count'] or 0),
+            'total_views': stats['total_views'] or 0,
+            'total_applications': stats['total_applications'] or 0,
+            'all_categories': Category.objects.all(),
+            'selected_categories': self.request.GET.get('categories', ''),
+            'status': self.request.GET.get('status', ''),
+            'q': self.request.GET.get('q', ''),
+            'start_date': self.request.GET.get('start_date', ''),
+            'end_date': self.request.GET.get('end_date', ''),
+            'sort': self.request.GET.get('sort', '-created_at'),
+        })
         return context
+
 
 
 class ProjectCreateView(LoginRequiredMixin, CreateView):
@@ -410,115 +481,148 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        from .models import Category, Language, RequiredRole
+        from projects.models import SkillsCategory
         context['skill_categories'] = SkillsCategory.objects.prefetch_related('subcategories__skills').all()
         context['available_categories'] = Category.objects.all()
         context['languages'] = Language.objects.all()
         context['required_roles'] = RequiredRole.objects.all()
         return context
 
+    def post(self, request, *args, **kwargs):
+        post_data = request.POST.copy()
+        for field in ['languages', 'skills_required', 'required_roles', 'categories']:
+            if field in post_data:
+                post_data.setlist(field, post_data.get(field, '').split(','))
+        self.request.POST = post_data
+        return super().post(request, *args, **kwargs)
+
     def form_valid(self, form):
-        print("🟢 Form is valid. Attempting to create project.")
         skill_ids = form.cleaned_data.get('skills_required', [])
         selected_skills = Skill.objects.filter(id__in=skill_ids)
         if len(selected_skills) < 1:
-            messages.error(self.request, "Please select at least 1 skills.")
-            print("❌ ERROR: Less than 1 skills selected.")
+            messages.error(self.request, "Please select at least 1 skill.")
             return self.render_to_response(self.get_context_data(form=form))
         form.instance.owner = self.request.user
         self.object = form.save(commit=False)
         self.object.save()
         form.save_m2m()
         self.object.skills_required.set(selected_skills)
-        categories_str = self.request.POST.get('categories', '')
-        print(f"📌 Categories received: {categories_str}")
-        if categories_str:
-            category_ids = [cid.strip() for cid in categories_str.split(',') if cid.strip()]
+        category_ids = form.cleaned_data.get('categories', [])
+        if category_ids:
             categories_qs = Category.objects.filter(id__in=category_ids)
             self.object.category.set(categories_qs)
-        languages_str = self.request.POST.get('languages', '')
-        print(f"📌 Languages received: {languages_str}")
-        if languages_str:
-            language_ids = [lid.strip() for lid in languages_str.split(',') if lid.strip()]
+        language_ids = form.cleaned_data.get('languages', [])
+        if language_ids:
             language_objs = Language.objects.filter(id__in=language_ids)
             self.object.languages.set(language_objs)
-        roles_str = self.request.POST.get('required_roles', '')
-        print(f"📌 Required Roles received: {roles_str}")
-        if roles_str:
-            role_ids = [rid.strip() for rid in roles_str.split(',') if rid.strip()]
+        role_ids = form.cleaned_data.get('required_roles', [])
+        if role_ids:
             role_objs = RequiredRole.objects.filter(id__in=role_ids)
             self.object.required_roles.set(role_objs)
         messages.success(self.request, "✅ Project created successfully!")
-        return redirect(self.object.get_absolute_url())
+        # Redirect to the reverse recommendation view
+        return redirect(reverse('project-recommendations', kwargs={'project_id': self.object.id}))
 
     def form_invalid(self, form):
-        print("❌ ERROR: Form is invalid.")
-        print("🔴 Form Errors:", form.errors.as_json())
         messages.error(self.request, "Something went wrong. Please check your inputs.")
         return self.render_to_response(self.get_context_data(form=form))
+
+    def get_recommended_users(self, project, top_n=20):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        candidates = User.objects.filter(is_active=True).exclude(id=project.owner.id)
+        scored_candidates = []
+        for user in candidates:
+            score = project.get_skill_match(user)
+            if score > 0:
+                scored_candidates.append((user, score))
+        scored_candidates.sort(key=lambda x: x[1], reverse=True)
+        return [user for user, score in scored_candidates][:top_n]
 
 
 class ProjectUpdateView(LoginRequiredMixin, UpdateView):
     model = Project
     form_class = ProjectForm
-    template_name = 'marketplace/project_update.html'
-    context_object_name = 'project'
+    template_name = 'marketplace/project_create.html'
 
-    def get_queryset(self):
-        return Project.objects.filter(owner=self.request.user)
+    def get_initial(self):
+        initial = super().get_initial()
+        project = self.get_object()
+        initial['skills_required'] = ",".join(str(skill.id) for skill in project.skills_required.all())
+        initial['required_roles'] = ",".join(str(role.id) for role in project.required_roles.all())
+        initial['categories'] = ",".join(str(cat.id) for cat in project.category.all())
+        return initial
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['skill_categories'] = SkillsCategory.objects.prefetch_related('subcategories__skills').all()
-        context['available_categories'] = Category.objects.all()
-        context['min_selections'] = 1
-        context['languages'] = Language.objects.all()
-        context['required_roles'] = RequiredRole.objects.all()
-        context['selected_categories_list'] = [str(cat.id) for cat in self.object.category.all()]
-        context['selected_skills_list'] = [str(skill.id) for skill in self.object.skills_required.all()]
-        context['selected_languages_list'] = [str(lang.id) for lang in self.object.languages.all()]
-        context['selected_required_roles_list'] = [str(role.id) for role in self.object.required_roles.all()]
-        context['selected_categories'] = ",".join(context['selected_categories_list'])
-        context['selected_skills'] = ",".join(context['selected_skills_list'])
-        context['selected_languages'] = ",".join(context['selected_languages_list'])
-        context['selected_required_roles'] = ",".join(context['selected_required_roles_list'])
+        project = self.object
+        if self.request.method == 'POST':
+            post_data = self.request.POST
+            try:
+                cat_ids = [int(x) for x in post_data.get('categories', '').split(',') if x]
+            except Exception:
+                cat_ids = []
+            try:
+                lang_ids = [int(x) for x in post_data.get('languages', '').split(',') if x]
+            except Exception:
+                lang_ids = []
+            try:
+                role_ids = [int(x) for x in post_data.get('required_roles', '').split(',') if x]
+            except Exception:
+                role_ids = []
+        else:
+            cat_ids = [cat.id for cat in project.category.all()]
+            lang_ids = [lang.id for lang in project.languages.all()]
+            role_ids = [rl.id for rl in project.required_roles.all()]
+
+        cat_ids = [cat.id for cat in project.category.all()]
+        lang_ids = [lang.id for lang in project.languages.all()]
+        role_ids = [role.id for role in project.required_roles.all()]
+
+        context.update({
+            "selected_categories_list": cat_ids,
+            "selected_languages_list": lang_ids,
+            "selected_required_roles_list": role_ids,
+            "selected_categories": ",".join(map(str, cat_ids)),
+            "selected_languages": ",".join(map(str, lang_ids)),
+            "selected_required_roles": ",".join(map(str, role_ids)),
+        })
+        context["available_categories"] = Category.objects.all()
+        context["languages"] = Language.objects.all()
+        context["required_roles"] = RequiredRole.objects.all()
+        from projects.models import SkillsCategory
+        context["skill_categories"] = SkillsCategory.objects.prefetch_related('subcategories__skills').all()
+        context["selected_categories_list"] = cat_ids
+        context["selected_languages_list"] = lang_ids
+        context["selected_required_roles_list"] = role_ids
+        context["selected_categories"] = ",".join(str(x) for x in cat_ids)
+        context["selected_languages"] = ",".join(str(x) for x in lang_ids)
+        context["selected_required_roles"] = ",".join(str(x) for x in role_ids)
         return context
 
+    def post(self, request, *args, **kwargs):
+        post_data = request.POST.copy()
+        for field in ['languages', 'skills_required', 'required_roles', 'categories']:
+            if field in post_data:
+                post_data.setlist(field, post_data.get(field, '').split(','))
+        request.POST = post_data
+        return super().post(request, *args, **kwargs)
+
     def form_valid(self, form):
-        skill_ids = form.cleaned_data.get('skills_required', [])
-        selected_skills = Skill.objects.filter(id__in=skill_ids)
-        if len(selected_skills) < 1:
-            messages.error(self.request, 'Please select at least 1 skills.')
-            context = self.get_context_data()
-            return self.render_to_response(context)
-        form.instance.owner = self.request.user
         self.object = form.save(commit=False)
+        self.object.owner = self.request.user
         self.object.save()
         form.save_m2m()
-        self.object.skills_required.set(selected_skills)
-        categories_str = self.request.POST.get('categories', '')
-        if categories_str:
-            category_ids = [cid.strip() for cid in categories_str.split(',') if cid.strip()]
-            categories_qs = Category.objects.filter(id__in=category_ids)
-            self.object.category.set(categories_qs)
-        languages_str = self.request.POST.get('languages', '')
-        if languages_str:
-            language_ids = [lid.strip() for lid in languages_str.split(',') if lid.strip()]
-            language_objs = Language.objects.filter(id__in=language_ids)
-            self.object.languages.set(language_objs)
-        roles_str = self.request.POST.get('required_roles', '')
-        if roles_str:
-            role_ids = [rid.strip() for rid in roles_str.split(',') if rid.strip()]
-            role_objs = RequiredRole.objects.filter(id__in=role_ids)
-            self.object.required_roles.set(role_objs)
-        messages.success(self.request, "Project updated successfully!")
-        accepted_applications = self.object.applications.filter(status='ACCEPTED')
-        for application in accepted_applications:
-            Notification.objects.create(
-                user=application.applicant,
-                message=f"The project '{self.object.title}' has been updated. Please review the latest changes.",
-                link=self.object.get_absolute_url()
-            )
+        self.object.category.set(form.cleaned_data.get('categories', []))
+        self.object.languages.set(form.cleaned_data.get('languages', []))
+        self.object.required_roles.set(form.cleaned_data.get('required_roles', []))
+        messages.success(self.request, "✅ Project updated successfully!")
         return redirect(self.object.get_absolute_url())
+
+    def form_invalid(self, form):
+        messages.error(self.request, "Something went wrong while updating.")
+        return self.render_to_response(self.get_context_data(form=form))
 
 
 class ProjectDeleteView(LoginRequiredMixin, DeleteView):
@@ -548,7 +652,6 @@ def toggle_favorite(request):
         project = Project.objects.get(id=project_id)
     except Project.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Project not found'})
-
     favorite, created = FavoriteProject.objects.get_or_create(user=request.user, project=project)
     if not created:
         favorite.delete()
@@ -564,9 +667,7 @@ class FavoritesListView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        queryset = Project.objects.filter(
-            favorited_by__user=self.request.user
-        ).distinct()
+        queryset = Project.objects.filter(favorited_by__user=self.request.user).distinct()
         for project in queryset:
             user_app = project.applications.filter(applicant=self.request.user).first()
             project.user_application = user_app
@@ -615,37 +716,20 @@ def update_application(request, pk, status):
     return redirect('project-detail', pk=application.project.pk)
 
 
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from .models import User, ChatRoom, ChatMessage
-
-
-
 @login_required
 def chat_view(request, user_id):
-    # Get the other user to chat with.
     other_user = get_object_or_404(User, id=user_id)
     current_user = request.user
-
-    # Try to find an existing chat room with exactly these two participants.
     rooms = ChatRoom.objects.filter(participants=current_user).filter(participants=other_user)
     room = None
     for r in rooms:
         if r.participants.count() == 2:
             room = r
             break
-
-    # If no room exists, create one.
     if not room:
         room = ChatRoom.objects.create()
         room.participants.add(current_user, other_user)
-
-    # Mark messages as read for the current user.
-    # Only update messages not sent by the current user.
     updated = room.messages.filter(read=False).exclude(sender=current_user).update(read=True)
-
-    # (Optional) Broadcast updated unread count to the current user's chat list.
     channel_layer = get_channel_layer()
     unread_count = room.messages.filter(read=False).exclude(sender=current_user).count()
     async_to_sync(channel_layer.group_send)(
@@ -660,10 +744,7 @@ def chat_view(request, user_id):
             }
         }
     )
-
-    # Get all chat messages ordered by timestamp.
     chat_messages = room.messages.all().order_by('timestamp')
-
     context = {
         'room': room,
         'other_user': other_user,
@@ -731,10 +812,8 @@ def search_skills(request):
     return JsonResponse({'skills': list(skills)})
 
 
-
 @login_required
 def view_all_recommended(request):
-    # You can adjust the top_n parameter as needed (or remove it altogether)
     recommended = recommend_projects_for_user(request.user, top_n=100)
     context = {'recommended_projects': recommended}
     return render(request, 'marketplace/view-all-recommended.html', context)
@@ -760,7 +839,6 @@ def update_profile_preferences(request):
         else:
             profile.categories.clear()
         profile.save()
-
         if request.is_ajax():
             return JsonResponse({"success": True})
         else:
@@ -769,5 +847,102 @@ def update_profile_preferences(request):
         if request.is_ajax():
             return JsonResponse({"success": False, "error": str(e)})
         else:
-            # handle error appropriately, e.g. redirect with an error message
             return HttpResponseRedirect(reverse('marketplace'))
+
+
+# Reverse recommendation functions
+
+def recommend_users_for_project(project, top_n=20):
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    candidates = User.objects.filter(is_active=True).exclude(id=project.owner.id)
+    scored_candidates = []
+    for user in candidates:
+        score = project.get_skill_match(user)
+        if score > 0:
+            scored_candidates.append((user, score))
+    scored_candidates.sort(key=lambda x: x[1], reverse=True)
+    return [user for user, score in scored_candidates][:top_n]
+
+
+
+@login_required
+def project_recommendations_view(request, project_id):
+    project = get_object_or_404(Project, pk=project_id, owner=request.user)
+    recommended_users = ProjectCreateView().get_recommended_users(project, top_n=20)
+    for user in recommended_users:
+        user.match_score = project.get_skill_match(user)
+        user.faiss_match = compute_faiss_match(project, user)
+        user.matched_skills = get_matched_skills(project, user)
+        # Проверяем, есть ли уже приглашение для этого пользователя
+        user.invited = ProjectInvitation.objects.filter(project=project, invited_user=user).exists()
+    context = {
+        'project': project,
+        'recommended_users': recommended_users,
+    }
+    return render(request, 'marketplace/project_recommendations.html', context)
+
+
+@require_POST
+@login_required
+def invite_user_to_project(request, project_id, user_id):
+    # Проверяем, что текущий пользователь является владельцем проекта
+    project = get_object_or_404(Project, pk=project_id, owner=request.user)
+    invited_user = get_object_or_404(User, pk=user_id)
+
+    # Создаем приглашение (или получаем существующее)
+    invitation, created = ProjectInvitation.objects.get_or_create(
+        project=project,
+        invited_user=invited_user,
+        defaults={'invited_by': request.user}
+    )
+
+    # Создаем уведомления
+    Notification.objects.create(
+        user=invited_user,
+        message=f"You have been invited to join the project '{project.title}' by {request.user.username}.",
+        link=reverse('project-detail', kwargs={'pk': project.id})
+    )
+    Notification.objects.create(
+        user=request.user,
+        message=f"Invitation sent to {invited_user.username} for project '{project.title}'.",
+        link=reverse('project-detail', kwargs={'pk': project.id})
+    )
+    messages.success(request, f"Invitation sent to {invited_user.username}.")
+
+    # Возвращаем JSON-ответ для обновления состояния кнопки
+    return JsonResponse({'success': True, 'message': f"Invitation sent to {invited_user.username}."})
+
+@require_POST
+@login_required
+def cancel_invite_user_to_project(request, project_id, user_id):
+    project = get_object_or_404(Project, pk=project_id)
+    if project.owner != request.user:
+        return JsonResponse({'error': 'Not authorized'}, status=403)
+    invitation = ProjectInvitation.objects.filter(project=project, invited_user__id=user_id).first()
+    if invitation:
+        invitation.delete()
+        return JsonResponse({'success': True, 'message': 'Invitation cancelled'})
+    else:
+        return JsonResponse({'error': 'Invitation not found'}, status=404)
+
+
+# Update views.py toggle_pin_project view
+@require_POST
+@login_required
+def toggle_pin_project(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    pinned = PinnedProject.objects.filter(user=request.user, project=project)
+
+    if pinned.exists():
+        pinned.delete()
+        status = 'unpinned'
+    else:
+        PinnedProject.objects.create(user=request.user, project=project)
+        status = 'pinned'
+
+    return JsonResponse({
+        'status': status,
+        'project_title': project.title,
+        'project_pk': project.id
+    })

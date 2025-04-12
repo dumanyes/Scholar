@@ -370,3 +370,24 @@ class ChatFolder(models.Model):
 
     def __str__(self):
         return self.name
+
+class ProjectInvitation(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='invitations')
+    invited_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='project_invitations')
+    invited_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_invitations')
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('project', 'invited_user')
+
+    def __str__(self):
+        return f"Invitation for {self.invited_user.username} to project {self.project.title}"
+
+class PinnedProject(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    pinned_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'project')
+        ordering = ['-pinned_at']

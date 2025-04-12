@@ -15,7 +15,8 @@ from .views import (
     update_application,
     chat_view, chat_messages, MyRequestsView, DeleteApplicationView, withdraw_application, ChatListView,
     NotificationsListView, FolderCreateView, FolderDeleteView, FolderUpdateView, MarkChatReadView, add_chat_to_folder,
-    toggle_favorite, FavoritesListView, search_skills, update_profile_preferences,
+    toggle_favorite, FavoritesListView, search_skills, update_profile_preferences, recommend_users_for_project,
+    invite_user_to_project, project_recommendations_view, toggle_pin_project
 )
 
 urlpatterns = [
@@ -56,4 +57,11 @@ urlpatterns = [
     path('ajax/search_skills/', search_skills, name='search-skills'),
     path('view-all-recommended/', views.view_all_recommended, name='view-all-recommended'),
     path('update-profile-preferences/', update_profile_preferences, name='update-profile-preferences'),
+
+    path('projects/<int:project_id>/invite/<int:user_id>/', views.invite_user_to_project, name='invite_user_to_project'),
+    path('projects/<int:project_id>/cancel_invite/<int:user_id>/', views.cancel_invite_user_to_project, name='cancel_invite_user_to_project'),
+    path('projects/<int:project_id>/recommendations/', views.project_recommendations_view, name='project-recommendations'),
+
+    path('projects/<int:project_id>/toggle_pin/', toggle_pin_project, name='toggle-pin-project'),
+
 ]
