@@ -153,47 +153,34 @@
 
             {# STEP 3: Skills Selection #}
             {% if step == 3 %}
-              <input type="hidden" id="selected_skills" name="selected_skills" value="">
-              <p class="text-gray-600 text-sm">
-                Select at least {{ min_selections }} skills by clicking a Category, then a Subcategory, and finally a Skill:
-              </p>
-              <div id="selected-count" class="text-gray-600 font-medium mb-4"></div>
-              <div class="space-y-4 mt-4">
-                {% for category in skill_categories %}
-                  <div class="category-container border p-2 rounded-lg">
-                    <div class="category-header flex items-center justify-between cursor-pointer bg-gray-50 px-3 py-2 hover:bg-gray-100">
-                      <p class="font-semibold text-gray-700">{{ category.name }}</p>
-                      <svg class="arrow-icon w-5 h-5 text-gray-500 transform transition-transform"
-                           fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                    <div class="subcategories-container hidden divide-y divide-gray-200">
-                      {% for subcategory in category.subcategories.all %}
-                        <div class="subcategory-container">
-                          <div class="subcategory-header cursor-pointer flex items-center justify-between px-6 py-2 hover:bg-gray-50">
-                            <p class="text-sm font-medium text-gray-600">{{ subcategory.name }}</p>
-                            <svg class="arrow-icon w-4 h-4 text-gray-400 transform transition-transform"
-                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                            </svg>
-                          </div>
-                          <div class="skills-container hidden bg-gray-50 pl-8 py-2">
-                            <div class="grid grid-cols-2 gap-2">
-                              {% for skill in subcategory.skills.all %}
-                                <div class="skill-item cursor-pointer p-2 rounded hover:bg-gray-100" data-skill-id="{{ skill.id }}">
-                                  <span class="text-sm text-gray-700">{{ skill.name }}</span>
-                                </div>
-                              {% endfor %}
-                            </div>
-                          </div>
-                        </div>
-                      {% endfor %}
-                    </div>
-                  </div>
-                {% endfor %}
-              </div>
+            <input type="hidden" id="selected_skills" name="selected_skills" value="">
+            <p class="text-gray-600 text-sm mb-2">
+              Select at least {{ min_selections }} skills:
+            </p>
+
+            <!-- Wrapped search input and hint inside a relative container -->
+            <div class="relative">
+              <input
+                type="text"
+                id="skill-search"
+                class="w-full px-4 py-2 mb-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                placeholder="Search skills..."
+              />
+
+              <!-- Skill Suggestions -->
+              <div id="skill-hints" class="absolute left-0 mt-1 w-full border border-gray-200 rounded bg-white shadow z-20 max-h-60 overflow-y-auto hidden"></div>
+            </div>
+
+            <!-- Selected Skill Tags -->
+            <div id="selected-skills-container" class="mb-3 flex flex-wrap gap-2"></div>
+            <div id="selected-count" class="text-gray-600 font-medium mb-4"></div>
+
+            <!-- Hidden all skills for search -->
+            <div id="all-skills-json" class="hidden">
+              {{ all_skills|json_script:"all-skills-data" }}
+            </div>
             {% endif %}
+
 
             {# STEP 4: Research Areas Selection as clickable items #}
             {% if step == 4 %}
@@ -242,21 +229,13 @@
     </div>
   </div>
 </main>
-
-<!-- Optional inline style for selected items -->
-<style>
-  .skill-item.selected, .research-category-item.selected {
-    background-color: #dbeafe;
-    border: 1px solid #3b82f6;
-  }
-</style>
-
 <script>
 const required = {{ min_selections|default:"0" }};
 const currentStep = {{ step|default:"0" }};
+let selectedSkillIds = []; // ✅ GLOBAL declaration
 
 document.addEventListener("DOMContentLoaded", function () {
-  // Toggle categories for skills (STEP 3)
+  // Toggle categories (if present)
   document.querySelectorAll(".category-header").forEach(header => {
     header.addEventListener("click", () => {
       const container = header.closest(".category-container");
@@ -267,7 +246,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Toggle subcategories for skills
   document.querySelectorAll(".subcategory-header").forEach(subHeader => {
     subHeader.addEventListener("click", () => {
       const container = subHeader.closest(".subcategory-container");
@@ -278,37 +256,10 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Track selected skills (STEP 3)
-  let selectedSkillIds = [];
-  document.querySelectorAll(".skill-item").forEach(skillDiv => {
-    skillDiv.addEventListener("click", () => {
-      const skillId = skillDiv.getAttribute("data-skill-id");
-      if (skillDiv.classList.contains("selected")) {
-        skillDiv.classList.remove("selected");
-        selectedSkillIds = selectedSkillIds.filter(id => id !== skillId);
-      } else {
-        skillDiv.classList.add("selected");
-        selectedSkillIds.push(skillId);
-      }
-      updateSelectedCount();
-    });
-  });
-
-  function updateSelectedCount() {
-    const selectedCount = selectedSkillIds.length;
-    const display = document.getElementById("selected-count");
-    if (display) {
-      display.textContent = `Selected skills: ${selectedCount}/${required}`;
-      display.className = selectedCount >= required
-        ? "text-green-600 font-medium mb-4"
-        : "text-gray-600 font-medium mb-4";
-    }
-  }
-
-  // Track selected research categories (STEP 4)
+  // Select Research Categories (Step 4)
   let selectedCategoryIds = [];
   document.querySelectorAll(".research-category-item").forEach(item => {
-    item.addEventListener("click", function() {
+    item.addEventListener("click", function () {
       const categoryId = this.getAttribute("data-category-id");
       if (this.classList.contains("selected")) {
         this.classList.remove("selected");
@@ -330,7 +281,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // On form submit, update hidden inputs for skills and research areas
+  // Form Submit Handler
   const form = document.querySelector("form");
   form.addEventListener("submit", function (event) {
     if (currentStep === 3) {
@@ -340,9 +291,10 @@ document.addEventListener("DOMContentLoaded", function () {
       }
       if (selectedSkillIds.length < required) {
         event.preventDefault();
-        // Optionally, display an inline error for skills if needed.
+        alert(`Please select at least ${required} skills to proceed.`);
       }
     }
+
     if (currentStep === 4) {
       const hiddenCategories = document.getElementById('selected_categories');
       if (hiddenCategories) {
@@ -355,16 +307,15 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById('research-error').textContent = "";
       }
     }
+
     if (!form.checkValidity()) {
       event.preventDefault();
-      // Optionally, display inline error messages for other validation issues.
     }
   });
 
   // Toggle password visibility
-  const togglePasswordButtons = document.querySelectorAll('.toggle-password');
-  togglePasswordButtons.forEach(button => {
-    button.addEventListener('click', function() {
+  document.querySelectorAll('.toggle-password').forEach(button => {
+    button.addEventListener('click', function () {
       const targetId = this.getAttribute('data-target');
       const passwordInput = document.getElementById(targetId);
       if (passwordInput) {
@@ -372,19 +323,131 @@ document.addEventListener("DOMContentLoaded", function () {
         passwordInput.type = isVisible ? 'password' : 'text';
         const openEye = this.querySelector('.eye-open');
         const closedEye = this.querySelector('.eye-closed');
-        if (isVisible) {
-          openEye.classList.remove('hidden');
-          closedEye.classList.add('hidden');
-        } else {
-          openEye.classList.add('hidden');
-          closedEye.classList.remove('hidden');
-        }
+        openEye.classList.toggle('hidden', !isVisible);
+        closedEye.classList.toggle('hidden', isVisible);
       }
     });
   });
 
-  updateSelectedCount();
   updateSelectedCategoryCount();
 });
 </script>
+
+<script>
+if (currentStep === 3) {
+  const skillSearchInput = document.getElementById("skill-search");
+  const skillHints = document.getElementById("skill-hints");
+  const selectedSkillsInput = document.getElementById("selected_skills");
+  const selectedSkillsContainer = document.getElementById("selected-skills-container");
+  const allSkills = JSON.parse(document.getElementById("all-skills-data").textContent);
+
+  function highlightMatch(text, query) {
+    const re = new RegExp(`(${query})`, "gi");
+    return text.replace(re, "<span class='highlight'>$1</span>");
+  }
+
+  function updateSkillHints(query) {
+    skillHints.innerHTML = "";
+    if (!query) return skillHints.classList.add("hidden");
+
+    const matched = allSkills.filter(skill =>
+      skill.name.toLowerCase().includes(query.toLowerCase())
+    );
+
+    if (matched.length === 0) return skillHints.classList.add("hidden");
+
+    matched.forEach(skill => {
+      if (selectedSkillIds.includes(skill.id.toString())) return;
+
+      const div = document.createElement("div");
+      div.className = "p-2 hover:bg-gray-100 cursor-pointer";
+      div.dataset.id = skill.id;
+      div.innerHTML = `<span class="text-sm">${highlightMatch(skill.name, query)}</span>`;
+      skillHints.appendChild(div);
+    });
+
+    skillHints.classList.remove("hidden");
+  }
+
+  function updateSelectedSkills() {
+    selectedSkillsContainer.innerHTML = "";
+    selectedSkillIds.forEach(id => {
+      const skill = allSkills.find(s => s.id.toString() === id);
+      if (!skill) return;
+      const tag = document.createElement("span");
+      tag.className = "inline-flex items-center bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm cursor-pointer";
+      tag.textContent = `${skill.name} ×`;
+      tag.addEventListener("click", () => {
+        selectedSkillIds = selectedSkillIds.filter(sid => sid !== id);
+        selectedSkillsInput.value = JSON.stringify(selectedSkillIds);
+        updateSelectedSkills();
+        updateSelectedCount();
+      });
+      selectedSkillsContainer.appendChild(tag);
+    });
+  }
+
+  function updateSelectedCount() {
+    const countText = document.getElementById("selected-count");
+    countText.textContent = `Selected skills: ${selectedSkillIds.length}/${required}`;
+    countText.className = selectedSkillIds.length >= required
+      ? "text-green-600 font-medium mb-4"
+      : "text-gray-600 font-medium mb-4";
+  }
+
+  skillSearchInput.addEventListener("input", () => {
+    updateSkillHints(skillSearchInput.value.trim());
+  });
+
+  skillHints.addEventListener("click", (e) => {
+    const target = e.target.closest("div[data-id]");
+    if (!target) return;
+    const id = target.dataset.id;
+    if (!selectedSkillIds.includes(id.toString())) {
+      selectedSkillIds.push(id.toString());
+      selectedSkillsInput.value = JSON.stringify(selectedSkillIds);
+      updateSelectedSkills();
+      updateSelectedCount();
+    }
+    skillSearchInput.value = "";
+    skillHints.classList.add("hidden");
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!skillHints.contains(e.target) && e.target !== skillSearchInput) {
+      skillHints.classList.add("hidden");
+    }
+  });
+
+  updateSelectedSkills();
+  updateSelectedCount();
+}
+</script>
+
+<style>
+  #skill-hints span.highlight {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+    font-weight: 600;
+    border-radius: 3px;
+    padding: 0 2px;
+  }
+
+  #skill-hints {
+    max-height: 15rem;
+    overflow-y: auto;
+    z-index: 9999;
+  }
+  .research-category-item.selected {
+    background-color: #dbeafe; /* light blue background */
+    border-color: #3b82f6;      /* blue border */
+    color: #1e40af;             /* dark blue text */
+    font-weight: 600;
+  }
+
+  .research-category-item.selected span {
+    color: #1e40af;
+  }
+</style>
+
 {% endblock content %}

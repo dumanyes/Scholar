@@ -59,32 +59,39 @@ class Category(models.Model):
 # -------------------------------
 # Иерархия навыков
 # -------------------------------
-class SkillsCategory(models.Model):
-    name = models.CharField(max_length=50, unique=True)
+# class SkillsCategory(models.Model):
+#     name = models.CharField(max_length=50, unique=True)
+#
+#     def __str__(self):
+#         return self.name
 
-    def __str__(self):
-        return self.name
+#
+# class SkillsSubCategory(models.Model):
+#     name = models.CharField(max_length=50)
+#     category = models.ForeignKey(SkillsCategory, on_delete=models.CASCADE, related_name='subcategories')
+#
+#     class Meta:
+#         unique_together = ('name', 'category')
+#
+#     def __str__(self):
+#         return f"{self.name} ({self.category.name})"
+
+#
+# class Skill(models.Model):
+#     name = models.CharField(max_length=100, unique=True)
+#     subcategory = models.ForeignKey(SkillsSubCategory, on_delete=models.CASCADE, related_name='skills')
 
 
-class SkillsSubCategory(models.Model):
-    name = models.CharField(max_length=50)
-    category = models.ForeignKey(SkillsCategory, on_delete=models.CASCADE, related_name='subcategories')
 
-    class Meta:
-        unique_together = ('name', 'category')
 
-    def __str__(self):
-        return f"{self.name} ({self.category.name})"
-
+    # def __str__(self):
+    #     return f"{self.name} ({self.subcategory.name} - {self.subcategory.category.name})"
 
 class Skill(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    subcategory = models.ForeignKey(SkillsSubCategory, on_delete=models.CASCADE, related_name='skills')
 
     def __str__(self):
-        return f"{self.name} ({self.subcategory.name} - {self.subcategory.category.name})"
-
-
+        return self.name
 # -------------------------------
 # Иерархия интересов
 # -------------------------------

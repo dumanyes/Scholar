@@ -1,24 +1,18 @@
 
 import os
 import requests
-from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.contrib.auth.views import LoginView, PasswordResetView, PasswordChangeView
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.auth.decorators import login_required
-
+from cities_light.models import Country, City
+from users.models import University
 from dashboard.forms import ContactForm
 from .forms import LoginForm, UpdateUserForm, UpdateProfileForm
 from .models import Profile
 from projects.models import Skill, Interest, Project
 from django.views import View
-from django.contrib import messages
-from django.core.mail import send_mail
-from django.conf import settings
-from django.contrib.auth.models import User
-from django.urls import reverse
-from random import randint
 import json
 import logging
 from .forms import RegisterForm
@@ -103,28 +97,6 @@ def user_profile(request, username):
         # You can add additional context as needed
     })
 
-
-
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views import View
-from django.contrib import messages
-from .forms import UpdateUserForm, UpdateProfileForm
-from projects.models import Category, SkillsCategory, Skill
-from cities_light.models import Country, City
-from users.models import University  # Adjust the import if your University model is located elsewhere
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views import View
-from django.contrib import messages
-from django.core.mail import send_mail
-from django.conf import settings
-from random import randint
-from projects.models import Skill, Category, SkillsCategory
-from cities_light.models import Country, City
-from users.models import University
-from .forms import UpdateUserForm, UpdateProfileForm
-
 class EditProfileView(View):
     template_name = 'users/edit_profile.html'
     min_selections = 1  # minimum required skills
@@ -136,7 +108,7 @@ class EditProfileView(View):
             'user_form': user_form,
             'profile_form': profile_form,
             'available_categories': Category.objects.all(),
-            'skill_categories': SkillsCategory.objects.prefetch_related('subcategories', 'subcategories__skills').all(),
+            'skills': Skill.objects.all(),
             'countries': Country.objects.all(),
             'cities': City.objects.all(),
             'universities': University.objects.all(),
@@ -170,7 +142,7 @@ class EditProfileView(View):
                         'user_form': user_form,
                         'profile_form': profile_form,
                         'available_categories': Category.objects.all(),
-                        'skill_categories': SkillsCategory.objects.prefetch_related('subcategories', 'subcategories__skills').all(),
+                        'skills': Skill.objects.all(),
                         'countries': Country.objects.all(),
                         'cities': City.objects.all(),
                         'universities': University.objects.all(),
@@ -184,7 +156,7 @@ class EditProfileView(View):
                         'user_form': user_form,
                         'profile_form': profile_form,
                         'available_categories': Category.objects.all(),
-                        'skill_categories': SkillsCategory.objects.prefetch_related('subcategories', 'subcategories__skills').all(),
+                        'skills': Skill.objects.all(),
                         'countries': Country.objects.all(),
                         'cities': City.objects.all(),
                         'universities': University.objects.all(),
@@ -212,7 +184,7 @@ class EditProfileView(View):
                         'user_form': user_form,
                         'profile_form': profile_form,
                         'available_categories': Category.objects.all(),
-                        'skill_categories': SkillsCategory.objects.prefetch_related('subcategories', 'subcategories__skills').all(),
+                        'skills': Skill.objects.all(),
                         'countries': Country.objects.all(),
                         'cities': City.objects.all(),
                         'universities': University.objects.all(),
@@ -241,7 +213,7 @@ class EditProfileView(View):
             'user_form': user_form,
             'profile_form': profile_form,
             'available_categories': Category.objects.all(),
-            'skill_categories': SkillsCategory.objects.prefetch_related('subcategories', 'subcategories__skills').all(),
+            'skills': Skill.objects.all(),
             'countries': Country.objects.all(),
             'cities': City.objects.all(),
             'universities': University.objects.order_by('name'),
@@ -267,8 +239,6 @@ from django.urls import reverse
 from .forms import RegisterForm
 from projects.models import (
     User,
-    SkillsCategory,
-    SkillsSubCategory,
     Skill,
 )
 
@@ -287,7 +257,7 @@ import logging
 from django.views import View
 from django.contrib.auth.models import User
 from .forms import RegisterForm
-from projects.models import SkillsCategory, Category, Skill
+from projects.models import Category, Skill
 
 logger = logging.getLogger(__name__)
 
@@ -402,13 +372,11 @@ class RegisterView(View):
                     messages.error(request, f'Please select at least {self.min_selections} skills')
                     context = {
                         'step': step,
-                        'skill_categories': SkillsCategory.objects.prefetch_related(
-                            'subcategories',
-                            'subcategories__skills'
-                        ).all(),
+                        'skills': Skill.objects.all(),
                         'min_selections': self.min_selections,
                         'progress': ((step + 1) / len(self.steps)) * 100
                     }
+                    context["all_skills"] = list(Skill.objects.values("id", "name"))
                     return render(request, self.template_name, context)
                 registration_data['skills'] = list(selected_skills.values_list('id', flat=True))
                 request.session['registration_data'] = registration_data
@@ -420,10 +388,7 @@ class RegisterView(View):
                 messages.error(request, 'An error occurred while processing your skills selection')
             context = {
                 'step': step,
-                'skill_categories': SkillsCategory.objects.prefetch_related(
-                    'subcategories',
-                    'subcategories__skills'
-                ).all(),
+                'skills': Skill.objects.all(),
                 'min_selections': self.min_selections,
                 'progress': ((step + 1) / len(self.steps)) * 100
             }
@@ -466,11 +431,9 @@ class RegisterView(View):
             context['form'] = password_form
             context['password_form'] = True
         elif step == 3:
-            context['skill_categories'] = SkillsCategory.objects.prefetch_related(
-                'subcategories',
-                'subcategories__skills'
-            ).all()
+            context['skills'] = Skill.objects.all()
             context['min_selections'] = self.min_selections
+            context['all_skills'] = list(Skill.objects.values("id", "name"))
         elif step == 4:
             from projects.models import Category
             context['available_categories'] = Category.objects.all()
@@ -497,7 +460,7 @@ class RegisterView(View):
             request.session.pop('registration_data', None)
             request.session.pop('verification_code', None)
             messages.success(request, 'Registration completed successfully!')
-            return redirect('login')
+            return redirect('users-home')
         except Exception as e:
             logger.error(f"Registration failed: {str(e)}")
             messages.error(request, 'Registration failed. Please try again.')

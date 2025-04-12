@@ -17,7 +17,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 
 from .forms import ProjectApplicationForm, ProjectForm
 from .models import (
-    Notification, SkillsCategory, Skill, Language, RequiredRole,
+    Notification, Skill, Language, RequiredRole,
     ChatFolder, ChatRoom, FavoriteProject, Project, ProjectApplication,
     Category, ChatMessage, User, ProjectInvitation, PinnedProject
 )
@@ -167,7 +167,7 @@ class MarketplaceView(LoginRequiredMixin, ListView):
             'unread_chat_count': unread_chat_count,
             'favorite_ids': list(favorite_ids)
         })
-        context['skill_categories'] = SkillsCategory.objects.prefetch_related('subcategories__skills').all()
+        context['skills'] = Skill.objects.all()
         # Recommended projects section
         recommended = recommend_projects_for_user(self.request.user, top_n=9)
         for project in recommended:
@@ -482,8 +482,7 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         from .models import Category, Language, RequiredRole
-        from projects.models import SkillsCategory
-        context['skill_categories'] = SkillsCategory.objects.prefetch_related('subcategories__skills').all()
+        context['skills'] = Skill.objects.all()
         context['available_categories'] = Category.objects.all()
         context['languages'] = Language.objects.all()
         context['required_roles'] = RequiredRole.objects.all()
@@ -591,8 +590,7 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
         context["available_categories"] = Category.objects.all()
         context["languages"] = Language.objects.all()
         context["required_roles"] = RequiredRole.objects.all()
-        from projects.models import SkillsCategory
-        context["skill_categories"] = SkillsCategory.objects.prefetch_related('subcategories__skills').all()
+        context['skills'] = Skill.objects.all()
         context["selected_categories_list"] = cat_ids
         context["selected_languages_list"] = lang_ids
         context["selected_required_roles_list"] = role_ids

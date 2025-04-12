@@ -157,78 +157,27 @@
       </div>
 
       <!-- Skills Section with Search and Selected Skills Display -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-          Required Skills
-        </label>
-        <!-- Search Bar for Skills -->
-        <input
-          type="text"
-          id="skill-search"
-          class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition mb-4"
-          placeholder="Search skills..."
-        />
-        <!-- Container for auto-suggest hints (shown below the search bar) -->
-        <div
-          id="skill-hints"
-          class="border border-gray-200 rounded-md bg-white shadow absolute hidden z-10"
-          style="max-height: 200px; overflow-y: auto;"
-        ></div>
+    <!-- Skills Section with Search -->
+<div>
+  <label class="block text-sm font-medium text-gray-700 mb-2">Required Skills</label>
+  <div class="relative">
+  <input
+    type="text"
+    id="skill-search"
+    class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition mb-4"
+    placeholder="Search skills..."
+  />
+  <div
+    id="skill-hints"
+    class="absolute left-0 top-full mt-1 w-full border border-gray-200 rounded-md bg-white shadow z-10 max-h-60 overflow-y-auto hidden"
+  ></div>
+</div>
 
-        <!-- Display Selected Skills as Tags -->
-        <div id="selected-skills-container" class="mb-4 flex flex-wrap gap-2"></div>
+  <div id="selected-skills-container" class="mb-4 flex flex-wrap gap-2"></div>
+  <input type="hidden" name="skills_required" id="skills_required">
+  <div id="skills-error" class="text-red-600 text-sm mt-1"></div>
+</div>
 
-        <!-- Original Collapsible Skills Structure (not filtered by search) -->
-        <div class="space-y-2" id="skills-list">
-          {% for category in skill_categories %}
-            <div class="border border-gray-200 rounded-lg overflow-hidden">
-              <details class="group">
-                <summary class="flex justify-between items-center p-4 cursor-pointer list-none bg-gray-50">
-                  <span class="font-medium">{{ category.name }}</span>
-                  <svg class="w-5 h-5 transition-transform group-open:rotate-180" viewBox="0 0 24 24">
-                    <path d="M7 10l5 5 5-5z" />
-                  </svg>
-                </summary>
-                <div class="p-4 space-y-4">
-                  {% for subcat in category.subcategories.all %}
-                    <details class="group/sub">
-                      <summary class="flex justify-between items-center p-2 cursor-pointer list-none">
-                        <span class="font-medium">{{ subcat.name }}</span>
-                        <svg class="w-4 h-4 transition-transform group-open/sub:rotate-180" viewBox="0 0 24 24">
-                          <path d="M7 10l5 5 5-5z" />
-                        </svg>
-                      </summary>
-                      <div class="mt-2 space-y-2">
-                        {% for skill in subcat.skills.all %}
-                          <div
-                            class="p-2 rounded-md cursor-pointer transition hover:bg-gray-50 skill-item"
-                            data-skill-id="{{ skill.id }}"
-                            data-skill-name="{{ skill.name }}"
-                          >
-                            {{ skill.name }}
-                          </div>
-                        {% endfor %}
-                      </div>
-                    </details>
-                  {% endfor %}
-                </div>
-              </details>
-            </div>
-          {% endfor %}
-        </div>
-
-        <!-- Hidden field to store comma-separated skill IDs -->
-        <input type="hidden" name="skills_required" id="skills_required">
-        {% if form.errors.skills_required %}
-          <div class="text-red-600 text-sm mt-1">
-            {% for error in form.errors.skills_required %}
-              <p>{{ error }}</p>
-            {% endfor %}
-          </div>
-        {% else %}
-          <div id="skills-error" class="text-red-600 text-sm mt-1"></div>
-        {% endif %}
-      </div>
 
       <!-- Languages Section -->
       <div>
@@ -629,4 +578,110 @@ document.addEventListener('DOMContentLoaded', function() {
   checkFormValidity();
 });
 </script>
+    <script>
+document.addEventListener('DOMContentLoaded', function () {
+  const skillSearchInput = document.getElementById('skill-search');
+  const skillHints = document.getElementById('skill-hints');
+  const selectedSkillsContainer = document.getElementById('selected-skills-container');
+  const skillsHidden = document.getElementById('skills_required');
+  const skillsError = document.getElementById('skills-error');
+  let selectedSkills = new Set();
+
+  // Загрузка всех скиллов из Django (передается в шаблон)
+  const allSkillsData = [
+    {% for skill in skills %}
+      { id: "{{ skill.id }}", name: "{{ skill.name }}" },
+    {% endfor %}
+  ];
+
+  // Подсветка совпадений
+  function showSkillHints(query) {
+    skillHints.innerHTML = '';
+    if (!query) return skillHints.classList.add('hidden');
+
+    const matched = allSkillsData.filter(skill =>
+      skill.name.toLowerCase().includes(query.toLowerCase())
+    );
+
+    if (matched.length === 0) return skillHints.classList.add('hidden');
+
+    matched.forEach(skill => {
+      const highlighted = skill.name.replace(
+        new RegExp(`(${query})`, 'gi'),
+        '<span class="text-blue-600 font-bold">$1</span>'
+      );
+      const div = document.createElement('div');
+      div.className = 'p-2 hover:bg-gray-100 cursor-pointer';
+      div.setAttribute('data-hint-id', skill.id);
+      div.setAttribute('data-hint-name', skill.name);
+      div.innerHTML = highlighted;
+      skillHints.appendChild(div);
+    });
+
+    skillHints.classList.remove('hidden');
+  }
+
+  // Обработчики
+  skillSearchInput.addEventListener('input', function () {
+    showSkillHints(this.value.trim());
+  });
+
+  skillSearchInput.addEventListener('focus', function () {
+    this.value = '';
+    skillHints.innerHTML = '';
+    skillHints.classList.add('hidden');
+  });
+
+  skillHints.addEventListener('click', function (e) {
+    const target = e.target.closest('div[data-hint-id]');
+    if (!target) return;
+    const skillId = target.dataset.hintId;
+    const skillName = target.dataset.hintName;
+
+    if (selectedSkills.has(skillId)) return;
+
+    selectedSkills.add(skillId);
+    updateSelectedSkills();
+    skillHints.innerHTML = '';
+    skillHints.classList.add('hidden');
+  });
+
+  function updateSelectedSkills() {
+    selectedSkillsContainer.innerHTML = '';
+    selectedSkills.forEach(skillId => {
+      const skill = allSkillsData.find(s => s.id === skillId);
+      if (!skill) return;
+
+      const tag = document.createElement('span');
+      tag.className = 'bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm cursor-pointer';
+      tag.textContent = skill.name + ' ×';
+      tag.setAttribute('data-skill-id', skill.id);
+      tag.addEventListener('click', () => {
+        selectedSkills.delete(skill.id);
+        updateSelectedSkills();
+      });
+      selectedSkillsContainer.appendChild(tag);
+    });
+
+    skillsHidden.value = Array.from(selectedSkills).join(',');
+    checkSkillsValidity();
+  }
+
+  function checkSkillsValidity() {
+    if (selectedSkills.size < 1) {
+      skillsError.textContent = 'Please select at least 1 skill.';
+    } else {
+      skillsError.textContent = '';
+    }
+  }
+
+  // Hide hints when clicking outside
+  document.addEventListener('click', function (e) {
+    if (!skillHints.contains(e.target) && e.target !== skillSearchInput) {
+      skillHints.classList.add('hidden');
+    }
+  });
+});
+</script>
+
 {% endblock %}

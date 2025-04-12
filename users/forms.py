@@ -23,7 +23,7 @@ def validate_password_strength(value):
         raise ValidationError("Password must contain at least one lowercase letter.")
     if not re.search(r'\d', value):
         raise ValidationError("Password must contain at least one number.")
-    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', value):
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>+_-]', value):
         raise ValidationError("Password must contain at least one special character.")
 
 class RegisterForm(UserCreationForm):
