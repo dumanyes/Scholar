@@ -292,6 +292,8 @@ class ProjectApplication(models.Model):
         blank=True,
         help_text="Опишите, как вы планируете участвовать в проекте."
     )
+    resume = models.FileField(upload_to='resumes/', blank=True, null=True)
+    resume_link = models.URLField(blank=True, null=True)
 
     class Meta:
         unique_together = ('project', 'applicant')

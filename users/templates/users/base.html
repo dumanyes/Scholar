@@ -221,21 +221,13 @@
   <nav class="nav-bg fixed w-full top-0 z-50">
     <div class="container mx-auto px-6">
       <div class="flex justify-between items-center h-20">
-{#        <a class="flex items-center space-x-2" href="/">#}
-{#          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">#}
-{#            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"></path>#}
-{#            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"></path>#}
-{#            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"></path>#}
-{#          </svg>#}
-{#          <span class="brand-logo text-2xl">Scholar<span class="brand-accent">Hub</span></span>#}
-{#        </a>#}
-      
-      <a class="flex items-center space-x-2" href="/">
+        <a class="flex items-center space-x-2" href="/">
           <img src="/media/photo_5274128391500590554_x-removebg-preview.png" class="icon">
         </a>
 
         <div class="hidden lg:flex items-center space-x-8">
           <div class="flex space-x-8">
+            <a class="nav-link text-base" href="/">Home</a>
             <a class="nav-link text-base" href="{% url 'users-about' %}">About</a>
             <a class="nav-link text-base" href="{% url 'marketplace' %}">Marketplace</a>
             <a class="nav-link text-base" href="{% url 'contact' %}">Contact</a>
@@ -251,14 +243,10 @@
                 </div>
                 <span class="font-medium">Profile</span>
               </a>
-              <a href="{% url 'logout' %}" class="btn-secondary">
-                Log Out
-              </a>
+              <a href="{% url 'logout' %}" class="btn-secondary">Log Out</a>
             {% else %}
               <a href="{% url 'login' %}" class="btn-secondary">Sign In</a>
-              <a href="{% url 'users-register' %}" class="btn-primary">
-                Get Started
-              </a>
+              <a href="{% url 'users-register' %}" class="btn-primary">Get Started</a>
             {% endif %}
           </div>
         </div>
@@ -271,6 +259,7 @@
 
     <div id="mobileMenu" class="lg:hidden hidden nav-bg absolute w-full top-20 z-40 shadow-lg rounded-b-lg overflow-hidden">
       <div class="container px-6 py-6 space-y-5">
+        <a class="block nav-link text-lg font-medium" href="/">Home</a>
         <a class="block nav-link text-lg font-medium" href="{% url 'users-about' %}">About</a>
         <a class="block nav-link text-lg font-medium" href="{% url 'marketplace' %}">Marketplace</a>
         <a class="block nav-link text-lg font-medium" href="{% url 'contact' %}">Contact</a>
@@ -285,19 +274,16 @@
               </div>
               <span class="font-medium">My Profile</span>
             </a>
-            <a href="{% url 'logout' %}" class="btn-secondary w-full text-center mt-4">
-              Log Out
-            </a>
+            <a href="{% url 'logout' %}" class="btn-secondary w-full text-center mt-4">Log Out</a>
           {% else %}
             <a href="{% url 'login' %}" class="btn-secondary w-full text-center">Sign In</a>
-            <a href="{% url 'users-register' %}" class="btn-primary w-full text-center mt-4">
-              Get Started
-            </a>
+            <a href="{% url 'users-register' %}" class="btn-primary w-full text-center mt-4">Get Started</a>
           {% endif %}
         </div>
       </div>
     </div>
   </nav>
+
 
   <main class="pt-32 pb-20 px-6 flex-grow">
     <div class="container mx-auto ">

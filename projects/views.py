@@ -350,30 +350,32 @@ class ApplyProjectView(View):
         if ProjectApplication.objects.filter(project=project, applicant=request.user).exists():
             messages.info(request, "You have already applied to this project.")
             return redirect('project-detail', pk=project.id)
-        form = ProjectApplicationForm(request.POST, project=project)
+
+        form = ProjectApplicationForm(request.POST, request.FILES, project=project)
+
         if form.is_valid():
             application = form.save(commit=False)
             application.project = project
             application.applicant = request.user
             application.status = 'PENDING'
+
+            # ✅ Must assign these manually
+            application.resume = form.cleaned_data.get('resume')
+            application.resume_link = form.cleaned_data.get('resume_link')
+
+            print("DEBUG RESUME FILE:", application.resume)  # Optional debug
+            print("DEBUG RESUME LINK:", application.resume_link)
+
             application.save()
-            project.application_count = project.applications.count()
-            project.save(update_fields=['application_count'])
+
+            # Optional: check if file was saved
+            print("Saved File URL:", application.resume.url if application.resume else 'No file')
+
             messages.success(request, 'Your application has been submitted successfully!')
-            Notification.objects.create(
-                user=project.owner,
-                message=f"{request.user.username} sent a request to join your project '{project.title}'.",
-                link=reverse('project-detail', kwargs={'pk': project.pk})
-            )
-            Notification.objects.create(
-                user=request.user,
-                message=f"You applied to the project '{project.title}'.",
-                link=reverse('project-detail', kwargs={'pk': project.pk})
-            )
             return redirect('project-detail', pk=project.id)
-        else:
-            context = {'project': project, 'form': form}
-            return render(request, 'marketplace/apply_project.html', context)
+
+        return render(request, 'marketplace/apply_project.html', {'project': project, 'form': form})
+
 
 
 class DeleteApplicationView(LoginRequiredMixin, DeleteView):
@@ -543,7 +545,8 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
 class ProjectUpdateView(LoginRequiredMixin, UpdateView):
     model = Project
     form_class = ProjectForm
-    template_name = 'marketplace/project_create.html'
+    template_name = 'marketplace/project_update.html'
+
 
     def get_initial(self):
         initial = super().get_initial()

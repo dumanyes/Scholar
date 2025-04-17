@@ -202,11 +202,10 @@ class UpdateProfileForm(forms.ModelForm):
         instance = kwargs.get('instance')
         initial = kwargs.get('initial', {})
         if instance:
-            # Pre-populate skills as before...
             initial['skills'] = ",".join(str(skill.id) for skill in instance.skills.all())
-            # Pre-populate categories from the saved profile:
             initial['categories'] = ",".join(str(cat.id) for cat in instance.categories.all())
             kwargs['initial'] = initial
+
         super().__init__(*args, **kwargs)
 
 

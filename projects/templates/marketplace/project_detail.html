@@ -15,8 +15,8 @@
 <div class="max-w-7xl mx-auto px-4 py-8">
   <!-- Project Header -->
   <header class="bg-white rounded-3xl shadow mb-8 overflow-hidden">
-    <!-- Top Banner -->
-    <div class="relative h-36 sm:h-48 bg-gradient-to-r from-blue-600 to-indigo-600">
+    <!-- Header Banner - Clean solid color instead of gradient -->
+    <div class="relative h-36 sm:h-48 bg-blue-600">
       <div class="absolute bottom-0 left-0 w-full p-4 sm:p-6 bg-white/90 backdrop-blur-sm">
         <div class="flex flex-col sm:flex-row justify-between items-start">
           <div>
@@ -70,299 +70,434 @@
   <!-- Main Content Area -->
   <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
     <!-- Primary Column -->
-    <section class="lg:col-span-2 space-y-8">
-      <!-- Description Card -->
-      <article class="bg-white rounded-3xl shadow-sm p-6">
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Project Description</h2>
-        <p class="text-gray-700 leading-relaxed">{{ project.description }}</p>
-      </article>
-
-      {% if project.project_link %}
-      <!-- Project Link (Mobile Adapted) -->
-      <article class="bg-white rounded-3xl shadow-sm p-6">
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Project Link</h2>
-        <a href="{{ project.project_link }}" target="_blank" rel="noopener noreferrer" class="block w-full break-words text-blue-600 hover:text-blue-800 transition">
-          {{ project.project_link }}
-          <svg class="inline-block w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-          </svg>
-        </a>
-      </article>
-      {% endif %}
-
-      {% if project.project_mission %}
-      <!-- Mission Card -->
-      <article class="bg-white rounded-3xl shadow-sm p-6">
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Project Mission</h2>
-        <p class="text-gray-700 leading-relaxed">{{ project.project_mission }}</p>
-      </article>
-      {% endif %}
-
-      {% if project.project_objectives %}
-      <!-- Objectives Card -->
-      <article class="bg-white rounded-3xl shadow-sm p-6">
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Project Objectives</h2>
-        <p class="text-gray-700 leading-relaxed">{{ project.project_objectives }}</p>
-      </article>
-      {% endif %}
-
-      {% if project.languages.all %}
-      <!-- Languages Card -->
-      <article class="bg-white rounded-3xl shadow-sm p-6">
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Languages</h2>
-        <div class="flex flex-wrap gap-2">
-          {% for language in project.languages.all %}
-            <span class="px-4 py-2 bg-gray-100 text-gray-800 rounded-xl text-sm font-medium">{{ language.name }}</span>
-          {% endfor %}
-        </div>
-      </article>
-      {% endif %}
-
-      {% if project.required_roles.all %}
-      <!-- Roles Card -->
-      <article class="bg-white rounded-3xl shadow-sm p-6">
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Required Collaborator Roles</h2>
-        <div class="flex flex-wrap gap-2">
-          {% for role in project.required_roles.all %}
-            <span class="px-4 py-2 bg-gray-100 text-gray-800 rounded-xl text-sm font-medium">{{ role.name }}</span>
-          {% endfor %}
-        </div>
-      </article>
-      {% endif %}
-
-      <!-- Skills Card -->
-      <article class="bg-white rounded-3xl shadow-sm p-6">
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Required Skills</h2>
-        <div class="flex flex-wrap gap-2">
-          {% for skill in project.skills_required.all %}
-            {% if skill in user.profile.skills.all %}
-              <span class="px-4 py-2 rounded-xl text-sm font-medium bg-emerald-100 text-emerald-800 border border-emerald-300">{{ skill.name }}</span>
-            {% else %}
-              <span class="px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 text-gray-800 border border-gray-200">{{ skill.name }}</span>
+    <section class="lg:col-span-2">
+      <!-- Consolidated Content Card with Tabs -->
+      <div class="bg-white rounded-3xl shadow-sm overflow-hidden">
+        <!-- Tab Navigation -->
+        <div class="px-4 border-b" id="projectTabs">
+          <div class="flex overflow-x-auto scrollbar-hide py-3 space-x-6">
+            <button class="tab-button active whitespace-nowrap font-medium text-blue-600 border-b-2 border-blue-600 pb-2 px-1" data-tab="overview">Overview</button>
+            <button class="tab-button whitespace-nowrap font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent pb-2 px-1" data-tab="mission">Mission & Objectives</button>
+            <button class="tab-button whitespace-nowrap font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent pb-2 px-1" data-tab="requirements">Skills & Requirements</button>
+            {% if project.owner == request.user %}
+            <button class="tab-button whitespace-nowrap font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent pb-2 px-1" data-tab="applications">Applications ({{ project.applications.count }})</button>
             {% endif %}
-          {% endfor %}
+          </div>
         </div>
-      </article>
+
+        <!-- Tab Content -->
+        <div class="tab-content p-6" id="overview">
+          <!-- Description -->
+          <div class="mb-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Project Description</h2>
+            <p class="text-gray-700 leading-relaxed">{{ project.description }}</p>
+          </div>
+
+          <!-- Project Link -->
+          {% if project.project_link %}
+          <div class="mb-6 pb-6 border-b border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Project Link</h3>
+            <a href="{{ project.project_link }}" target="_blank" rel="noopener noreferrer" class="block w-full break-words text-blue-600 hover:text-blue-800 transition">
+              {{ project.project_link }}
+              <svg class="inline-block w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+              </svg>
+            </a>
+          </div>
+          {% endif %}
+
+          <!-- Project Stats Overview -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <!-- Status -->
+            <div class="bg-gray-50 p-4 rounded-xl text-center">
+              <p class="text-xs text-gray-500 mb-1">Status</p>
+              <p class="font-semibold {% if project.is_active %}text-emerald-600{% else %}text-red-600{% endif %}">
+                {% if project.is_active %}Active{% else %}Inactive{% endif %}
+              </p>
+            </div>
+
+            <!-- Last Updated -->
+            <div class="bg-gray-50 p-4 rounded-xl text-center">
+              <p class="text-xs text-gray-500 mb-1">Last Updated</p>
+              <p class="font-semibold text-gray-800">{{ project.last_modified|date:"M d" }}</p>
+            </div>
+
+            <!-- Views -->
+            <div class="bg-gray-50 p-4 rounded-xl text-center">
+              <p class="text-xs text-gray-500 mb-1">Views</p>
+              <div class="font-semibold text-gray-800 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10 3C5 3 1.73 7.11 1 10c.73 2.89 4 7 9 7s8.27-4.11 9-7c-.73-2.89-5-7-9-7z" />
+                  <path d="M10 13a3 3 0 100-6 3 3 0 000 6z" />
+                </svg>
+                {{ project.view_count }}
+              </div>
+            </div>
+
+            <!-- Applications -->
+            <div class="bg-gray-50 p-4 rounded-xl text-center">
+              <p class="text-xs text-gray-500 mb-1">Applications</p>
+              <div class="font-semibold text-gray-800 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path fill-rule="evenodd" d="M2 13.5a5.5 5.5 0 0111 0V15H2v-1.5z" clip-rule="evenodd" />
+                </svg>
+                {{ project.applications.count }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mission & Objectives Tab -->
+        <div class="tab-content p-6 hidden" id="mission">
+          {% if project.project_mission %}
+          <div class="mb-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Project Mission</h2>
+            <p class="text-gray-700 leading-relaxed">{{ project.project_mission }}</p>
+          </div>
+          {% endif %}
+
+          {% if project.project_objectives %}
+          <div>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Project Objectives</h2>
+            <p class="text-gray-700 leading-relaxed">{{ project.project_objectives }}</p>
+          </div>
+          {% endif %}
+
+          {% if not project.project_mission and not project.project_objectives %}
+          <div class="text-center py-12">
+            <p class="text-gray-500">No mission or objectives specified for this project.</p>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Skills & Requirements Tab -->
+        <div class="tab-content p-6 hidden" id="requirements">
+          <!-- Languages -->
+          {% if project.languages.all %}
+          <div class="mb-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Languages</h2>
+            <div class="flex flex-wrap gap-2">
+              {% for language in project.languages.all %}
+                <span class="px-4 py-2 bg-gray-100 text-gray-800 rounded-xl text-sm font-medium">{{ language.name }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+{% if member.status == 'ACCEPTED' %}
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 border border-gray-100 rounded-xl p-4">
+    <div class="flex items-center gap-4">
+      <div class="shrink-0">
+        {% if member.applicant.profile.avatar %}
+          <img src="{{ member.applicant.profile.avatar.url }}" alt="{{ member.applicant.username }}" class="w-12 h-12 rounded-full object-cover">
+        {% else %}
+          <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xl">
+            {{ member.applicant.username|first|upper }}
+          </div>
+        {% endif %}
+      </div>
+      <div>
+        <div class="text-lg font-medium text-gray-900">
+          {{ member.applicant.get_full_name|default:member.applicant.username }}
+        </div>
+        <p class="text-sm text-gray-500">@{{ member.applicant.username }}</p>
+        {% if member.applied_role %}
+          <p class="text-sm text-blue-600 font-semibold mt-1">Role: {{ member.applied_role.name }}</p>
+        {% endif %}
+        {% if member.applicant.profile.position %}
+          <p class="text-sm text-gray-600 mt-1">{{ member.applicant.profile.position }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="md:w-2/3 mt-4 md:mt-0">
+      <p class="text-sm text-gray-500 mb-1">Skills</p>
+      <div class="flex flex-wrap gap-2">
+        {% for skill in member.applicant.profile.skills.all %}
+          <span class="px-3 py-1 rounded-xl text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+            {{ skill.name }}
+          </span>
+        {% endfor %}
+      </div>
+      {% if member.contribution %}
+        <p class="mt-2 text-sm text-gray-600 italic">“{{ member.contribution }}”</p>
+      {% endif %}
+    {% if application.resume %}
+  <div class="mb-2">
+    <p class="text-sm font-medium text-gray-700">Resume File:</p>
+    <a href="{{ application.resume.url }}" class="text-blue-600 hover:underline text-sm" target="_blank" rel="noopener noreferrer">
+      View Uploaded Resume (PDF)
+    </a>
+  </div>
+{% endif %}
+
+{% if application.resume_link %}
+  <div class="mb-4">
+    <p class="text-sm font-medium text-gray-700">Resume Link:</p>
+    <a href="{{ application.resume_link }}" class="text-blue-600 hover:underline text-sm" target="_blank" rel="noopener noreferrer">
+      {{ application.resume_link }}
+    </a>
+  </div>
+{% endif %}
+
+    </div>
+  </div>
+{% endif %}
+
+
+          <!-- Required Roles -->
+          {% if project.required_roles.all %}
+          <div class="mb-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Required Collaborator Roles</h2>
+            <div class="flex flex-wrap gap-2">
+              {% for role in project.required_roles.all %}
+                <span class="px-4 py-2 bg-gray-100 text-gray-800 rounded-xl text-sm font-medium">{{ role.name }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Required Skills -->
+          <div>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Required Skills</h2>
+            <div class="flex flex-wrap gap-2">
+              {% for skill in project.skills_required.all %}
+                {% if skill in user.profile.skills.all %}
+                  <span class="px-4 py-2 rounded-xl text-sm font-medium bg-emerald-100 text-emerald-800 border border-emerald-300">{{ skill.name }}</span>
+                {% else %}
+                  <span class="px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 text-gray-800 border border-gray-200">{{ skill.name }}</span>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Applications Tab -->
+        {% if project.owner == request.user %}
+        <div class="tab-content p-6 hidden" id="applications">
+          <div class="flex flex-wrap gap-3 mb-6">
+            {% for stype in sort_options %}
+              <a href="?sort_applications={{ stype }}&tab=applications" class="py-2 px-4 rounded-full text-sm font-medium transition {% if sort_applications == stype %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %}">
+                {% if stype == 'most_matched' %}Most Matched{% elif stype == 'most_unmatched' %}Most Unmatched{% elif stype == 'most_recent' %}Most Recent{% elif stype == 'most_old' %}Most Old{% endif %}
+              </a>
+            {% endfor %}
+          </div>
+
+          <div class="space-y-4" id="applications-container">
+            {% for application in sorted_applications %}
+              <div class="border border-gray-200 rounded-xl p-4 hover:shadow-sm transition">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                  <div class="flex gap-4">
+                    <div class="shrink-0">
+                      {% if application.applicant.profile.avatar %}
+                        <img src="{{ application.applicant.profile.avatar.url }}" alt="{{ application.applicant.username }}" class="w-12 h-12 rounded-full object-cover">
+                      {% else %}
+                        <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xl">
+                          {{ application.applicant.username|first|upper }}
+                        </div>
+                      {% endif %}
+                    </div>
+                    <div>
+                      <div class="flex flex-wrap items-center gap-2">
+                        <a href="{% url 'project-user-profile' application.applicant.username %}" class="text-lg font-medium text-gray-900 hover:text-blue-600 transition">
+                          {{ application.applicant.get_full_name|default:application.applicant.username }}
+                          (@{{ application.applicant.username }})
+                        </a>
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold
+                          {% if application.status == 'ACCEPTED' %}bg-blue-100 text-blue-600{% elif application.status == 'REJECTED' %}bg-red-100 text-red-600{% else %}bg-yellow-100 text-yellow-600{% endif %}">
+                          {{ application.status|title }}
+                        </span>
+                      </div>
+                      <p class="text-sm text-gray-500 mb-1">Applied {{ application.applied_at|timesince }} ago</p>
+                      <div class="flex items-center gap-2 mb-3">
+                        <span class="text-sm text-gray-600 font-medium">Match Score:</span>
+                        <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold">
+                          {{ application.matching_score }}%
+                        </span>
+                      </div>
+                      <div class="flex flex-wrap gap-2 mb-4">
+                        {% for skill in application.applicant.profile.skills.all %}
+                          {% if skill in project.skills_required.all %}
+                            <span class="px-3 py-1 rounded-xl text-xs font-medium bg-blue-100 text-blue-800 border border-blue-300">
+                              {{ skill.name }}
+                            </span>
+                          {% else %}
+                            <span class="px-3 py-1 rounded-xl text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                              {{ skill.name }}
+                            </span>
+                          {% endif %}
+                        {% endfor %}
+                      </div>
+                      {% if application.message %}
+                        <blockquote class="bg-gray-50 p-3 rounded-xl mb-3 italic text-gray-600">"{{ application.message }}"</blockquote>
+                      {% endif %}
+                      {% if application.contribution %}
+                        <div class="mb-4">
+                          <p class="text-sm font-medium text-gray-700">Contribution:</p>
+                          <p class="text-gray-600">{{ application.contribution }}</p>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="flex gap-2">
+                    {% if application.status == 'PENDING' %}
+                      <form method="POST" action="{% url 'update-application' application.id 'ACCEPTED' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="py-2 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition flex items-center gap-1">
+                          Accept
+                        </button>
+                      </form>
+                      <form method="POST" action="{% url 'update-application' application.id 'REJECTED' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="py-2 px-4 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition flex items-center gap-1">
+                          Reject
+                        </button>
+                      </form>
+                    {% elif application.status == 'ACCEPTED' %}
+                      <a href="{% url 'chat' application.applicant.id %}" class="py-2 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition flex items-center gap-1">
+                        Chat
+                      </a>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% empty %}
+              <div class="text-center py-12">
+                <p class="text-gray-500">No applications received yet.</p>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
     </section>
 
     <!-- Secondary Column -->
     <aside class="space-y-8">
-      <!-- Details Card -->
+      <!-- Categories & Action Card -->
       <div class="bg-white rounded-3xl shadow-sm p-6">
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Project Details</h2>
-        <div class="space-y-4">
-          <!-- Categories -->
-          <div>
-            <p class="text-sm text-gray-500 mb-2">Categories</p>
-            <div class="flex flex-wrap gap-2">
-              {% for category in project.category.all %}
-                <a href="{% url 'marketplace' %}?categories={{ category.id }}" class="px-4 py-2 bg-gray-100 text-gray-800 rounded-xl text-sm font-medium hover:bg-gray-200 transition">
-                  {{ category.name }}
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Categories</h2>
+        <div class="flex flex-wrap gap-2 mb-6">
+          {% for category in project.category.all %}
+            <a href="{% url 'marketplace' %}?categories={{ category.id }}" class="px-4 py-2 bg-gray-100 text-gray-800 rounded-xl text-sm font-medium hover:bg-gray-200 transition">
+              {{ category.name }}
+            </a>
+          {% empty %}
+            <p class="text-gray-500 text-sm">No categories specified</p>
+          {% endfor %}
+        </div>
+
+        <!-- Apply/Withdraw or Owner Actions -->
+        {% if user.is_authenticated and user != project.owner %}
+          {% with user_application=user_application %}
+            {% if user_application %}
+              {% if user_application.status == 'PENDING' %}
+                <a href="{% url 'withdraw-application' project_id=project.id %}" class="block w-full py-3 px-4 bg-gray-100 text-gray-700 rounded-xl font-semibold text-center mt-6 hover:bg-gray-200 transition">
+                  Withdraw Application (Pending)
                 </a>
-              {% endfor %}
-            </div>
-          </div>
-
-          <!-- Status -->
-          <div class="flex justify-between items-center border-b border-gray-100 py-2">
-            <p class="text-sm text-gray-500">Status</p>
-            <span class="font-medium {% if project.is_active %}text-emerald-600{% else %}text-red-600{% endif %}">
-              {% if project.is_active %}Active{% else %}Inactive{% endif %}
-            </span>
-          </div>
-
-          <!-- Last Updated -->
-          <div class="flex justify-between items-center border-b border-gray-100 py-2">
-            <p class="text-sm text-gray-500">Last Updated</p>
-            <span class="font-medium">{{ project.last_modified|date:"M d, Y h:i A" }}</span>
-          </div>
-
-          <!-- View Count with Icon -->
-          <div class="flex justify-between items-center border-b border-gray-100 py-2">
-            <p class="text-sm text-gray-500">Views</p>
-            <div class="flex items-center gap-1">
-              <!-- Updated Eye Icon -->
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10 3C5 3 1.73 7.11 1 10c.73 2.89 4 7 9 7s8.27-4.11 9-7c-.73-2.89-5-7-9-7z" />
-                <path d="M10 13a3 3 0 100-6 3 3 0 000 6z" />
-              </svg>
-              <span class="font-medium">{{ project.view_count }}</span>
-            </div>
-          </div>
-
-          <!-- Applications Count with Icon -->
-          <div class="flex justify-between items-center border-b border-gray-100 py-2">
-            <p class="text-sm text-gray-500">Applications</p>
-            <div class="flex items-center gap-1">
-              <!-- Updated Group Icon -->
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M13 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path fill-rule="evenodd" d="M2 13.5a5.5 5.5 0 0111 0V15H2v-1.5z" clip-rule="evenodd" />
-              </svg>
-              <span class="font-medium">{{ project.applications.count }}</span>
-            </div>
-          </div>
-
-          <!-- Apply/Withdraw or Owner Actions -->
-          {% if user.is_authenticated and user != project.owner %}
-            {% with user_application=user_application %}
-              {% if user_application %}
-                {% if user_application.status == 'PENDING' %}
-                  <a href="{% url 'withdraw-application' project_id=project.id %}" class="block w-full py-3 px-4 bg-gray-100 text-gray-700 rounded-xl font-semibold text-center mt-6 hover:bg-gray-200 transition">
-                    Withdraw Application (Pending)
-                  </a>
-                {% else %}
-                  <button disabled class="block w-full py-3 px-4 bg-gray-100 text-gray-700 rounded-xl font-semibold text-center mt-6">
-                    {{ user_application.status|title }}
-                  </button>
-                {% endif %}
               {% else %}
-                <a href="{% url 'apply-project' project.id %}" class="block w-full py-3 px-4 bg-emerald-500 text-white rounded-xl font-semibold text-center mt-6 hover:bg-emerald-600 transition">
-                  Apply Now
-                </a>
-              {% endif %}
-            {% endwith %}
-          {% endif %}
-
-          {% if project.owner == request.user %}
-            <div class="space-y-3 mt-6">
-              <form method="POST" action="{% url 'project-toggle' project.pk %}">
-                {% csrf_token %}
-                <button type="submit" class="block w-full py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold text-center transition">
-                  {% if project.is_active %}Deactivate Project{% else %}Activate Project{% endif %}
+                <button disabled class="block w-full py-3 px-4 bg-gray-100 text-gray-700 rounded-xl font-semibold text-center mt-6">
+                  {{ user_application.status|title }}
                 </button>
-              </form>
-              <a href="{% url 'project-delete' project.pk %}" class="block w-full py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold text-center transition">
-                Delete Project
+              {% endif %}
+            {% else %}
+              <a href="{% url 'apply-project' project.id %}" class="block w-full py-3 px-4 bg-emerald-500 text-white rounded-xl font-semibold text-center hover:bg-emerald-600 transition">
+                Apply Now
               </a>
-            </div>
-          {% endif %}
+            {% endif %}
+          {% endwith %}
+        {% endif %}
+
+        {% if project.owner == request.user %}
+          <div class="space-y-3 mt-6">
+            <form method="POST" action="{% url 'project-toggle' project.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="block w-full py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold text-center transition">
+                {% if project.is_active %}Deactivate Project{% else %}Activate Project{% endif %}
+              </button>
+            </form>
+            <a href="{% url 'project-delete' project.pk %}" class="block w-full py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold text-center transition">
+              Delete Project
+            </a>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Recommendations Card -->
+      <div class="bg-white rounded-3xl shadow-sm p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Looking for more?</h2>
+        <div class="space-y-3">
+          <a href="{% url 'project-recommendations' project.id %}" class="block w-full py-3 px-4 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl font-semibold text-center transition">
+            View matching users
+          </a>
+          <a href="{% url 'marketplace' %}" class="flex items-center justify-center gap-2 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition">
+            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Back to Marketplace
+          </a>
         </div>
       </div>
     </aside>
   </main>
-
-  <!-- Owner-Only Applications Section -->
-  {% if project.owner == request.user %}
-  <section class="mt-12">
-    <div class="flex flex-wrap gap-3 mb-6">
-      {% for stype in sort_options %}
-        <a href="?sort_applications={{ stype }}" class="py-2 px-4 rounded-full text-sm font-medium transition {% if sort_applications == stype %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %}">
-          {% if stype == 'most_matched' %}Most Matched{% elif stype == 'most_unmatched' %}Most Unmatched{% elif stype == 'most_recent' %}Most Recent{% elif stype == 'most_old' %}Most Old{% endif %}
-        </a>
-      {% endfor %}
-    </div>
-
-    <h2 class="text-2xl font-bold text-gray-900 mb-6">Applications ({{ sorted_applications|length }})</h2>
-    <div class="space-y-4" id="applications-container">
-      {% for application in sorted_applications %}
-        <div class="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition">
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div class="flex gap-4">
-              <div class="shrink-0">
-                {% if application.applicant.profile.avatar %}
-                  <img src="{{ application.applicant.profile.avatar.url }}" alt="{{ application.applicant.username }}" class="w-12 h-12 rounded-full object-cover">
-                {% else %}
-                  <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xl">
-                    {{ application.applicant.username|first|upper }}
-                  </div>
-                {% endif %}
-              </div>
-              <div>
-                <div class="flex flex-wrap items-center gap-2">
-                  <a href="{% url 'project-user-profile' application.applicant.username %}" class="text-lg font-medium text-gray-900 hover:text-blue-600 transition">
-                    {{ application.applicant.get_full_name|default:application.applicant.username }}
-                    (@{{ application.applicant.username }})
-                  </a>
-                  <span class="px-3 py-1 rounded-full text-xs font-semibold
-                    {% if application.status == 'ACCEPTED' %}bg-blue-100 text-blue-600{% elif application.status == 'REJECTED' %}bg-red-100 text-red-600{% else %}bg-yellow-100 text-yellow-600{% endif %}">
-                    {{ application.status|title }}
-                  </span>
-                </div>
-                <p class="text-sm text-gray-500 mb-1">Applied {{ application.applied_at|timesince }} ago</p>
-                <div class="flex items-center gap-2 mb-3">
-                  <span class="text-sm text-gray-600 font-medium">Match Score:</span>
-                  <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold">
-                    {{ application.matching_score }}%
-                  </span>
-                </div>
-                <div class="flex flex-wrap gap-2 mb-4">
-                  {% for skill in application.applicant.profile.skills.all %}
-                    {% if skill in project.skills_required.all %}
-                      <span class="px-3 py-1 rounded-xl text-xs font-medium bg-blue-100 text-blue-800 border border-blue-300">
-                        {{ skill.name }}
-                      </span>
-                    {% else %}
-                      <span class="px-3 py-1 rounded-xl text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
-                        {{ skill.name }}
-                      </span>
-                    {% endif %}
-                  {% endfor %}
-                </div>
-                {% if application.message %}
-                  <blockquote class="bg-gray-50 p-3 rounded-xl mb-3 italic text-gray-600">"{{ application.message }}"</blockquote>
-                {% endif %}
-                {% if application.contribution %}
-                  <div class="mb-4">
-                    <p class="text-sm font-medium text-gray-700">Contribution:</p>
-                    <p class="text-gray-600">{{ application.contribution }}</p>
-                  </div>
-                {% endif %}
-              </div>
-            </div>
-            <div class="flex flex-col md:block gap-2 md:text-right">
-              {% if application.status == 'PENDING' %}
-                <form method="POST" action="{% url 'update-application' application.id 'ACCEPTED' %}">
-                  {% csrf_token %}
-                  <button type="submit" class="py-2 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition flex items-center gap-1">
-                    Accept
-                  </button>
-                </form>
-                <form method="POST" action="{% url 'update-application' application.id 'REJECTED' %}">
-                  {% csrf_token %}
-                  <button type="submit" class="py-2 px-4 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition flex items-center gap-1">
-                    Reject
-                  </button>
-                </form>
-              {% elif application.status == 'ACCEPTED' %}
-                <a href="{% url 'chat' application.applicant.id %}" class="py-2 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition flex items-center gap-1">
-                  Chat
-                </a>
-              {% endif %}
-            </div>
-          </div>
-          {% if user == application.applicant %}
-          <div class="mt-4">
-            <a href="{% url 'withdraw-application' project_id=project.id %}" class="block w-full py-3 px-4 bg-gray-100 text-gray-700 rounded-xl font-semibold text-center hover:bg-gray-200 transition">
-              Withdraw Application
-            </a>
-          </div>
-          {% endif %}
-        </div>
-      {% endfor %}
-    </div>
-  </section>
-  {% endif %}
-
-  <!-- Кнопка для перехода к рекомендациям проектов -->
-  <div class="flex justify-center mt-8">
-    <a href="{% url 'project-recommendations' project.id %}" class="...">Рекомендации проектов</a>
-
-  </div>
-
-  <!-- Back to Marketplace -->
-  <footer class="mt-8">
-    <a href="{% url 'marketplace' %}" class="inline-flex items-center gap-2 py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition">
-      <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-      </svg>
-      Back to Marketplace
-    </a>
-  </footer>
 </div>
 
 <script>
-  // Optional functions to control the loading indicator during AJAX calls
+  // Tab switching functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    // Check URL params for tab selection
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+
+    // Function to activate tab
+    function activateTab(tabId) {
+      // Hide all tab contents
+      tabContents.forEach(content => {
+        content.classList.add('hidden');
+      });
+
+      // Show selected tab content
+      const selectedContent = document.getElementById(tabId);
+      if (selectedContent) {
+        selectedContent.classList.remove('hidden');
+      }
+
+      // Update active state for tab buttons
+      tabButtons.forEach(button => {
+        if (button.dataset.tab === tabId) {
+          button.classList.add('active', 'text-blue-600', 'border-blue-600');
+          button.classList.remove('text-gray-500', 'border-transparent');
+        } else {
+          button.classList.remove('active', 'text-blue-600', 'border-blue-600');
+          button.classList.add('text-gray-500', 'border-transparent');
+        }
+      });
+
+      // Update URL with tab parameter
+      if (history.pushState) {
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.set('tab', tabId);
+        window.history.pushState({path: newUrl.toString()}, '', newUrl.toString());
+      }
+    }
+
+    // Set initial active tab
+    if (tabParam && document.getElementById(tabParam)) {
+      activateTab(tabParam);
+    }
+
+    // Add click event listeners
+    tabButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        activateTab(this.dataset.tab);
+      });
+    });
+  });
+
+  // Loading indicator functions
   function showLoading() {
     document.getElementById('loadingIndicator').classList.remove('hidden');
   }

@@ -8,11 +8,12 @@
   <div class="max-w-2xl mx-auto bg-white shadow-lg rounded-xl p-8">
     <h2 class="text-3xl font-bold text-center text-gray-800 mb-4">Apply to "{{ project.title }}"</h2>
     <p class="text-center text-gray-600 mb-8">Tell us how your skills and experience will contribute to this project.</p>
-    <form method="post" class="space-y-6">
+
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
       {% csrf_token %}
       {{ form.non_field_errors }}
 
-      <!-- Роль, на которую подается пользователь -->
+      <!-- Applied Role -->
       <div>
         <label for="{{ form.applied_role.id_for_label }}" class="block text-gray-700 font-medium mb-2">
           Select the Role You Are Applying For
@@ -23,6 +24,7 @@
         {% endif %}
       </div>
 
+      <!-- Contribution -->
       <div>
         <label for="{{ form.contribution.id_for_label }}" class="block text-gray-700 font-medium mb-2">
           How will you contribute?
@@ -32,6 +34,8 @@
           <p class="text-red-600 text-sm mt-1">{{ form.contribution.errors|join:", " }}</p>
         {% endif %}
       </div>
+
+      <!-- Message -->
       <div>
         <label for="{{ form.message.id_for_label }}" class="block text-gray-700 font-medium mb-2">
           Optional Message
@@ -41,6 +45,30 @@
           <p class="text-red-600 text-sm mt-1">{{ form.message.errors|join:", " }}</p>
         {% endif %}
       </div>
+
+      <!-- Resume Upload -->
+      <div>
+        <label for="{{ form.resume.id_for_label }}" class="block text-gray-700 font-medium mb-2">
+          Upload Resume (PDF)
+        </label>
+        {{ form.resume|add_class:"w-full p-3 border border-gray-300 rounded-lg bg-white" }}
+        {% if form.resume.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ form.resume.errors|join:", " }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Resume Link -->
+      <div>
+        <label for="{{ form.resume_link.id_for_label }}" class="block text-gray-700 font-medium mb-2">
+          Or Provide Resume Link (optional)
+        </label>
+        {{ form.resume_link|add_class:"w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+        {% if form.resume_link.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ form.resume_link.errors|join:", " }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Submit -->
       <div class="flex justify-between items-center mt-8">
         <a href="{% url 'project-detail' pk=project.pk %}"
            class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-300">
@@ -55,3 +83,4 @@
   </div>
 </div>
 {% endblock %}
+

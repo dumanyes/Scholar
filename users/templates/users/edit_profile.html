@@ -163,7 +163,9 @@
     class="border border-gray-200 rounded-md bg-white shadow absolute hidden z-10 w-full max-h-60 overflow-y-auto"
   ></div>
   <div id="selected-skills-container" class="mb-4 flex flex-wrap gap-2"></div>
-  <input type="hidden" name="skills" id="skills_required" value="{{ profile_form.initial.skills_required|join:',' }}">
+  <input type="hidden" name="skills" id="skills_required" value="{{ profile_form.initial.skills }}">
+
+
   <div id="skills-error" class="text-red-600 text-sm mt-1"></div>
 </div>
 

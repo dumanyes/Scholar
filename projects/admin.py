@@ -7,7 +7,8 @@ from .models import (
     InterestsSubCategory,
     Interest,
     Language,
-    RequiredRole
+    RequiredRole,
+    ProjectApplication
 )
 
 # Register basic models
@@ -17,6 +18,7 @@ admin.site.register(InterestsCategory)
 admin.site.register(InterestsSubCategory)
 admin.site.register(Language)
 admin.site.register(RequiredRole)
+admin.site.register(ProjectApplication)
 
 
 @admin.action(description="Delete ALL skills")

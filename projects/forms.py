@@ -105,6 +105,9 @@ class ProjectForm(forms.ModelForm):
         return cleaned_data
 
 
+from django import forms
+from .models import ProjectApplication, RequiredRole
+
 class ProjectApplicationForm(forms.ModelForm):
     message = forms.CharField(
         required=False,
@@ -118,23 +121,25 @@ class ProjectApplicationForm(forms.ModelForm):
         help_text="Please explain how your skills and experience will help the project."
     )
     applied_role = forms.ModelChoiceField(
-        queryset=RequiredRole.objects.none(),  # Default to an empty QuerySet.
+        queryset=RequiredRole.objects.none(),
         required=True,
-        label="Выберите роль, на которую вы подаетесь",
+        label="Select the role you're applying for",
         widget=forms.Select(attrs={
             'class': 'w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
         })
     )
 
+
     class Meta:
         model = ProjectApplication
-        fields = ['applied_role', 'message', 'contribution']
+        fields = ['applied_role', 'message', 'contribution', 'resume', 'resume_link']  # Not including resume/resume_link here
 
     def __init__(self, *args, **kwargs):
         project = kwargs.pop('project', None)
         super().__init__(*args, **kwargs)
         if project:
             self.fields['applied_role'].queryset = project.required_roles.all()
+
 
 
 class ProjectDashboardForm(forms.ModelForm):

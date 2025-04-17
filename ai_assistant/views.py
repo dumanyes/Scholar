@@ -108,20 +108,22 @@ def call_ai_model(user_message: str, conversation_history: list, image_file=None
             {
                 "type": "text",
                 "text": (
-                    "You are ScholarHub Assistant — a personal AI research assistant built to support users of the ScholarHub platform. "
-                    "Your purpose is to help students, researchers, and professionals with research guidance, collaboration matching, and navigating ScholarHub’s tools. "
-                    "Always respond as ScholarHub Assistant, not DeepSeek or any other provider. If asked who you are, say:\n\n"
-                    "'I'm your personal ScholarHub Assistant, here to help you with your research journey — from exploring trending topics to finding collaborators and tools.'"
+                    "You are ScholarHub Assistant — an AI research assistant for students, researchers, and professionals using ScholarHub. "
+                    "You understand and answer queries based on the meaning, context, and goals of the user — not just keywords. "
+                    "Always respond directly with informative and complete answers. Do not ask unnecessary follow-up questions unless clarification is absolutely needed. "
+                    "Use reasoning to infer the user’s intent. Incorporate ScholarHub’s mission and tools where applicable. "
+                    "If asked who you are, respond with: 'I'm your personal ScholarHub Assistant, here to support your research journey.'"
                 )
             }
         ]
     }
+
     print("🔐 DEBUG - API Key Loaded:", api_key)
     print("🔐 DEBUG - Referer:", os.getenv("OPENROUTER_REFERER"))
     if not api_key:
         return {"error": "OPENROUTER_API_KEY not set on server"}
     referer_header = os.getenv("OPENROUTER_REFERER", "https://scholarhub.kz/")
-
+    # referer_header = os.getenv("OPENROUTER_REFERER", "http://localhost:8000/")
     full_history = [system_prompt] + conversation_history
     full_history.append({
         "role": "user",

@@ -149,50 +149,48 @@
       <input type="hidden" name="categories" id="categories-hidden" value="{{ selected_categories }}">
     </div>
 
-    <!-- Required Skills -->
-    <!-- Required Skills -->
+   <!-- Skills Section with Search -->
 <div>
-  <label class="block text-sm font-medium text-gray-700 mb-2">
-    Required Skills (select at least 1)
-  </label>
-  <input type="hidden" name="skills_required" id="skills-hidden" value="{{ form.skills_required.value|default:'' }}">
-
-  <!-- Selected Skills Display -->
-  <div id="skills-display" class="flex flex-wrap gap-2 mb-4">
-    {% for skill_id in form.skills_required.value|split:"," %}
-      {% if skill_id %}
-        {% with skill=skill_id|get_skill %}
-          {% if skill %}
-            <span class="px-4 py-2 rounded-xl text-sm font-medium bg-blue-100 text-blue-700 border border-blue-200 skill-tag">
-              {{ skill.name }}
-              <button type="button" class="ml-2 text-blue-500 hover:text-blue-700 remove-skill" data-id="{{ skill.id }}">&times;</button>
-            </span>
-          {% endif %}
-        {% endwith %}
-      {% endif %}
-    {% endfor %}
-  </div>
-
-  <!-- Search Input -->
+  <label class="block text-sm font-medium text-gray-700 mb-2">Required Skills</label>
   <div class="relative">
     <input
       type="text"
-      id="skills-search"
-      class="w-full px-4 py-2 border border-gray-200 rounded-lg"
+      id="skill-search"
+      class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition mb-4"
       placeholder="Search skills..."
-      autocomplete="off"
-    >
-    <div id="skills-results" class="hidden absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"></div>
+    />
+    <div
+      id="skill-hints"
+      class="absolute left-0 top-full mt-1 w-full border border-gray-200 rounded-md bg-white shadow z-10 max-h-60 overflow-y-auto hidden"
+    ></div>
   </div>
 
-  {% if form.skills_required.errors %}
-    <div class="text-red-600 text-sm mt-1">
-      {% for error in form.skills_required.errors %}
-        <p>{{ error }}</p>
-      {% endfor %}
-    </div>
-  {% endif %}
+  <div id="selected-skills-container" class="mb-4 flex flex-wrap gap-2">
+    {% for skill_id in form.skills_required.value|split:"," %}
+      {% with skill=skill_id|get_skill %}
+        {% if skill %}
+          <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm cursor-pointer" data-skill-id="{{ skill.id }}">
+            {{ skill.name }} ×
+          </span>
+        {% endif %}
+      {% endwith %}
+    {% endfor %}
+  </div>
+
+  <input type="hidden" name="skills_required" id="skills_required" value="{{ form.skills_required.value }}">
+  <div id="skills-error" class="text-red-600 text-sm mt-1"></div>
+
+  <!-- Hidden divs to preload skill data -->
+  <div class="hidden">
+    {% for skill in skills %}
+      <div class="skill-item" data-skill-id="{{ skill.id }}" data-skill-name="{{ skill.name }}"></div>
+    {% endfor %}
+  </div>
 </div>
+
+
+
+
     <!-- Project Languages -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -327,4 +325,93 @@ document.addEventListener('DOMContentLoaded', () => {
   setupSelection('.role-btn', 'roles-hidden');
 });
 </script>
+    <script>
+document.addEventListener('DOMContentLoaded', function () {
+  const skillSearchInput = document.getElementById('skill-search');
+  const skillHints = document.getElementById('skill-hints');
+  const selectedSkillsContainer = document.getElementById('selected-skills-container');
+  const skillsHidden = document.getElementById('skills_required');
+  const skillsError = document.getElementById('skills-error');
+
+  const allSkillsData = [
+    {% for skill in skills %}
+      { id: "{{ skill.id }}", name: "{{ skill.name }}" },
+    {% endfor %}
+  ];
+
+  let selectedSkills = new Set(
+    skillsHidden.value.split(',').filter(Boolean)
+  );
+
+  function updateSelectedSkills() {
+    selectedSkillsContainer.innerHTML = '';
+    selectedSkills.forEach(skillId => {
+      const skill = allSkillsData.find(s => s.id === skillId);
+      if (!skill) return;
+      const tag = document.createElement('span');
+      tag.className = 'bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm cursor-pointer';
+      tag.textContent = skill.name + ' ×';
+      tag.setAttribute('data-skill-id', skill.id);
+      tag.addEventListener('click', () => {
+        selectedSkills.delete(skill.id);
+        updateSelectedSkills();
+      });
+      selectedSkillsContainer.appendChild(tag);
+    });
+    skillsHidden.value = Array.from(selectedSkills).join(',');
+    checkSkillsValidity();
+  }
+
+  function showSkillHints(query) {
+    skillHints.innerHTML = '';
+    if (!query) return skillHints.classList.add('hidden');
+    const matched = allSkillsData.filter(skill =>
+      skill.name.toLowerCase().includes(query.toLowerCase())
+    );
+    if (matched.length === 0) return skillHints.classList.add('hidden');
+    matched.forEach(skill => {
+      const div = document.createElement('div');
+      div.className = 'p-2 hover:bg-gray-100 cursor-pointer';
+      div.setAttribute('data-hint-id', skill.id);
+      div.setAttribute('data-hint-name', skill.name);
+      div.innerHTML = skill.name.replace(
+        new RegExp(`(${query})`, 'gi'),
+        '<span class="text-blue-600 font-bold">$1</span>'
+      );
+      skillHints.appendChild(div);
+    });
+    skillHints.classList.remove('hidden');
+  }
+
+  skillSearchInput.addEventListener('input', function () {
+    showSkillHints(this.value.trim());
+  });
+
+  skillHints.addEventListener('click', function (e) {
+    const target = e.target.closest('div[data-hint-id]');
+    if (!target) return;
+    const skillId = target.dataset.hintId;
+    selectedSkills.add(skillId);
+    updateSelectedSkills();
+    skillHints.classList.add('hidden');
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!skillHints.contains(e.target) && e.target !== skillSearchInput) {
+      skillHints.classList.add('hidden');
+    }
+  });
+
+  function checkSkillsValidity() {
+    if (selectedSkills.size < 1) {
+      skillsError.textContent = 'Please select at least 1 skill.';
+    } else {
+      skillsError.textContent = '';
+    }
+  }
+
+  updateSelectedSkills();
+});
+</script>
+
 {% endblock %}

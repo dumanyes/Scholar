@@ -78,6 +78,16 @@ def get_skill_match(self, user):
     match_count = len(required_skills & user_skills)
     return round((match_count / len(required_skills)) * 100)
 
+from projects.models import Skill
+
+@register.filter
+def get_skill(skill_id):
+    try:
+        return Skill.objects.get(id=skill_id)
+    except Skill.DoesNotExist:
+        return None
+
+
 
 
 
