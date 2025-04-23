@@ -3,6 +3,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from projects.models import ChatRoom, ChatMessage
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -114,3 +115,22 @@ class ChatListConsumer(AsyncWebsocketConsumer):
         print(f"[DEBUG] ChatListConsumer received update: {data}")
         # Immediately forward the update to the client.
         await self.send(text_data=json.dumps(data))
+
+class MarketplaceConsumer(AsyncJsonWebsocketConsumer):
+    async def connect(self):
+        if self.scope["user"].is_anonymous:
+            await self.close()
+        else:
+            self.user = self.scope["user"]
+            self.group_name = f"marketplace_{self.user.id}"
+            await self.channel_layer.group_add(self.group_name, self.channel_name)
+            await self.accept()
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(self.group_name, self.channel_name)
+
+    async def receive_json(self, content):
+        pass  # No need for client -> server messages for now
+
+    async def send_update(self, event):
+        await self.send_json(event["data"])

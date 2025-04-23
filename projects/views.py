@@ -714,6 +714,23 @@ def update_application(request, pk, status):
             message=f"Your application to {application.project.title} has been {status.lower()}",
             link=reverse('project-detail', kwargs={'pk': application.project.pk})
         )
+        from asgiref.sync import async_to_sync
+        from channels.layers import get_channel_layer
+
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"marketplace_{application.applicant.id}",
+            {
+                "type": "send_update",
+                "data": {
+                    "notifications_count": Notification.objects.filter(user=application.applicant, read=False).count(),
+                    "unread_chat_count": ChatMessage.objects.filter(room__participants=application.applicant,
+                                                                    read=False).exclude(
+                        sender=application.applicant).count()
+                }
+            }
+        )
+
     return redirect('project-detail', pk=application.project.pk)
 
 

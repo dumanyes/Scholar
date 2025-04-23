@@ -985,6 +985,33 @@
     };
   });
 </script>
+<script>const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+const marketplaceSocket = new WebSocket(wsScheme + '://' + window.location.host + '/ws/marketplace/');
+
+marketplaceSocket.onmessage = function(e) {
+  const data = JSON.parse(e.data);
+  if (data.notifications_count !== undefined) {
+    const badge = document.getElementById("notifications-badge");
+    if (data.notifications_count > 0) {
+      badge.textContent = data.notifications_count;
+      badge.style.display = "flex";
+    } else {
+      badge.style.display = "none";
+    }
+  }
+
+  if (data.unread_chat_count !== undefined) {
+    const badge = document.getElementById("unread-count-badge");
+    if (data.unread_chat_count > 0) {
+      badge.textContent = data.unread_chat_count;
+      badge.style.display = "flex";
+    } else {
+      badge.style.display = "none";
+    }
+  }
+};
+
+</script>
 </body>
 </html>
 {% endblock %}
