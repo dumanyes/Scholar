@@ -1,12 +1,15 @@
 
 import os
 import requests
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.urls import reverse_lazy
-from django.contrib.auth.views import LoginView, PasswordResetView, PasswordChangeView
+from django.contrib.auth.views import LoginView, PasswordChangeView
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.auth.decorators import login_required
 from cities_light.models import Country, City
+from django.views.generic import TemplateView
+
 from users.models import University
 from dashboard.forms import ContactForm
 from .forms import LoginForm, UpdateUserForm, UpdateProfileForm
@@ -498,33 +501,6 @@ class CustomLoginView(LoginView):
         return super().form_valid(form)
 
 
-class ResetPasswordView(SuccessMessageMixin, PasswordResetView):
-    template_name = 'users/password_reset.html'
-    email_template_name = 'users/password_reset_email.html'
-    success_message = "We've emailed you instructions for setting your password."
-    success_url = reverse_lazy('users-home')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        request = self.request
-        context['domain'] = request.get_host()
-        context['protocol'] = 'https' if request.is_secure() else 'http'
-        return context
-
-    def form_valid(self, form):
-        try:
-            return super().form_valid(form)
-        except Exception as e:
-            logger.error(f"Password reset email failed: {str(e)}")
-            messages.error(self.request, "Failed to send email. Check your email settings.")
-            return self.form_invalid(form)
-
-
-
-class ChangePasswordView(SuccessMessageMixin, PasswordChangeView):
-    template_name = 'users/change_password.html'
-    success_message = "Successfully Changed Your Password"
-    success_url = reverse_lazy('users-home')
 
 
 def orcid_authorize(request):
@@ -604,3 +580,65 @@ def contact_view(request):
 
 def privacyPolicy(request):
     return render(request, 'users/privacy_policy.html')
+
+class SettingsView(LoginRequiredMixin, TemplateView):
+    template_name = 'users/settings.html'
+
+
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def settings_view(request):
+    profile = request.user.profile
+
+    if request.method == 'POST':
+        profile.allow_project_invites = request.POST.get('allow_project_invites') == 'on'
+        profile.email_notifications = request.POST.get('email_notifications') == 'on'
+        profile.notify_on_application = request.POST.get('notify_on_application') == 'on'
+        profile.notify_on_application_status_change = request.POST.get('notify_on_application_status_change') == 'on'
+        profile.notify_on_chat_message = request.POST.get('notify_on_chat_message') == 'on'
+        profile.preferred_language = request.POST.get('preferred_language')
+        profile.save()
+
+        return redirect('user-profile', username=request.user.username)
+
+
+    return render(request, 'users/settings.html', {
+        'profile': profile
+    })
+
+
+
+# users/views.py
+
+from django.contrib.auth.views import (
+    PasswordResetView,
+    PasswordResetDoneView,
+    PasswordResetConfirmView,
+    PasswordResetCompleteView,
+)
+from django.contrib.messages.views import SuccessMessageMixin
+from django.urls import reverse_lazy
+
+# Password Reset Request View
+class CustomPasswordResetView(SuccessMessageMixin, PasswordResetView):
+    template_name = 'users/password_reset.html'
+    email_template_name = 'users/password_reset_email.html'
+    success_message = "We've emailed you instructions for setting your password."
+    success_url = reverse_lazy('password_reset_done')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        request = self.request
+        context['domain'] = request.get_host()
+        context['protocol'] = 'https' if request.is_secure() else 'http'
+        return context
+
+# Password Reset Confirm View (user clicks email link)
+class CustomPasswordResetConfirmView(SuccessMessageMixin, PasswordResetConfirmView):
+    template_name = 'users/password_reset_confirm.html'
+    success_message = "Your password has been set. You can now log in with your new password."
+    success_url = reverse_lazy('login')
+

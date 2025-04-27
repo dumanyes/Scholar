@@ -8,38 +8,37 @@
   var favorite_ids = {{ favorite_ids|safe }};
 </script>
 
-<div class="container mx-auto px-4 py-8 max-w-7xl">
+<div class="container mx-auto px-4 py-12 max-w-6xl">
   <!-- Header -->
-  <header class="text-center mb-10">
-    <h1 class="text-4xl font-bold mb-2" style="color: var(--primary);">
+  <header class="text-center mb-12">
+    <h1 class="text-4xl font-bold mb-3 text-blue-600">
       My Research Projects
     </h1>
-    <p class="text-lg text-gray-600">
-      Organize and track your personal research initiatives.
+    <p class="text-gray-600">
+      Organize and track your personal research initiatives
     </p>
   </header>
 
   <!-- Search & Filter Bar -->
-  <section class="mb-8 p-5 bg-white rounded-2xl shadow-md">
+  <section class="mb-10 p-6 bg-white rounded-xl shadow-sm">
     <form id="searchForm" method="GET" class="flex flex-col sm:flex-row items-center gap-4">
       <input type="hidden" id="sort" name="sort" value="{{ request.GET.sort|default:'-created_at' }}">
       <input type="hidden" id="selectedCategories" name="categories" value="{{ selected_categories|join:',' }}">
       <input type="hidden" id="status" name="status" value="{{ status }}">
       <div class="relative w-full sm:flex-1">
-        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
         <input
           type="text"
           name="q"
           value="{{ request.GET.q }}"
           placeholder="Search projects..."
-          class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-full focus:outline-none focus:border-blue-400 transition duration-200"
+          class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
         >
       </div>
       <div>
         <a
           href="{% url 'project-create' %}"
-          class="inline-flex items-center px-5 py-2 rounded-full text-white font-semibold shadow-md hover:shadow-lg transition transform hover:-translate-y-1"
-          style="background: var(--primary);"
+          class="inline-flex items-center px-6 py-3 rounded-lg bg-blue-600 text-white font-medium shadow-sm hover:bg-blue-700 transition"
         >
           <i class="fas fa-plus mr-2"></i> New Project
         </a>
@@ -47,25 +46,25 @@
     </form>
 
     <!-- Status & Category Filters -->
-    <div class="mt-5 flex flex-wrap gap-3 justify-center">
+    <div class="mt-6 flex flex-wrap gap-2">
       <!-- Status Filters -->
       <span
-        class="cursor-pointer px-4 py-1 rounded-full text-sm
-               {% if not request.GET.status %}bg-blue-50 text-blue-600{% else %}bg-gray-100 text-gray-500{% endif %}"
+        class="cursor-pointer px-4 py-2 rounded-lg text-sm font-medium transition
+               {% if not request.GET.status %}bg-blue-100 text-blue-600{% else %}bg-gray-100 text-gray-600{% endif %}"
         onclick="clearStatusFilter()"
       >
         All
       </span>
       <span
-        class="cursor-pointer px-4 py-1 rounded-full text-sm
-               {% if request.GET.status == 'active' %}bg-blue-50 text-blue-600{% else %}bg-gray-100 text-gray-500{% endif %}"
+        class="cursor-pointer px-4 py-2 rounded-lg text-sm font-medium transition
+               {% if request.GET.status == 'active' %}bg-blue-100 text-blue-600{% else %}bg-gray-100 text-gray-600{% endif %}"
         onclick="setStatusFilter('active')"
       >
         Active
       </span>
       <span
-        class="cursor-pointer px-4 py-1 rounded-full text-sm
-               {% if request.GET.status == 'inactive' %}bg-blue-50 text-blue-600{% else %}bg-gray-100 text-gray-500{% endif %}"
+        class="cursor-pointer px-4 py-2 rounded-lg text-sm font-medium transition
+               {% if request.GET.status == 'inactive' %}bg-blue-100 text-blue-600{% else %}bg-gray-100 text-gray-600{% endif %}"
         onclick="setStatusFilter('inactive')"
       >
         Inactive
@@ -74,8 +73,8 @@
       {% with selected_cats=request.GET.categories|split:"," %}
       {% for cat in all_categories %}
       <span
-        class="cursor-pointer px-4 py-1 rounded-full text-sm
-               {% if cat.id|stringformat:'s' in selected_cats %}bg-blue-50 text-blue-600{% else %}bg-gray-100 text-gray-500{% endif %}"
+        class="cursor-pointer px-4 py-2 rounded-lg text-sm font-medium transition
+               {% if cat.id|stringformat:'s' in selected_cats %}bg-blue-100 text-blue-600{% else %}bg-gray-100 text-gray-600{% endif %}"
         onclick="toggleCategory('{{ cat.id }}')"
       >
         {{ cat.name }}
@@ -86,155 +85,153 @@
   </section>
 
   <!-- Pinned Projects Section -->
-  <section class="mb-10">
-    <h2 class="text-2xl font-semibold mb-4" style="color: var(--primary);">Pinned Projects</h2>
-    <div id="pinnedProjectsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+  <section class="mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-blue-600">Pinned Projects</h2>
+    <div id="pinnedProjectsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {% for project in pinned_projects %}
       <div
-        class="bg-white rounded-2xl shadow-lg p-5 flex flex-col items-center animate__animated animate__fadeIn"
+        class="bg-white rounded-xl shadow-sm p-6 flex flex-col transition hover:shadow-md"
         id="pinned-{{ project.pk }}"
       >
-        <h3 class="text-lg font-medium text-center mb-2 line-clamp-2">
-          <!-- Project title clickable -->
-          <a href="{% url 'project-detail' pk=project.pk %}" class="hover:underline" style="color: var(--primary);">
+        <h3 class="text-lg font-semibold mb-3 line-clamp-2">
+          <a href="{% url 'project-detail' pk=project.pk %}" class="text-blue-600 hover:text-blue-800">
             {{ project.title }}
           </a>
         </h3>
-        <!-- "View Details" link -->
         <a
           href="{% url 'project-detail' pk=project.pk %}"
-          class="text-sm hover:underline mt-1"
-          style="color: var(--primary);"
+          class="text-sm text-blue-600 hover:text-blue-800 mt-auto"
         >
           View Details
         </a>
-        <!-- Unpin button -->
         <button
           onclick="togglePin({{ project.pk }}, this)"
-          class="mt-3 text-xs font-medium text-gray-600 hover:text-gray-800 transition"
+          class="mt-4 text-sm text-gray-500 hover:text-gray-700 flex items-center justify-center"
         >
-          Unpin
+          <i class="fas fa-thumbtack mr-2"></i> Unpin
         </button>
       </div>
       {% empty %}
-      <div class="text-center p-6 text-gray-500 empty-pinned">
-        <i class="fas fa-thumbtack mb-2 text-2xl"></i>
-        <p>No pinned projects yet</p>
+      <div class="col-span-full text-center p-10 border border-dashed border-gray-300 rounded-xl bg-gray-50">
+        <i class="fas fa-thumbtack text-gray-400 text-3xl mb-3"></i>
+        <p class="text-gray-500">No pinned projects yet</p>
       </div>
       {% endfor %}
     </div>
   </section>
 
-  <!-- Projects List (Masonry Layout) -->
+  <!-- Projects List -->
   <section>
-    <h2 class="text-2xl font-semibold mb-4" style="color: var(--primary);">All Projects</h2>
-    <div class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-6">
+    <h2 class="text-2xl font-bold mb-6 text-blue-600">All Projects</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
       {% for project in projects %}
-      <div class="mb-6 break-inside-avoid bg-white rounded-2xl shadow-lg p-5 transition transform hover:-translate-y-1 hover:shadow-2xl">
-        <!-- Top Row: Status & Buttons -->
-        <div class="flex justify-between items-center mb-3">
+      <div class="bg-white rounded-xl shadow-sm overflow-hidden transition hover:shadow-md flex flex-col h-full">
+        <!-- Top Bar with Status and Actions -->
+        <div class="flex justify-between items-center p-4 border-b border-gray-100">
           <!-- Active/Inactive Badge -->
           <span
-            class="px-3 py-1 rounded-full text-xs font-semibold
-                   {% if project.is_active %}bg-green-100 text-green-600{% else %}bg-red-100 text-red-600{% endif %}"
+            class="px-3 py-1 rounded-full text-xs font-medium
+                   {% if project.is_active %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}"
           >
             {% if project.is_active %}Active{% else %}Inactive{% endif %}
           </span>
           <!-- Favorite & Pin Buttons -->
           <div class="flex space-x-3">
             <!-- Favorite Button -->
-            <button id="fav-btn-{{ project.pk }}" class="p-1" title="Toggle Favorite">
-              <i class="{% if project.pk in favorite_ids %}fas fa-heart text-red-500{% else %}far fa-heart text-gray-400{% endif %} transition duration-200"></i>
+            <button id="fav-btn-{{ project.pk }}" class="p-1 text-gray-400 hover:text-red-500" title="Toggle Favorite">
+              <i class="{% if project.pk in favorite_ids %}fas fa-heart text-red-500{% else %}far fa-heart{% endif %} transition"></i>
             </button>
             <!-- Pin Button -->
             <button
               onclick="togglePin({{ project.pk }}, this)"
               id="pin-btn-{{ project.pk }}"
-              class="p-1"
+              class="p-1 {% if project.pk in pinned_ids %}text-blue-600{% else %}text-gray-400 hover:text-blue-600{% endif %}"
               title="Toggle Pin"
             >
-              <i class="fas fa-thumbtack {% if project.pk in pinned_ids %}text-blue-600{% else %}text-gray-500{% endif %} transition duration-200"></i>
+              <i class="fas fa-thumbtack transition"></i>
             </button>
           </div>
         </div>
 
-        <!-- Project Title & Date -->
-        <h3 class="text-xl font-semibold mb-1">
-          <!-- Title is clickable -->
-          <a href="{% url 'project-detail' pk=project.pk %}" class="hover:underline" style="color: var(--primary);">
-            {{ project.title }}
-          </a>
-        </h3>
-        <div class="flex items-center text-xs text-gray-500 mb-2">
-          <i class="fas fa-calendar-alt mr-1"></i>
-          <span>
-            {{ project.created_at|date:"M d, Y" }} ({{ project.created_at|timesince }} ago)
-          </span>
+        <!-- Project Content -->
+        <div class="p-4">
+          <!-- Project Title & Date -->
+          <h3 class="text-xl font-semibold mb-2">
+            <a href="{% url 'project-detail' pk=project.pk %}" class="text-blue-600 hover:text-blue-800">
+              {{ project.title }}
+            </a>
+          </h3>
+          <div class="flex items-center text-xs text-gray-500 mb-3">
+            <i class="fas fa-calendar-alt mr-1"></i>
+            <span>{{ project.created_at|date:"M d, Y" }} ({{ project.created_at|timesince }} ago)</span>
+          </div>
+
+          <!-- Categories -->
+          <div class="flex flex-wrap gap-1 mb-3">
+            {% for category in project.category.all %}
+            <span class="px-2 py-1 bg-gray-100 rounded-md text-xs">{{ category.name }}</span>
+            {% empty %}
+            <span class="text-xs text-gray-500">No category</span>
+            {% endfor %}
+          </div>
+
+          <!-- Description -->
+          <div class="mb-4">
+            <p id="desc-{{ project.pk }}" class="text-sm text-gray-600 line-clamp-3">
+              {{ project.description }}
+            </p>
+            <button
+              onclick="toggleDescription({{ project.pk }}, event)"
+              class="text-xs text-blue-500 hover:text-blue-700 mt-1 focus:outline-none"
+            >
+              Read more
+            </button>
+          </div>
+
+          <!-- Roles -->
+          {% if project.required_roles.all %}
+          <div class="mb-4 flex flex-wrap gap-1">
+            {% for role in project.required_roles.all %}
+            <span class="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-md inline-flex items-center">
+              <i class="fas fa-user mr-1"></i> {{ role.name }}
+            </span>
+            {% endfor %}
+          </div>
+          {% endif %}
         </div>
 
-        <!-- Categories -->
-        <div class="flex flex-wrap gap-1 mb-2">
-          {% for category in project.category.all %}
-          <span class="px-2 py-1 bg-gray-100 rounded-full text-xs">{{ category.name }}</span>
-          {% empty %}
-          <span class="text-xs text-gray-500">No category</span>
-          {% endfor %}
-        </div>
+        <!-- Footer Actions -->
+        <div class="mt-auto p-4 bg-gray-50 flex items-center justify-between">
+  {% if project.owner == user %}
+  <form method="POST" action="{% url 'project-toggle' project.pk %}" class="mr-2">
+    {% csrf_token %}
+    <button
+      type="submit"
+      class="px-3 py-1 rounded-md text-xs font-medium transition
+             {% if project.is_active %}bg-red-100 text-red-700 hover:bg-red-200{% else %}bg-green-100 text-green-700 hover:bg-green-200{% endif %}"
+    >
+      {% if project.is_active %}Deactivate{% else %}Activate{% endif %}
+    </button>
+  </form>
+  {% endif %}
 
-        <!-- Description & Roles -->
-        <p id="desc-{{ project.pk }}" class="text-sm text-gray-600 line-clamp-3">
-          {{ project.description }}
-        </p>
-        <button
-          onclick="toggleDescription({{ project.pk }}, event)"
-          class="text-xs text-blue-500 mt-1 focus:outline-none"
-        >
-          Read more
-        </button>
-        {% if project.required_roles.all %}
-        <div class="mt-3 flex flex-wrap gap-1">
-          {% for role in project.required_roles.all %}
-          <span class="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full inline-flex items-center">
-            <i class="fas fa-user mr-1"></i> {{ role.name }}
-          </span>
-          {% endfor %}
-        </div>
-        {% endif %}
+  <a
+    href="{% url 'project-detail' pk=project.pk %}"
+    class="text-sm text-blue-600 hover:text-blue-800 ml-auto"
+  >
+    View Details <i class="fas fa-arrow-right ml-1"></i>
+  </a>
+</div>
 
-        <!-- Toggle Active/Inactive Button (Owner only) -->
-        {% if project.owner == user %}
-        <form method="POST" action="{% url 'project-toggle' project.pk %}" class="mt-3">
-          {% csrf_token %}
-          <button
-            type="submit"
-            class="px-3 py-1 rounded-full text-xs font-medium shadow hover:shadow-md transition
-                   {% if project.is_active %}bg-red-100 text-red-600{% else %}bg-green-100 text-green-600{% endif %}"
-          >
-            {% if project.is_active %}Deactivate{% else %}Activate{% endif %}
-          </button>
-        </form>
-        {% endif %}
-
-        <!-- "View Details" Link -->
-        <div class="mt-3">
-          <a
-            href="{% url 'project-detail' pk=project.pk %}"
-            class="text-sm text-blue-600 hover:underline"
-            style="color: var(--primary);"
-          >
-            View Details
-          </a>
-        </div>
       </div>
       {% empty %}
-      <div class="mb-6 break-inside-avoid p-8 border-dashed border-2 border-gray-300 rounded-2xl text-center">
-        <i class="fas fa-folder-open text-3xl mb-4"></i>
-        <h3 class="text-xl font-semibold mb-2">No projects yet</h3>
-        <p class="text-gray-600 mb-4">Create your first research project and let your creativity shine!</p>
+      <div class="col-span-full p-10 border border-dashed border-gray-300 rounded-xl text-center bg-gray-50">
+        <i class="fas fa-folder-open text-gray-400 text-4xl mb-4"></i>
+        <h3 class="text-xl font-semibold mb-3">No projects yet</h3>
+        <p class="text-gray-600 mb-6">Create your first research project and let your creativity shine!</p>
         <a
           href="{% url 'project-create' %}"
-          class="inline-flex items-center px-5 py-2 rounded-full text-white font-semibold shadow-md hover:shadow-lg transition transform hover:-translate-y-1"
-          style="background: var(--primary);"
+          class="inline-flex items-center px-6 py-3 rounded-lg bg-blue-600 text-white font-medium shadow-sm hover:bg-blue-700 transition"
         >
           <i class="fas fa-plus mr-2"></i> Start Your First Project
         </a>
@@ -252,7 +249,7 @@
         <li>
           <a
             href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}"
-            class="px-3 py-2 border rounded-l hover:bg-gray-100"
+            class="px-4 py-2 border rounded-l-lg text-gray-700 bg-white hover:bg-gray-50 transition"
           >
             <i class="fas fa-chevron-left"></i>
           </a>
@@ -261,7 +258,7 @@
         {% for num in page_obj.paginator.page_range %}
           {% if num == page_obj.number %}
           <li>
-            <span class="px-3 py-2 border-t border-b border-gray-300 bg-blue-50 text-blue-600">
+            <span class="px-4 py-2 border-t border-b bg-blue-50 text-blue-600 font-medium border-gray-200">
               {{ num }}
             </span>
           </li>
@@ -269,7 +266,7 @@
           <li>
             <a
               href="?page={{ num }}&{{ request.GET.urlencode }}"
-              class="px-3 py-2 border hover:bg-gray-100"
+              class="px-4 py-2 border border-gray-200 text-gray-700 hover:bg-gray-50 transition"
             >
               {{ num }}
             </a>
@@ -280,7 +277,7 @@
         <li>
           <a
             href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}"
-            class="px-3 py-2 border rounded-r hover:bg-gray-100"
+            class="px-4 py-2 border rounded-r-lg text-gray-700 bg-white hover:bg-gray-50 transition"
           >
             <i class="fas fa-chevron-right"></i>
           </a>
@@ -309,13 +306,12 @@
         csrfmiddlewaretoken: "{{ csrf_token }}"
       },
       success: function(response) {
-        // Ensure your view returns JSON with keys "success" and "is_favorite"
         if (response.success) {
           if (response.is_favorite) {
-            icon.removeClass("far text-gray-400").addClass("fas text-red-500 animate__animated animate__bounce");
+            icon.removeClass("far").addClass("fas text-red-500 animate__animated animate__heartBeat");
             favorite_ids.push(parseInt(projectId));
           } else {
-            icon.removeClass("fas text-red-500").addClass("far text-gray-400 animate__animated animate__bounce");
+            icon.removeClass("fas text-red-500").addClass("far animate__animated animate__heartBeat");
             const index = favorite_ids.indexOf(parseInt(projectId));
             if (index > -1) {
               favorite_ids.splice(index, 1);
@@ -349,28 +345,28 @@
         if (emptyElem) emptyElem.remove();
         // Create new pinned card
         const newCard = document.createElement('div');
-        newCard.className = 'bg-white rounded-2xl shadow-lg p-5 flex flex-col items-center animate__animated animate__fadeIn';
+        newCard.className = 'bg-white rounded-xl shadow-sm p-6 flex flex-col transition hover:shadow-md';
         newCard.id = `pinned-${projectId}`;
         newCard.innerHTML = `
-          <h3 class="text-lg font-medium text-center mb-2 line-clamp-2">
+          <h3 class="text-lg font-semibold mb-3 line-clamp-2">
             <a href="{% url 'project-detail' pk=0 %}".replace('0', data.project_pk)
-               class="hover:underline" style="color: var(--primary);">
+               class="text-blue-600 hover:text-blue-800">
               ${data.project_title}
             </a>
           </h3>
           <a href="{% url 'project-detail' pk=0 %}".replace('0', data.project_pk)
-             class="text-sm hover:underline mt-1" style="color: var(--primary);">
+             class="text-sm text-blue-600 hover:text-blue-800 mt-auto">
             View Details
           </a>
           <button onclick="togglePin(${data.project_pk}, this)"
-                  class="mt-3 text-xs font-medium text-gray-600 hover:text-gray-800 transition">
-            Unpin
+                  class="mt-4 text-sm text-gray-500 hover:text-gray-700 flex items-center justify-center">
+            <i class="fas fa-thumbtack mr-2"></i> Unpin
           </button>
         `;
         document.getElementById('pinnedProjectsContainer').appendChild(newCard);
 
         if (icon) {
-          icon.classList.remove('text-gray-500');
+          icon.classList.remove('text-gray-400');
           icon.classList.add('text-blue-600');
         }
         showNotification("Project pinned!");
@@ -383,15 +379,15 @@
             // If pinned container is now empty, reinsert empty pinned state
             if (document.getElementById('pinnedProjectsContainer').children.length === 0) {
               const emptyDiv = document.createElement('div');
-              emptyDiv.className = 'text-center p-6 text-gray-500 empty-pinned';
-              emptyDiv.innerHTML = `<i class="fas fa-thumbtack mb-2 text-2xl"></i><p>No pinned projects yet</p>`;
+              emptyDiv.className = 'col-span-full text-center p-10 border border-dashed border-gray-300 rounded-xl bg-gray-50';
+              emptyDiv.innerHTML = `<i class="fas fa-thumbtack text-gray-400 text-3xl mb-3"></i><p class="text-gray-500">No pinned projects yet</p>`;
               document.getElementById('pinnedProjectsContainer').appendChild(emptyDiv);
             }
           }, 1000);
         }
         if (icon) {
           icon.classList.remove('text-blue-600');
-          icon.classList.add('text-gray-500');
+          icon.classList.add('text-gray-400');
         }
         showNotification("Project unpinned!", "#ef4444");
       }
@@ -433,13 +429,16 @@
   }
 
   // Simple notification popup
-  function showNotification(message, bgColor = '#10b981') {
+  function showNotification(message, bgColor = '#3b82f6') {
     const notif = document.createElement('div');
-    notif.className = 'fixed top-4 right-4 p-4 rounded-full shadow-lg text-white animate__animated animate__fadeIn';
+    notif.className = 'fixed bottom-4 right-4 p-4 rounded-lg shadow-lg text-white animate__animated animate__fadeIn';
     notif.style.background = bgColor;
     notif.innerText = message;
     document.body.appendChild(notif);
-    setTimeout(() => { notif.remove(); }, 2000);
+    setTimeout(() => {
+      notif.classList.add('animate__fadeOut');
+      setTimeout(() => { notif.remove(); }, 500);
+    }, 2000);
   }
 
   // Filter Functions

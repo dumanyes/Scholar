@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 
 from users import views
-from users.views import CustomLoginView, ResetPasswordView, ChangePasswordView
+from users.views import CustomLoginView
 from users.forms import LoginForm
 
 urlpatterns = [
@@ -29,7 +29,7 @@ urlpatterns = [
 
     path('logout/', auth_views.LogoutView.as_view(template_name='users/logout.html'), name='logout'),
 
-    path('password-reset/', ResetPasswordView.as_view(), name='password_reset'),
+    # path('password-reset/', ResetPasswordView.as_view(), name='password_reset'),
 
     path('password-reset-confirm/<uidb64>/<token>/',
          auth_views.PasswordResetConfirmView.as_view(template_name='users/password_reset_confirm.html'),
@@ -39,7 +39,7 @@ urlpatterns = [
          auth_views.PasswordResetCompleteView.as_view(template_name='users/password_reset_complete.html'),
          name='password_reset_complete'),
 
-    path('password-change/', ChangePasswordView.as_view(), name='password_change'),
+    # path('password-change/', ChangePasswordView.as_view(), name='password_change'),
 
     path('orcid/authorize/', views.orcid_authorize, name='orcid-authorize'),
     path('orcid/callback/', views.get_orcid_id_from_orcid_oauth, name='orcid-callback'),

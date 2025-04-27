@@ -59,6 +59,17 @@ class Profile(models.Model):
     # Updated field to prevent symmetrical ManyToMany warning
     related_projects = models.ManyToManyField('self', symmetrical=False, blank=True)
 
+    allow_project_invites = models.BooleanField(default=True)
+    email_notifications = models.BooleanField(default=True)
+    notify_on_application = models.BooleanField(default=True)
+    notify_on_application_status_change = models.BooleanField(default=True)
+    notify_on_chat_message = models.BooleanField(default=True)
+    preferred_language = models.CharField(max_length=10, choices=[
+        ('en', 'English'),
+        ('ru', 'Русский'),
+        ('kk', 'Қазақша'),
+    ], default='en')
+
     def __str__(self):
         return f"{self.user.username}'s Profile"
 

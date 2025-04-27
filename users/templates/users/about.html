@@ -1,34 +1,36 @@
 {% extends "users/base.html" %}
-{% block title %}About ScholarHub{% endblock title %}
+{% load i18n %}
+
+{% block title %}{% trans "About ScholarHub" %}{% endblock title %}
 
 {% block content %}
 
 <!-- Hero Section -->
 <section class="py-20 bg-paper">
   <div class="container mx-auto text-center">
-    <h1 class="text-4xl md:text-5xl font-bold mb-4 text-primary">About ScholarHub</h1>
+    <h1 class="text-4xl md:text-5xl font-bold mb-4 text-primary">{% trans "About ScholarHub" %}</h1>
     <p class="text-lg text-text-light mb-8">
-      Connecting researchers, students, and professionals across the globe with AI-powered tools and smart collaboration.
+      {% trans "Connecting researchers, students, and professionals across the globe with AI-powered tools and smart collaboration." %}
     </p>
-    <a href="{% url 'users-register' %}" class="btn-primary">Join Our Community</a>
+    <a href="{% url 'users-register' %}" class="btn-primary">{% trans "Join Our Community" %}</a>
   </div>
 </section>
 
 <!-- Mission & Vision Section -->
 <section class="py-16 bg-background">
   <div class="container mx-auto">
-    <h2 class="text-3xl md:text-4xl font-bold text-center text-primary mb-12">Our Mission & Vision</h2>
+    <h2 class="text-3xl md:text-4xl font-bold text-center text-primary mb-12">{% trans "Our Mission & Vision" %}</h2>
     <div class="grid md:grid-cols-2 gap-8">
       <div class="card p-6">
-        <h3 class="text-xl font-bold text-primary mb-3">Our Mission</h3>
+        <h3 class="text-xl font-bold text-primary mb-3">{% trans "Our Mission" %}</h3>
         <p class="text-text-light">
-          To break down geographic and disciplinary barriers by offering an AI-powered matching system and a dynamic project marketplace—connecting researchers based on shared interests and expertise.
+          {% trans "To break down geographic and disciplinary barriers by offering an AI-powered matching system and a dynamic project marketplace—connecting researchers based on shared interests and expertise." %}
         </p>
       </div>
       <div class="card p-6">
-        <h3 class="text-xl font-bold text-primary mb-3">Our Vision</h3>
+        <h3 class="text-xl font-bold text-primary mb-3">{% trans "Our Vision" %}</h3>
         <p class="text-text-light">
-          To transform the global research community through interdisciplinary collaborations, accelerating scientific breakthroughs and empowering innovation.
+          {% trans "To transform the global research community through interdisciplinary collaborations, accelerating scientific breakthroughs and empowering innovation." %}
         </p>
       </div>
     </div>
@@ -38,109 +40,100 @@
 <!-- Our Story in Three Languages -->
 <section class="py-16 bg-paper">
   <div class="container mx-auto">
-    <h2 class="text-3xl md:text-4xl font-bold text-center text-primary mb-12">Our Story</h2>
+    <h2 class="text-3xl md:text-4xl font-bold text-center text-primary mb-12">{% trans "Our Story" %}</h2>
     <p class="text-center text-text-light max-w-2xl mx-auto mb-8">
-      ScholarHub is designed to connect students, researchers, and professionals by matching interests, expertise, and ongoing projects. Our story is told in three languages.
+      {% trans "ScholarHub is designed to connect students, researchers, and professionals by matching interests, expertise, and ongoing projects. Our story is told in three languages." %}
     </p>
     <div class="grid md:grid-cols-3 gap-8">
-      <!-- English -->
       <div class="card p-6 text-center">
-        <h3 class="text-xl font-bold text-primary mb-3">English</h3>
-        <p class="text-text-light">
-          ScholarHub is a website designed to connect students, researchers, and professionals based on their interests, expertise, and ongoing projects.
-        </p>
+        <h3 class="text-xl font-bold text-primary mb-3">{% trans "English" %}</h3>
+        <p class="text-text-light">{% trans "ScholarHub is a website designed to connect students, researchers, and professionals based on their interests, expertise, and ongoing projects." %}</p>
       </div>
-      <!-- Russian -->
       <div class="card p-6 text-center">
-        <h3 class="text-xl font-bold text-primary mb-3">Русский</h3>
-        <p class="text-text-light">
-          ScholarHub — это веб-сайт, предназначенный для соединения студентов, исследователей и профессионалов на основе их интересов, экспертизы и текущих проектов.
-        </p>
+        <h3 class="text-xl font-bold text-primary mb-3">{% trans "Russian" %}</h3>
+        <p class="text-text-light">{% trans "ScholarHub — это веб-сайт, предназначенный для соединения студентов, исследователей и профессионалов на основе их интересов, экспертизы и текущих проектов." %}</p>
       </div>
-      <!-- Kazakh -->
       <div class="card p-6 text-center">
-        <h3 class="text-xl font-bold text-primary mb-3">Қазақша</h3>
-        <p class="text-text-light">
-          ScholarHub — бұл студенттерді, зерттеушілер мен мамандарды олардың қызығушылықтары, тәжірибесі және ағымдағы жобалары негізінде байланыстыратын веб-сайт.
-        </p>
+        <h3 class="text-xl font-bold text-primary mb-3">{% trans "Kazakh" %}</h3>
+        <p class="text-text-light">{% trans "ScholarHub — бұл студенттерді, зерттеушілер мен мамандарды олардың қызығушылықтары, тәжірибесі және ағымдағы жобалары негізінде байланыстыратын веб-сайт." %}</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Roadmap & Timeline Section -->
+<!-- Roadmap -->
 <section class="py-16 bg-background">
   <div class="container mx-auto">
-    <h2 class="text-3xl md:text-4xl font-bold text-center text-primary mb-12">Development Roadmap</h2>
+    <h2 class="text-3xl md:text-4xl font-bold text-center text-primary mb-12">{% trans "Development Roadmap" %}</h2>
     <div class="grid md:grid-cols-3 gap-8">
       <div class="card p-6">
-        <h3 class="text-xl font-bold text-primary mb-4">Phase 1: Concept & Planning</h3>
+        <h3 class="text-xl font-bold text-primary mb-4">{% trans "Phase 1: Concept & Planning" %}</h3>
         <ul class="list-disc list-inside text-text-light">
-          <li>Project conceptualization & requirements</li>
-          <li>Wireframing & prototyping</li>
-          <li>Database & API planning</li>
+          <li>{% trans "Project conceptualization & requirements" %}</li>
+          <li>{% trans "Wireframing & prototyping" %}</li>
+          <li>{% trans "Database & API planning" %}</li>
         </ul>
       </div>
       <div class="card p-6">
-        <h3 class="text-xl font-bold text-primary mb-4">Phase 2: Development</h3>
+        <h3 class="text-xl font-bold text-primary mb-4">{% trans "Phase 2: Development" %}</h3>
         <ul class="list-disc list-inside text-text-light">
-          <li>Core feature implementation</li>
-          <li>AI-powered matching system</li>
-          <li>Dynamic project marketplace & resource hub</li>
+          <li>{% trans "Core feature implementation" %}</li>
+          <li>{% trans "AI-powered matching system" %}</li>
+          <li>{% trans "Dynamic project marketplace & resource hub" %}</li>
         </ul>
       </div>
       <div class="card p-6">
-        <h3 class="text-xl font-bold text-primary mb-4">Phase 3: Testing & Deployment</h3>
+        <h3 class="text-xl font-bold text-primary mb-4">{% trans "Phase 3: Testing & Deployment" %}</h3>
         <ul class="list-disc list-inside text-text-light">
-          <li>User acceptance testing</li>
-          <li>Performance optimization</li>
-          <li>Final deployment & monitoring</li>
+          <li>{% trans "User acceptance testing" %}</li>
+          <li>{% trans "Performance optimization" %}</li>
+          <li>{% trans "Final deployment & monitoring" %}</li>
         </ul>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Our Team Section -->
+<!-- Team -->
 <section class="py-16 bg-paper">
   <div class="container mx-auto">
-    <h2 class="text-3xl md:text-4xl font-bold text-center text-primary mb-12">Our Team</h2>
+    <h2 class="text-3xl md:text-4xl font-bold text-center text-primary mb-12">{% trans "Our Team" %}</h2>
     <div class="grid md:grid-cols-3 gap-8">
       <div class="card p-6 text-center">
         <div class="w-16 h-16 bg-primary bg-opacity-10 rounded-full mx-auto mb-4 flex items-center justify-center">
           <i class="fas fa-briefcase text-primary text-2xl"></i>
         </div>
         <h3 class="text-xl font-bold text-primary mb-2">Zhanar Mazhit</h3>
-        <p class="text-text-light">Project Manager & ML Engineer</p>
+        <p class="text-text-light">{% trans "Project Manager & ML Engineer" %}</p>
       </div>
       <div class="card p-6 text-center">
         <div class="w-16 h-16 bg-primary bg-opacity-10 rounded-full mx-auto mb-4 flex items-center justify-center">
           <i class="fas fa-code text-primary text-2xl"></i>
         </div>
         <h3 class="text-xl font-bold text-primary mb-2">Duman Yessenbay &amp; Alikhan Nurbek</h3>
-        <p class="text-text-light">Backend Developers</p>
+        <p class="text-text-light">{% trans "Backend Developers" %}</p>
       </div>
       <div class="card p-6 text-center">
         <div class="w-16 h-16 bg-primary bg-opacity-10 rounded-full mx-auto mb-4 flex items-center justify-center">
           <i class="fas fa-laptop-code text-primary text-2xl"></i>
         </div>
         <h3 class="text-xl font-bold text-primary mb-2">Omargali Tlepbergenov &amp; Rakhman Aidaruly</h3>
-        <p class="text-text-light">Frontend Developers</p>
+        <p class="text-text-light">{% trans "Frontend Developers" %}</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Partners Section -->
+<!-- Partners -->
 <section class="py-16 bg-background">
   <div class="container mx-auto">
-    <h2 class="text-2xl font-bold text-center text-primary mb-12">Trusted by Leading Institutions</h2>
+    <h2 class="text-2xl font-bold text-center text-primary mb-12">{% trans "Trusted by Leading Institutions" %}</h2>
     <div class="flex flex-wrap justify-center items-center gap-8">
       <img src="/media/img_12.png" alt="Partner Logo" class="w-32 h-auto">
-      <div class="w-32 h-12 bg-gray-200 rounded flex items-center justify-center">University 2</div>
-      <div class="w-32 h-12 bg-gray-200 rounded flex items-center justify-center">Institute 3</div>
-      <div class="w-32 h-12 bg-gray-200 rounded flex items-center justify-center">Research Lab 4</div>
-      <div class="w-32 h-12 bg-gray-200 rounded flex items-center justify-center">Organization 5</div>
+      <div class="w-32 h-12 bg-gray-200 rounded flex items-center justify-center">{% trans "University 2" %}</div>
+      <div class="w-32 h-12 bg-gray-200 rounded flex items-center justify-center">{% trans "Institute 3" %}</div>
+      <div class="w-32 h-12 bg-gray-200 rounded flex items-center justify-center">{% trans "Research Lab 4" %}</div>
+      <div class="w-32 h-12 bg-gray-200 rounded flex items-center justify-center">{% trans "Organization 5" %}</div>
     </div>
   </div>
 </section>

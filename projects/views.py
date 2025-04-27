@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy, reverse
 from django.views import View
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, UpdateView, DeleteView, CreateView, ListView
 from django.contrib import messages
@@ -79,18 +80,28 @@ class MarketplaceView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         queryset = Project.objects.filter(is_active=True)
+
         # --- Filter by Clickable Categories ---
         categories_param = self.request.GET.get('categories', '')
         if categories_param:
             cat_ids = [cid.strip() for cid in categories_param.split(',') if cid.strip()]
             if cat_ids:
                 queryset = queryset.filter(category__id__in=cat_ids).distinct()
+
         # --- Filter by Skills ---
         skills_param = self.request.GET.get('skills', '')
         if skills_param:
             skill_names = [s.strip() for s in skills_param.split('||') if s.strip()]
             if skill_names:
                 queryset = queryset.filter(skills_required__name__in=skill_names).distinct()
+
+        # --- Filter by Language ---
+        languages_param = self.request.GET.get('languages', '')
+        if languages_param:
+            language_ids = [lid.strip() for lid in languages_param.split(',') if lid.strip()]
+            if language_ids:
+                queryset = queryset.filter(languages__id__in=language_ids).distinct()
+
         # --- Text Search Filtering ---
         q = self.request.GET.get('q', '')
         if q:
@@ -100,6 +111,7 @@ class MarketplaceView(LoginRequiredMixin, ListView):
                 Q(project_mission__icontains=q) |
                 Q(project_objectives__icontains=q)
             )
+
         # --- Time-Based Filtering ---
         time_filter = self.request.GET.get('time_filter', '')
         if time_filter:
@@ -121,6 +133,7 @@ class MarketplaceView(LoginRequiredMixin, ListView):
                 date_to = self.request.GET.get('date_to')
                 if date_from and date_to:
                     queryset = queryset.filter(created_at__range=[date_from, date_to])
+
         # --- Ordering ---
         time_sort = self.request.GET.get('time_sort', '')
         if time_sort == 'recent':
@@ -140,51 +153,103 @@ class MarketplaceView(LoginRequiredMixin, ListView):
                 return projects_with_score
             else:
                 queryset = queryset.order_by('-created_at')
+
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        unread_notifications = self.request.user.notifications.filter(read=False).order_by('-created_at')
-        notifications_count = unread_notifications.count()
+        request = self.request
+
+        unread_notifications = request.user.notifications.filter(read=False).order_by('-created_at')
         unread_chat_count = ChatMessage.objects.filter(
-            room__participants=self.request.user,
-            read=False
-        ).exclude(sender=self.request.user).count()
-        favorite_ids = self.request.user.favorite_projects.values_list('project_id', flat=True)
+            room__participants=request.user, read=False
+        ).exclude(sender=request.user).count()
+
         context.update({
             'all_categories': Category.objects.all(),
-            'user_skills': {s.name.lower() for s in self.request.user.profile.skills.all()},
-            'selected_categories': self.request.GET.get('categories', '').split(','),
-            'selected_skills': self.request.GET.get('skills', '').split('||'),
-            'current_query': self.request.GET.get('q', ''),
-            'time_sort': self.request.GET.get('time_sort', ''),
-            'time_filter': self.request.GET.get('time_filter', ''),
-            'date_from': self.request.GET.get('date_from', ''),
-            'date_to': self.request.GET.get('date_to', ''),
+            'user_skills': {s.name.lower() for s in request.user.profile.skills.all()},
+            'selected_categories': request.GET.get('categories', '').split(','),
+            'selected_skills': request.GET.get('skills', '').split('||'),
+            'selected_languages': request.GET.get('languages', '').split(','),
+            'current_query': request.GET.get('q', ''),
+            'time_sort': request.GET.get('time_sort', ''),
+            'time_filter': request.GET.get('time_filter', ''),
+            'date_from': request.GET.get('date_from', ''),
+            'date_to': request.GET.get('date_to', ''),
             'notifications': unread_notifications,
-            'notifications_count': notifications_count,
-            'chat_rooms': ChatRoom.objects.filter(participants=self.request.user).order_by('-created_at'),
+            'notifications_count': unread_notifications.count(),
+            'chat_rooms': ChatRoom.objects.filter(participants=request.user).order_by('-created_at'),
             'unread_chat_count': unread_chat_count,
-            'favorite_ids': list(favorite_ids)
+            'favorite_ids': list(request.user.favorite_projects.values_list('project_id', flat=True)),
+            'skills': Skill.objects.all(),
+            'languages': Language.objects.all(),
         })
-        context['skills'] = Skill.objects.all()
-        # Recommended projects section
-        recommended = recommend_projects_for_user(self.request.user, top_n=9)
-        for project in recommended:
-            user_app = project.applications.filter(applicant=self.request.user).first()
-            project.application_status = user_app.status if user_app else None
-        context['recommended_projects'] = recommended
-        if not self.request.user.profile.categories.exists():
+
+        recommended = recommend_projects_for_user(request.user)
+
+        if not request.user.profile.categories.exists():
             context['recommended_projects'] = []
-            context['recommended_projects_message'] = (
-                "To see the recommended projects, you need to indicate your preferred research areas"
-            )
-        else:
-            recommended = recommend_projects_for_user(self.request.user, top_n=9)
-            for project in recommended:
-                user_app = project.applications.filter(applicant=self.request.user).first()
-                project.application_status = user_app.status if user_app else None
-            context['recommended_projects'] = recommended
+            context['recommended_projects_message'] = "To see recommended projects, indicate your research areas."
+            return context
+
+        categories_param = request.GET.get('categories', '')
+        skills_param = request.GET.get('skills', '')
+        languages_param = request.GET.get('languages', '')
+        q = request.GET.get('q', '')
+        time_filter = request.GET.get('time_filter', '')
+        date_from = request.GET.get('date_from', '')
+        date_to = request.GET.get('date_to', '')
+
+        if categories_param:
+            cat_ids = [cid.strip() for cid in categories_param.split(',') if cid.strip()]
+            recommended = [p for p in recommended if any(str(cat.id) in cat_ids for cat in p.category.all())]
+
+        if skills_param:
+            skill_names = [s.strip() for s in skills_param.split('||') if s.strip()]
+            recommended = [p for p in recommended if any(skill.name in skill_names for skill in p.skills_required.all())]
+
+        if languages_param:
+            lang_ids = [lid.strip() for lid in languages_param.split(',') if lid.strip()]
+            recommended = [p for p in recommended if any(str(lang.id) in lang_ids for lang in p.languages.all())]
+
+        if q:
+            recommended = [p for p in recommended if q.lower() in (
+                (p.title or '') + (p.description or '') + (p.project_mission or '') + (p.project_objectives or '')
+            ).lower()]
+
+        if time_filter:
+            now = timezone.now()
+            if time_filter == 'last_24_hours':
+                cutoff = now - timedelta(days=1)
+                recommended = [p for p in recommended if p.created_at >= cutoff]
+            elif time_filter == 'last_week':
+                cutoff = now - timedelta(weeks=1)
+                recommended = [p for p in recommended if p.created_at >= cutoff]
+            elif time_filter == 'last_month':
+                cutoff = now - timedelta(days=30)
+                recommended = [p for p in recommended if p.created_at >= cutoff]
+            elif time_filter == 'last_year':
+                cutoff = now - timedelta(days=365)
+                recommended = [p for p in recommended if p.created_at >= cutoff]
+            elif time_filter == 'custom' and date_from and date_to:
+                recommended = [p for p in recommended if date_from <= p.created_at.date().isoformat() <= date_to]
+
+        for project in recommended:
+            app = project.applications.filter(applicant=request.user).first()
+            project.application_status = app.status if app else None
+
+        recommended_paginator = Paginator(recommended, 10)
+        page = self.request.GET.get('rec_page')
+        try:
+            recommended_page = recommended_paginator.page(page)
+        except PageNotAnInteger:
+            recommended_page = recommended_paginator.page(1)
+        except EmptyPage:
+            recommended_page = recommended_paginator.page(recommended_paginator.num_pages)
+
+        context['recommended_projects'] = recommended_page
+        context['recommended_is_paginated'] = recommended_paginator.num_pages > 1
+
         return context
 
 
@@ -358,18 +423,42 @@ class ApplyProjectView(View):
             application.project = project
             application.applicant = request.user
             application.status = 'PENDING'
-
-            # ✅ Must assign these manually
             application.resume = form.cleaned_data.get('resume')
             application.resume_link = form.cleaned_data.get('resume_link')
-
-            print("DEBUG RESUME FILE:", application.resume)  # Optional debug
-            print("DEBUG RESUME LINK:", application.resume_link)
-
             application.save()
 
-            # Optional: check if file was saved
-            print("Saved File URL:", application.resume.url if application.resume else 'No file')
+            # ✅ Notify applicant (self)
+            Notification.objects.create(
+                user=request.user,
+                message=f"You have applied to the project '{project.title}'.",
+                link=reverse('project-detail', kwargs={'pk': project.pk})
+            )
+
+            # ✅ Notify project owner
+            Notification.objects.create(
+                user=project.owner,
+                message=f"{request.user.username} has applied to your project '{project.title}'.",
+                link=reverse('project-detail', kwargs={'pk': project.pk})
+            )
+
+            # ✅ WebSocket real-time update for both users
+            from asgiref.sync import async_to_sync
+            from channels.layers import get_channel_layer
+
+            channel_layer = get_channel_layer()
+            for user in [request.user, project.owner]:
+                async_to_sync(channel_layer.group_send)(
+                    f"marketplace_{user.id}",
+                    {
+                        "type": "send_update",
+                        "data": {
+                            "notifications_count": Notification.objects.filter(user=user, read=False).count(),
+                            "unread_chat_count": ChatMessage.objects.filter(
+                                room__participants=user, read=False
+                            ).exclude(sender=user).count()
+                        }
+                    }
+                )
 
             messages.success(request, 'Your application has been submitted successfully!')
             return redirect('project-detail', pk=project.id)
@@ -687,8 +776,9 @@ from projects.recommendation import recommend_projects_for_user
 @login_required
 def recommended_projects(request):
     user = request.user
-    recommended = recommend_projects_for_user(user, top_n=5)
+    recommended = recommend_projects_for_user(user)
     return render(request, 'marketplace', {'recommended_projects': recommended})
+
 
 
 def user_profile(request, username):
@@ -832,7 +922,7 @@ def search_skills(request):
 
 @login_required
 def view_all_recommended(request):
-    recommended = recommend_projects_for_user(request.user, top_n=100)
+    recommended = recommend_projects_for_user(request.user)
     context = {'recommended_projects': recommended}
     return render(request, 'marketplace/view-all-recommended.html', context)
 

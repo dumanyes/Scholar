@@ -72,6 +72,20 @@ CHANNEL_LAYERS = {
          },
     },
 }
+USE_I18N = True
+USE_L10N = True
+
+LANGUAGE_CODE = 'en-us'
+
+LANGUAGES = [
+    ('en', 'English'),
+    ('ru', 'Russian'),
+    ('kk', 'Kazakh'),
+]
+
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
 
 
 CITIES_LIGHT_TRANSLATION_LANGUAGES = ['en', 'ru']  # Языки для переводов
@@ -91,6 +105,10 @@ MIDDLEWARE = [
     'social_django.middleware.SocialAuthExceptionMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'users.middleware.UpdateLastOnlineMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'users.middleware.ProfileLanguageMiddleware',
+
+
 ]
 
 ROOT_URLCONF = 'user_management.urls'
@@ -117,12 +135,12 @@ WSGI_APPLICATION = 'user_management.wsgi.application'
 
 # Database
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 # DATABASE_URL = "postgresql://postgres:hnzfXICblatumDEsKpTKIYSgunxotHzn@interchange.proxy.rlwy.net:39796/railway"
 # DATABASES = {
 #     "default": dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
@@ -208,15 +226,23 @@ LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = 'login'
 
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.zoho.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'info@scholarhub.kz'
+EMAIL_HOST_PASSWORD = 'jMrM1Vb7gRq5'  # скопируй сюда тот пароль, который ты только что сгенерировал
+DEFAULT_FROM_EMAIL = 'ScholarHub <info@scholarhub.kz>'
+
 
 # Email configurations (if you use email for registration/reset)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_USE_TLS = True
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'dopoinaiyq@gmail.com'
-EMAIL_HOST_PASSWORD = 'uyvaselsniqveqlo'
-DEFAULT_FROM_EMAIL = 'dopoinaiyq@gmail.com'
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_USE_TLS = True
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER = 'dopoinaiyq@gmail.com'
+# EMAIL_HOST_PASSWORD = 'uyvaselsniqveqlo'
+# DEFAULT_FROM_EMAIL = 'dopoinaiyq@gmail.com'
 # Session settings
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 30
 

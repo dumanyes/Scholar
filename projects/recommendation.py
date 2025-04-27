@@ -57,23 +57,23 @@ def rank_projects_with_faiss(projects, user):
     ordered_ids = [project_ids[i] for i in indices[0]]
     return ordered_ids, faiss_scores
 
-def recommend_projects_for_user(user, top_n=5):
+def recommend_projects_for_user(user):
     """
-    Recommend projects for the given user.
-    Returns the top N recommended projects with an attached FAISS matching score.
+    Recommend all active projects for the given user, sorted by similarity.
+    Each project will have an attribute 'faiss_score' representing the matching percentage.
     """
     projects = Project.objects.filter(is_active=True)
     projects_list = list(projects)
     if not projects_list:
         return []
     ordered_ids, faiss_scores = rank_projects_with_faiss(projects_list, user)
-    top_ids = ordered_ids[:top_n]
-    recommended_projects = Project.objects.filter(id__in=top_ids)
-    # Preserve the FAISS ordering and attach the score to each project.
-    recommended_projects = sorted(recommended_projects, key=lambda p: top_ids.index(p.id))
+    recommended_projects = Project.objects.filter(id__in=ordered_ids)
+    # Preserve FAISS ordering
+    recommended_projects = sorted(recommended_projects, key=lambda p: ordered_ids.index(p.id))
     for project in recommended_projects:
         project.faiss_score = faiss_scores.get(project.id, 0)
     return recommended_projects
+
 
 
 

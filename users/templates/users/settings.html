@@ -1,0 +1,116 @@
+{% extends "users/base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans Settings %}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg mt-8">
+    <h2 class="text-3xl font-bold text-gray-800 mb-6 pb-4 border-b border-gray-200">{% trans "Account Settings" %}</h2>
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="space-y-6">
+
+            <!-- Project Invitations -->
+            <div class="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:border-blue-200 transition-colors">
+                <div class="space-y-1">
+                    <label for="allow_project_invites" class="text-gray-700 font-semibold">{% trans "Project Invitations" %}</label>
+                    <p class="text-sm text-gray-500">{% trans "Allow other users to invite you to collaborate on projects" %}</p>
+                </div>
+                <div class="relative inline-block w-12 mr-2 align-middle">
+                    <input type="checkbox" name="allow_project_invites" id="allow_project_invites"
+                           class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-2 border-gray-300 appearance-none cursor-pointer"
+                           {% if profile.allow_project_invites %}{% trans "checked" %}{% endif %}>
+                    <label for="allow_project_invites" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                </div>
+            </div>
+
+            <!-- Email Notifications -->
+            <div class="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:border-blue-200 transition-colors">
+                <div class="space-y-1">
+                    <label for="email_notifications" class="text-gray-700 font-semibold">{% trans "Email Notifications" %}</label>
+                    <p class="text-sm text-gray-500">{% trans "Receive project updates and invitations via email" %}</p>
+                </div>
+                <div class="relative inline-block w-12 mr-2 align-middle">
+                    <input type="checkbox" name="email_notifications" id="email_notifications"
+                           class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-2 border-gray-300 appearance-none cursor-pointer"
+                           {% if profile.email_notifications %}{% trans "checked" %}{% endif %}>
+                    <label for="email_notifications" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                </div>
+            </div>
+
+            <!-- Notify on Application to My Project -->
+            <div class="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:border-blue-200 transition-colors">
+                <div class="space-y-1">
+                    <label for="notify_on_application" class="text-gray-700 font-semibold">{% trans "New Application Alerts"  %}</label>
+                    <p class="text-sm text-gray-500">{% trans "Notify me when someone applies to my project" %}</p>
+                </div>
+                <div class="relative inline-block w-12 mr-2 align-middle">
+                    <input type="checkbox" name="notify_on_application" id="notify_on_application"
+                           class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-2 border-gray-300 appearance-none cursor-pointer"
+                           {% if profile.notify_on_application %}{% trans "checked" %}{% endif %}>
+                    <label for="notify_on_application" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                </div>
+            </div>
+
+            <!-- Notify on Application Status Change -->
+            <div class="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:border-blue-200 transition-colors">
+                <div class="space-y-1">
+                    <label for="notify_on_application_status_change" class="text-gray-700 font-semibold">{% trans "Application Status Updates" %} </label>
+                    <p class="text-sm text-gray-500">{% trans "Notify me when my application status is updated" %}</p>
+                </div>
+                <div class="relative inline-block w-12 mr-2 align-middle">
+                    <input type="checkbox" name="notify_on_application_status_change" id="notify_on_application_status_change"
+                           class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-2 border-gray-300 appearance-none cursor-pointer"
+                           {% if profile.notify_on_application_status_change %}{% trans "checked" %}{% endif %}>
+                    <label for="notify_on_application_status_change" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                </div>
+            </div>
+
+            <!-- Chat Notifications -->
+            <div class="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:border-blue-200 transition-colors">
+                <div class="space-y-1">
+                    <label for="notify_on_chat_message" class="text-gray-700 font-semibold">{% trans "Chat Message Alerts" %}</label>
+                    <p class="text-sm text-gray-500">{% trans "Notify me when someone sends me a message" %}</p>
+                </div>
+                <div class="relative inline-block w-12 mr-2 align-middle">
+                    <input type="checkbox" name="notify_on_chat_message" id="notify_on_chat_message"
+                           class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-2 border-gray-300 appearance-none cursor-pointer"
+                           {% if profile.notify_on_chat_message %}{% trans "checked" %}{% endif %}>
+                    <label for="notify_on_chat_message" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                </div>
+            </div>
+
+            <!-- Preferred Language -->
+            <div>
+                <label for="preferred_language" class="block text-gray-700 font-semibold mb-2">{% trans "Preferred Language" %}</label>
+                <select name="preferred_language" id="preferred_language" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    <option value="en" {% if profile.preferred_language == 'en' %}selected{% endif %}>English</option>
+                    <option value="ru" {% if profile.preferred_language == 'ru' %}selected{% endif %}>Русский</option>
+                    <option value="kk" {% if profile.preferred_language == 'kk' %}selected{% endif %}>Қазақша</option>
+                </select>
+            </div>
+
+        </div>
+
+        <button type="submit"
+                class="mt-8 w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            {% trans "Save Changes"%}
+        </button>
+    </form>
+</div>
+
+<style>
+.toggle-checkbox:checked {
+    transform: translateX(100%);
+    border-color: #3B82F6;
+}
+.toggle-checkbox:checked + .toggle-label {
+    background-color: #3B82F6;
+}
+</style>
+{% endblock %}

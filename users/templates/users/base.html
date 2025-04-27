@@ -1,415 +1,509 @@
+
 <!doctype html>
-<html lang="en">
+<html lang="en" xmlns:x-transition="http://www.w3.org/1999/xhtml">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <link rel="icon" href="/media/img_8.png" type="image/x-icon">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Nunito+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <title>{% block title %}ScholarHub{% endblock %}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="icon" href="/media/img_8.png" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Nunito+Sans:wght@300;400;600;700&display=swap"
+          rel="stylesheet">
 
-  <style>
-    :root {
-      --primary: #1A365D;
-      --primary-light: #2D4A7A;
-      --secondary: #F0B429;
-      --tertiary: #48BB78;
-      --background: #F7FAFC;
-      --paper: #FFFFFF;
-      --text: #2D3748;
-      --text-light: #718096;
-      --border: #E2E8F0;
+    {% load static %}
+
+    <title>{% block title %}ScholarHub{% endblock %}</title>
+    <style>
+        :root {
+            /* Обновленный основной цвет */
+            --primary: #2C3AD1;       /* Новый светлый синий цвет */
+            --primary-light: #2D4A7A; /* Легкий оттенок синего */
+            --secondary: #F0B429;     /* Золотой акцент */
+            --tertiary: #48BB78;      /* Мягкий зеленый */
+            --background: #F7FAFC;    /* Оттенок белого */
+            --paper: #FFFFFF;         /* Чисто белый */
+            --text: #2D3748;          /* Темно-серый для текста */
+            --text-light: #718096;    /* Средний серый для второстепенного текста */
+            --border: #E2E8F0;        /* Светло-серый для границ */
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            font-family: 'Nunito Sans', sans-serif;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Cormorant Garamond', serif;
+            color: var(--primary);
+            letter-spacing: -0.02em;
+            font-weight: 600;
+        }
+
+        .nav-bg {
+            background-color: var(--paper);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .brand-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 0.03em;
+        }
+
+        .brand-accent {
+            color: var(--secondary);
+        }
+
+        .nav-link {
+            color: var(--text);
+            font-weight: 600;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: var(--secondary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(45, 55, 72, 0.1);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(45, 55, 72, 0.15);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--primary);
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .card {
+            background-color: var(--paper);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .prose {
+            max-width: 70ch;
+            font-size: 1.05rem;
+            color: var(--text);
+        }
+
+        .prose h2 {
+            margin: 2rem 0 1rem;
+            color: var(--primary);
+        }
+
+        .prose p {
+            margin-bottom: 1.25rem;
+            color: var(--text);
+        }
+
+        .footer-bg {
+        background-color: #1d2978;
+        color: white;
     }
 
-    body {
-      background-color: var(--background);
-      color: var(--text);
-      font-family: 'Nunito Sans', sans-serif;
-      line-height: 1.6;
-    }
+        .footer-heading {
+            color: white;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
 
-    h1, h2, h3, h4, h5, h6 {
-      font-family: 'Cormorant Garamond', serif;
-      color: var(--primary);
-      letter-spacing: -0.02em;
-      font-weight: 600;
-    }
+        .footer-link {
+            color: rgba(255, 255, 255, 0.8);
+            transition: color 0.2s, transform 0.2s;
+            display: inline-block;
+        }
 
-    .nav-bg {
-      background-color: var(--paper);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    }
+        .footer-link:hover {
+            color: var(--secondary);
+            transform: translateX(3px);
+        }
 
-    .brand-logo {
-      font-family: 'Cormorant Garamond', serif;
-      font-weight: 700;
-      color: var(--primary);
-      letter-spacing: 0.03em;
-    }
+        .social-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
 
-    .brand-accent {
-      color: var(--secondary);
-    }
+        .social-icon:hover {
+            background-color: var(--secondary);
+            transform: translateY(-3px);
+        }
 
-    .nav-link {
-      color: var(--text);
-      font-weight: 600;
-      position: relative;
-      transition: color 0.3s;
-    }
+        .alert {
+            border-left: 4px solid var(--tertiary);
+            background-color: rgba(72, 187, 120, 0.1);
+        }
 
-    .nav-link::after {
-      content: '';
-      position: absolute;
-      width: 0;
-      height: 2px;
-      bottom: -4px;
-      left: 0;
-      background-color: var(--secondary);
-      transition: width 0.3s ease;
-    }
+        .decoration-dot {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(240, 180, 41, 0.15) 0%, rgba(240, 180, 41, 0) 70%);
+            z-index: -1;
+        }
+    </style>
 
-    .nav-link:hover {
-      color: var(--primary);
-    }
 
-    .nav-link:hover::after {
-      width: 100%;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-      color: white;
-      font-weight: 600;
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      transition: all 0.3s;
-      box-shadow: 0 4px 6px rgba(45, 55, 72, 0.1);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 12px rgba(45, 55, 72, 0.15);
-    }
-
-    .btn-secondary {
-      background-color: transparent;
-      color: var(--primary);
-      font-weight: 600;
-      padding: 0.75rem 1.5rem;
-      border: 2px solid var(--primary);
-      border-radius: 8px;
-      transition: all 0.3s;
-    }
-
-    .btn-secondary:hover {
-      background-color: var(--primary);
-      color: white;
-    }
-
-    .card {
-      background-color: var(--paper);
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      transition: transform 0.3s, box-shadow 0.3s;
-    }
-
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
-    }
-
-    .prose {
-      max-width: 70ch;
-      font-size: 1rem;
-      color: var(--text);
-    }
-
-    @media (min-width: 640px) {
-      .prose {
-        font-size: 1.05rem;
-      }
-    }
-
-    @media (min-width: 1024px) {
-      .prose {
-        font-size: 1.125rem;
-      }
-    }
-
-    .prose h2 {
-      margin: 2rem 0 1rem;
-      color: var(--primary);
-    }
-
-    .prose p {
-      margin-bottom: 1.25rem;
-      color: var(--text);
-    }
-
-    .footer-bg {
-      background-color: var(--primary);
-      color: white;
-    }
-
-    .footer-heading {
-      color: white;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-    }
-
-    .footer-link {
-      color: rgba(255, 255, 255, 0.8);
-      transition: color 0.2s, transform 0.2s;
-      display: inline-block;
-    }
-
-    .footer-link:hover {
-      color: var(--secondary);
-      transform: translateX(3px);
-    }
-
-    .social-icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background-color: rgba(255, 255, 255, 0.1);
-      transition: all 0.3s;
-    }
-
-    .social-icon:hover {
-      background-color: var(--secondary);
-      transform: translateY(-3px);
-    }
-
-    .alert {
-      border-left: 4px solid var(--tertiary);
-      background-color: rgba(72, 187, 120, 0.1);
-    }
-
-    .decoration-dot {
-      position: absolute;
-      width: 150px;
-      height: 150px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(240, 180, 41, 0.15) 0%, rgba(240, 180, 41, 0) 70%);
-      z-index: -1;
-    }
-
-    #mobileMenu {
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-
-    .icon {
-      height: 40px;
-    }
-  </style>
 </head>
 
 <body class="flex flex-col min-h-screen">
-  <!-- Decorative elements -->
-  <div class="decoration-dot top-40 left-10"></div>
-  <div class="decoration-dot bottom-40 right-10"></div>
+<!-- Decorative elements -->
+<div class="decoration-dot top-40 left-10"></div>
+<div class="decoration-dot bottom-40 right-10"></div>
 
-  <nav class="nav-bg fixed w-full top-0 z-50">
-    <div class="container mx-auto px-6">
-      <div class="flex justify-between items-center h-20">
-        <a class="flex items-center space-x-2" href="/">
-          <img src="/media/photo_5274128391500590554_x-removebg-preview.png" class="icon">
-        </a>
+<nav class="nav-bg fixed w-full top-0 z-50">
+    <div class="container mx-auto px-4 sm:px-6">
+        <div class="flex justify-between items-center h-20">
+            <!-- Логотип -->
+            <a class="flex items-center space-x-2" href="/">
+                <img src="/media/logo.png" class="h-12 w-auto" alt="ScholarHub Logo">
+            </a>
 
-        <div class="hidden lg:flex items-center space-x-8">
-          <div class="flex space-x-8">
-            <a class="nav-link text-base" href="/">Home</a>
-            <a class="nav-link text-base" href="{% url 'users-about' %}">About</a>
-            <a class="nav-link text-base" href="{% url 'marketplace' %}">Marketplace</a>
-            <a class="nav-link text-base" href="{% url 'contact' %}">Contact</a>
-            <a class="nav-link text-base" href="{% url 'journal_list' %}">Resources</a>
-            <a class="nav-link text-base" href="{% url 'ai_assistant:ai_home' %}">AI Assistant</a>
-          </div>
-
-          <div class="flex items-center space-x-4 ml-6">
-            {% if user.is_authenticated %}
-              <a href="{% url 'users-profile' %}" class="flex items-center space-x-2 hover:text-primary transition-colors">
-                <div class="w-8 h-8 bg-primary-light rounded-full flex items-center justify-center text-white">
-                  <i class="fas fa-user text-sm"></i>
+            <!-- Десктопное меню -->
+            <div class="hidden lg:flex items-center space-x-8">
+                <div class="flex space-x-8">
+                    <a class="nav-link text-base" href="{% url 'users-about' %}">About</a>
+                    <a class="nav-link text-base" href="{% url 'marketplace' %}">Marketplace</a>
+                    <a class="nav-link text-base" href="{% url 'contact' %}">Contact</a>
+                    <a class="nav-link text-base" href="{% url 'journal_list' %}">Resources</a>
+                    <a class="nav-link text-base" href="{% url 'ai_assistant:ai_home' %}">AI Assistant</a>
                 </div>
-                <span class="font-medium">Profile</span>
-              </a>
-              <a href="{% url 'logout' %}" class="btn-secondary">Log Out</a>
-            {% else %}
-              <a href="{% url 'login' %}" class="btn-secondary">Sign In</a>
-              <a href="{% url 'users-register' %}" class="btn-primary">Get Started</a>
-            {% endif %}
-          </div>
-        </div>
 
-        <button id="mobileMenuButton" class="lg:hidden flex items-center justify-center w-10 h-10 rounded-md text-primary hover:bg-gray-100 transition">
-          <i class="fas fa-bars text-xl"></i>
-        </button>
-      </div>
-    </div>
+                <div class="flex items-center space-x-4 ml-6">
+                    {% if user.is_authenticated %}
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" class="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
+                            {% if user.profile.avatar %}
+                                <img class="w-6 h-6 rounded-full object-cover"
+                                     src="{{ user.profile.avatar.url }}"
+                                     alt="{{ user.get_full_name }}">
+                            {% else %}
+                                <div class="w-6 h-6 rounded-full flex items-center justify-center bg-[#2C3AD1] text-white">
+                                    <i class="fas fa-user text-xs"></i>
+                                </div>
+                            {% endif %}
+                            <span>Profile</span>
+                            <i class="fas fa-chevron-down text-xs transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
+                        </button>
 
-    <div id="mobileMenu" class="lg:hidden hidden nav-bg absolute w-full top-20 z-40 shadow-lg rounded-b-lg overflow-hidden">
-      <div class="container px-6 py-6 space-y-5">
-        <a class="block nav-link text-lg font-medium" href="/">Home</a>
-        <a class="block nav-link text-lg font-medium" href="{% url 'users-about' %}">About</a>
-        <a class="block nav-link text-lg font-medium" href="{% url 'marketplace' %}">Marketplace</a>
-        <a class="block nav-link text-lg font-medium" href="{% url 'contact' %}">Contact</a>
-        <a class="block nav-link text-lg font-medium" href="{% url 'journal_list' %}">Resources</a>
-        <a class="block nav-link text-lg font-medium" href="{% url 'ai_assistant:ai_home' %}">AI Assistant</a>
-
-        <div class="pt-5 border-t border-border">
-          {% if user.is_authenticated %}
-            <a href="{% url 'users-profile' %}" class="flex items-center space-x-3 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors">
-              <div class="w-8 h-8 bg-primary-light rounded-full flex items-center justify-center text-white">
-                <i class="fas fa-user text-sm"></i>
-              </div>
-              <span class="font-medium">My Profile</span>
-            </a>
-            <a href="{% url 'logout' %}" class="btn-secondary w-full text-center mt-4">Log Out</a>
-          {% else %}
-            <a href="{% url 'login' %}" class="btn-secondary w-full text-center">Sign In</a>
-            <a href="{% url 'users-register' %}" class="btn-primary w-full text-center mt-4">Get Started</a>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </nav>
-
-
-  <main class="pt-32 pb-20 px-6 flex-grow">
-    <div class="container mx-auto ">
-      {% if messages %}
-        <div class="mb-8 space-y-4">
-          {% for message in messages %}
-            <div class="p-5 rounded-lg alert flex items-start space-x-4" role="alert">
-              <i class="fas fa-info-circle text-tertiary mt-1"></i>
-              <div>{{ message }}</div>
+                        <!-- Dropdown меню (только для десктопа) -->
+                        <div x-show="open" @click.away="open = false"
+                             class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200"
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95">
+                            <a href="{% url 'users-profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">My Profile</a>
+                            <a href="{% url 'users-edit-profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Edit Profile</a>
+                            <div class="border-t border-gray-200 my-1"></div>
+                            <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-50">Log Out</a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Sign In</a>
+                    <a href="{% url 'users-register' %}" class="px-4 py-2 rounded-lg bg-[#2C3AD1] text-white hover:bg-[#1a237e]">
+                        Get Started
+                    </a>
+                    {% endif %}
+                </div>
             </div>
-          {% endfor %}
-        </div>
-      {% endif %}
-      
-      {% block content %}
-      <!-- Sample content for visualization -->
-      <div class="text-center mb-16">
-        <h1 class="text-4xl md:text-5xl font-bold mb-6">Advancing Research <span class="text-secondary">Together</span></h1>
-        <p class="text-xl text-text-light max-w-2xl mx-auto">Connect with researchers worldwide and leverage AI-powered tools to accelerate your scientific discoveries.</p>
-        <div class="mt-10 flex flex-wrap justify-center gap-4">
-          <a href="#" class="btn-primary">Explore Resources</a>
-          <a href="#" class="btn-secondary">Join Community</a>
-        </div>
-      </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-        <div class="card p-8">
-          <div class="w-14 h-14 bg-primary bg-opacity-10 rounded-lg flex items-center justify-center mb-5">
-            <i class="fas fa-search text-primary text-xl"></i>
-          </div>
-          <h3 class="text-xl font-semibold mb-3">Discover Research</h3>
-          <p class="text-text-light">Access thousands of academic journals and publications across various disciplines.</p>
-        </div>
-        
-        <div class="card p-8">
-          <div class="w-14 h-14 bg-secondary bg-opacity-10 rounded-lg flex items-center justify-center mb-5">
-            <i class="fas fa-users text-secondary text-xl"></i>
-          </div>
-          <h3 class="text-xl font-semibold mb-3">Collaborate</h3>
-          <p class="text-text-light">Connect with peers and form interdisciplinary research groups worldwide.</p>
-        </div>
-        
-        <div class="card p-8">
-          <div class="w-14 h-14 bg-tertiary bg-opacity-10 rounded-lg flex items-center justify-center mb-5">
-            <i class="fas fa-robot text-tertiary text-xl"></i>
-          </div>
-          <h3 class="text-xl font-semibold mb-3">AI Assistance</h3>
-          <p class="text-text-light">Leverage cutting-edge AI tools to analyze data and accelerate your research.</p>
-        </div>
-      </div>
-      {% endblock %}
-    </div>
-  </main>
 
-  <footer class="footer-bg mt-auto">
+            <!-- Кнопка мобильного меню -->
+            <button id="mobileMenuButton"
+                    class="lg:hidden flex items-center justify-center w-12 h-12 rounded-md text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 transition-all"
+                    aria-label="Toggle menu"
+                    aria-expanded="false">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Мобильное меню -->
+        <div id="mobileMenu"
+             class="lg:hidden hidden fixed w-full left-0 top-20 bg-white shadow-lg z-40 overflow-y-auto transition-all duration-300"
+             style="max-height: 0;">
+            <div class="container px-6 py-4 space-y-4">
+                <a class="block text-lg font-medium py-3 text-gray-700 hover:text-blue-600" href="{% url 'users-about' %}">About</a>
+                <a class="block text-lg font-medium py-3 text-gray-700 hover:text-blue-600" href="{% url 'marketplace' %}">Marketplace</a>
+                <a class="block text-lg font-medium py-3 text-gray-700 hover:text-blue-600" href="{% url 'contact' %}">Contact</a>
+                <a class="block text-lg font-medium py-3 text-gray-700 hover:text-blue-600" href="{% url 'journal_list' %}">Resources</a>
+                <a class="block text-lg font-medium py-3 text-gray-700 hover:text-blue-600" href="{% url 'ai_assistant:ai_home' %}">AI Assistant</a>
+
+                <div class="pt-4 border-t border-gray-200">
+                    {% if user.is_authenticated %}
+                    <!-- Простая кнопка Profile без dropdown -->
+                    <a href="{% url 'users-profile' %}" class="w-full flex items-center space-x-2 px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700">
+                        {% if user.profile.avatar %}
+                            <img class="w-6 h-6 rounded-full object-cover"
+                                 src="{{ user.profile.avatar.url }}"
+                                 alt="{{ user.get_full_name }}">
+                        {% else %}
+                            <div class="w-6 h-6 rounded-full flex items-center justify-center bg-[#2C3AD1] text-white">
+                                <i class="fas fa-user text-xs"></i>
+                            </div>
+                        {% endif %}
+                        <span class="font-medium">Profile</span>
+                    </a>
+                    <!-- Отдельная кнопка Log Out -->
+                    <a href="{% url 'logout' %}" class="w-full flex items-center px-4 py-3 rounded-lg hover:bg-gray-50 text-red-600 mt-2">
+                        <i class="fas fa-sign-out-alt mr-2"></i>
+                        <span class="font-medium">Log Out</span>
+                    </a>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="w-full flex items-center px-4 py-3 rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700">
+                        <i class="fas fa-sign-in-alt mr-2"></i>
+                        <span class="font-medium">Sign In</span>
+                    </a>
+                    <a href="{% url 'users-register' %}" class="w-full flex items-center px-4 py-3 rounded-lg bg-[#2C3AD1] text-white hover:bg-[#1a237e] mt-4">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        <span class="font-medium">Get Started</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Подключаем Alpine.js только для десктопного dropdown -->
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenuButton = document.getElementById('mobileMenuButton');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const menuIcon = mobileMenuButton.querySelector('i');
+
+    // Функция для переключения мобильного меню
+    function toggleMobileMenu() {
+        const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
+        mobileMenuButton.setAttribute('aria-expanded', !isExpanded);
+
+        if (!isExpanded) {
+            // Открываем меню
+            mobileMenu.classList.remove('hidden');
+            mobileMenu.style.maxHeight = mobileMenu.scrollHeight + 'px';
+            menuIcon.classList.replace('fa-bars', 'fa-times');
+        } else {
+            // Закрываем меню
+            mobileMenu.style.maxHeight = '0';
+            setTimeout(() => {
+                mobileMenu.classList.add('hidden');
+                menuIcon.classList.replace('fa-times', 'fa-bars');
+            }, 300);
+        }
+    }
+
+    // Обработчик клика по кнопке меню
+    mobileMenuButton.addEventListener('click', function(e) {
+        e.stopPropagation();
+        toggleMobileMenu();
+    });
+
+    // Закрытие меню при клике вне его области
+    document.addEventListener('click', function(e) {
+        if (!mobileMenu.contains(e.target) &&
+            !mobileMenuButton.contains(e.target) &&
+            mobileMenuButton.getAttribute('aria-expanded') === 'true') {
+            toggleMobileMenu();
+        }
+    });
+
+    // Закрытие меню при изменении размера окна
+    window.addEventListener('resize', function() {
+        if (window.innerWidth >= 1024 && mobileMenuButton.getAttribute('aria-expanded') === 'true') {
+            toggleMobileMenu();
+        }
+    });
+});
+</script>
+
+<main class="pt-32 pb-20 px-0 flex-grow">
+    <div class="container mx-auto ">
+        {% if messages %}
+        <div class="mb-8 space-y-4">
+            {% for message in messages %}
+            <div class="p-5 rounded-lg alert flex items-start space-x-4" role="alert">
+                <i class="fas fa-info-circle text-tertiary mt-1"></i>
+                <div>{{ message }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}
+        <!-- Sample content for visualization -->
+        <div class="text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-bold mb-6">Advancing Research <span
+                    class="text-secondary">Together</span></h1>
+            <p class="text-xl text-text-light max-w-2xl mx-auto">Connect with researchers worldwide and leverage
+                AI-powered tools to accelerate your scientific discoveries.</p>
+            <div class="mt-10 flex flex-wrap justify-center gap-4">
+                <a href="#" class="btn-primary">Explore Resources</a>
+                <a href="#" class="btn-secondary">Join Community</a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            <div class="card p-8">
+                <div class="w-14 h-14 bg-primary bg-opacity-10 rounded-lg flex items-center justify-center mb-5">
+                    <i class="fas fa-search text-primary text-xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-3">Discover Research</h3>
+                <p class="text-text-light">Access thousands of academic journals and publications across various
+                    disciplines.</p>
+            </div>
+
+            <div class="card p-8">
+                <div class="w-14 h-14 bg-secondary bg-opacity-10 rounded-lg flex items-center justify-center mb-5">
+                    <i class="fas fa-users text-secondary text-xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-3">Collaborate</h3>
+                <p class="text-text-light">Connect with peers and form interdisciplinary research groups worldwide.</p>
+            </div>
+
+            <div class="card p-8">
+                <div class="w-14 h-14 bg-tertiary bg-opacity-10 rounded-lg flex items-center justify-center mb-5">
+                    <i class="fas fa-robot text-tertiary text-xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-3">AI Assistance</h3>
+                <p class="text-text-light">Leverage cutting-edge AI tools to analyze data and accelerate your
+                    research.</p>
+            </div>
+        </div>
+        {% endblock %}
+    </div>
+</main>
+
+<footer class="footer-bg mt-auto">
     <div class="container mx-auto px-6 py-16">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
-        <div class="mb-8">
-          <div class="flex items-center space-x-2 mb-6">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-              <path d="M2 17L12 22L22 17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-              <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-            </svg>
-            <span class="text-xl font-bold text-white">Scholar<span class="text-secondary">Hub</span></span>
-          </div>
-          <p class="text-sm text-gray-300 leading-relaxed">Connecting researchers worldwide through AI-powered collaboration tools, advancing discoveries, and fostering global scientific cooperation.</p>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
+            <div class="mb-8">
+                <div class="flex items-center space-x-2 mb-6">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" stroke-width="2" stroke-linecap="round"
+                              stroke-linejoin="round"></path>
+                        <path d="M2 17L12 22L22 17" stroke="white" stroke-width="2" stroke-linecap="round"
+                              stroke-linejoin="round"></path>
+                        <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linecap="round"
+                              stroke-linejoin="round"></path>
+                    </svg>
+                    <span class="text-xl font-bold text-white">Scholar<span class="text-secondary">Hub</span></span>
+                </div>
+                <p class="text-sm text-gray-300 leading-relaxed">Connecting researchers worldwide through AI-powered
+                    collaboration tools, advancing discoveries, and fostering global scientific cooperation.</p>
+            </div>
+
+            <div>
+                <h4 class="footer-heading text-lg mb-5">About</h4>
+                <ul class="space-y-3">
+                    <li><a href="{% url 'users-about' %}" class="footer-link">Our Mission</a></li>
+                    <li><a href="#" class="footer-link">Team</a></li>
+                    <li><a href="#" class="footer-link">Careers</a></li>
+                    <li><a href="#" class="footer-link">Partners</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="footer-heading text-lg mb-5">Resources</h4>
+                <ul class="space-y-3">
+                    <li><a href="{% url 'journal_list' %}" class="footer-link">Research Hub</a></li>
+                    <li><a href="#" class="footer-link">Documentation</a></li>
+                    <li><a href="#" class="footer-link">Blog</a></li>
+                    <li><a href="#" class="footer-link">Tutorials</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="footer-heading text-lg mb-5">Legal</h4>
+                <ul class="space-y-3">
+                    <li><a href="/privacy-policy" class="footer-link">Privacy Policy</a></li>
+                    <li><a href="#" class="footer-link">Terms of Service</a></li>
+                    <li><a href="#" class="footer-link">Cookie Policy</a></li>
+                    <li><a href="#" class="footer-link">Data Protection</a></li>
+                </ul>
+            </div>
         </div>
 
-        <div>
-          <h4 class="footer-heading text-lg mb-5">About</h4>
-          <ul class="space-y-3">
-            <li><a href="{% url 'users-about' %}" class="footer-link">Our Mission</a></li>
-            <li><a href="#" class="footer-link">Team</a></li>
-            <li><a href="#" class="footer-link">Careers</a></li>
-            <li><a href="#" class="footer-link">Partners</a></li>
-          </ul>
+        <div class="border-t border-gray-700 mt-12 pt-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex space-x-4 mb-6 md:mb-0">
+                    <a href="#" class="social-icon">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="social-icon">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                    <a href="#" class="social-icon">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a href="#" class="social-icon">
+                        <i class="fab fa-researchgate"></i>
+                    </a>
+                </div>
+                <p class="text-center text-sm text-gray-400">
+                    © 2025 ScholarHub. All rights reserved.<br>
+                    Empowering global research collaboration
+                </p>
+            </div>
         </div>
-
-        <div>
-          <h4 class="footer-heading text-lg mb-5">Resources</h4>
-          <ul class="space-y-3">
-            <li><a href="{% url 'journal_list' %}" class="footer-link">Research Hub</a></li>
-            <li><a href="#" class="footer-link">Documentation</a></li>
-            <li><a href="#" class="footer-link">Blog</a></li>
-            <li><a href="#" class="footer-link">Tutorials</a></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 class="footer-heading text-lg mb-5">Legal</h4>
-          <ul class="space-y-3">
-            <li><a href="/privacy-policy" class="footer-link">Privacy Policy</a></li>
-            <li><a href="#" class="footer-link">Terms of Service</a></li>
-            <li><a href="#" class="footer-link">Cookie Policy</a></li>
-            <li><a href="#" class="footer-link">Data Protection</a></li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="border-t border-gray-700 mt-12 pt-8">
-        <div class="flex flex-col md:flex-row justify-between items-center">
-          <div class="flex space-x-4 mb-6 md:mb-0">
-            <a href="#" class="social-icon">
-              <i class="fab fa-twitter"></i>
-            </a>
-            <a href="#" class="social-icon">
-              <i class="fab fa-linkedin-in"></i>
-            </a>
-            <a href="#" class="social-icon">
-              <i class="fab fa-github"></i>
-            </a>
-            <a href="#" class="social-icon">
-              <i class="fab fa-researchgate"></i>
-            </a>
-          </div>
-          <p class="text-center text-sm text-gray-400">
-            © 2024 ScholarHub. All rights reserved.<br>
-            Empowering global research collaboration
-          </p>
-        </div>
-      </div>
     </div>
-  </footer>
+</footer>
 
-  <script>
+<script>
     const mobileMenuButton = document.getElementById("mobileMenuButton");
     const mobileMenu = document.getElementById("mobileMenu");
 
@@ -428,6 +522,6 @@
         mobileMenuButton.innerHTML = '<i class="fas fa-bars text-xl"></i>';
       }
     });
-  </script>
+</script>
 </body>
 </html>

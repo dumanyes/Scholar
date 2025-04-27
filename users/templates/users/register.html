@@ -1,453 +1,427 @@
 {% extends "users/base.html" %}
+{% load i18n %}
 {% load static widget_tweaks %}
 
 {% block title %}ScholarHub - Register{% endblock title %}
 
 {% block content %}
-<main class="flex-grow">
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 py-12 px-6 sm:px-10 lg:px-16">
-    <div class="max-w-xl w-full space-y-8">
-      
+
+<div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-xl mx-auto">
+
+    <!-- Registration Card -->
+    <div class="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+      {% if form.errors %}
+      <div class="mb-4 p-4 border-l-4 border-red-400 bg-red-50 text-red-700 rounded-lg flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+        </svg>
+        {% for field, errors in form.errors.items %}{{ errors|striptags }}{% endfor %}
+      </div>
+      {% endif %}
+
       <!-- Header Section -->
-      <div class="text-center">
-        <h2 class="text-3xl font-serif font-bold text-gray-900">Join ScholarHub</h2>
-        <p class="mt-2 text-sm text-gray-600">Start connecting with researchers worldwide.</p>
+      <div class="text-center mb-8">
+        <div class="flex justify-center">
+          <img src="/media/img_1-removebg-preview%20(1).png" class="h-[160px] w-auto" alt="ScholarHub Logo">
+        </div>
+        <h2 class="mt-4 text-2xl font-bold text-gray-900">
+          {% trans "Join ScholarHub" %}
+        </h2>
+        <p class="mt-2 text-sm text-gray-600">
+          {% trans "Start connecting with researchers worldwide." %}
+        </p>
       </div>
 
-      <!-- Registration Card -->
-      <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-        <div class="p-8 space-y-6">
-          
-          <!-- Step Progress -->
-          <div class="relative">
-            <div class="w-full bg-gray-200 rounded-full h-2">
-              <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: {{ progress }}%"></div>
-            </div>
-            <div class="text-right text-sm text-gray-500 mt-1">
-              Step {{ step|add:1 }} of 5
-            </div>
-          </div>
-
-          <!-- Error Messages -->
-          {% if messages %}
-            <div class="p-4 bg-red-50 border-l-4 border-red-400 text-red-700 rounded-lg">
-              {% for message in messages %}
-                <p>{{ message }}</p>
-              {% endfor %}
-            </div>
-          {% endif %}
-
-          {% if form.errors %}
-            <div class="p-4 bg-red-50 border-l-4 border-red-400 text-red-700 rounded-lg">
-              <ul>
-                {% for field, errors in form.errors.items %}
-                  <li><strong>{{ field|title }}</strong>: {{ errors|striptags }}</li>
-                {% endfor %}
-              </ul>
-            </div>
-          {% endif %}
-
-          <!-- Registration Form -->
-          <form method="POST" enctype="multipart/form-data" class="space-y-6">
-            {% csrf_token %}
-            <input type="hidden" name="step" value="{{ step }}">
-
-            {# STEP 0: Personal Info #}
-            {% if step == 0 %}
-              {{ form.non_field_errors }}
-              <div class="space-y-4">
-                <div>
-                  {{ form.first_name.label_tag }}
-                  {{ form.first_name|add_class:"block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" }}
-                </div>
-                <div>
-                  {{ form.last_name.label_tag }}
-                  {{ form.last_name|add_class:"block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" }}
-                </div>
-                <div>
-                  {{ form.username.label_tag }}
-                  {{ form.username|add_class:"block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" }}
-                </div>
-                <div>
-                  {{ form.email.label_tag }}
-                  {{ form.email|add_class:"block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" }}
-                </div>
-                <div>
-                  {{ form.birthdate.label_tag }}
-                  {{ form.birthdate|add_class:"block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" }}
-                </div>
-                <div class="flex items-center space-x-2">
-                  {{ form.terms_and_conditions }}
-                  <label for="{{ form.terms_and_conditions.id_for_label }}" class="text-sm text-gray-700 cursor-pointer">
-                    I agree to the
-                    <a href="{% url 'users-terms' %}" class="text-blue-600 hover:text-blue-800 underline">
-                      Terms and Conditions
-                    </a>
-                  </label>
-                </div>
-              </div>
-            {% endif %}
-
-            {# STEP 1: Email Verification #}
-            {% if step == 1 %}
-              <div class="space-y-4">
-                <label for="verification_code" class="block text-sm font-medium text-gray-700">Verification Code</label>
-                <input
-                  id="verification_code"
-                  name="verification_code"
-                  type="text"
-                  class="block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="Enter verification code"
-                >
-              </div>
-            {% endif %}
-
-            {# STEP 2: Password Setup #}
-            {% if step == 2 %}
-              <div class="space-y-4">
-                <!-- Password1 Field -->
-                <div>
-                  {{ form.password1.label_tag }}
-                  <div class="relative">
-                    {{ form.password1|add_class:"block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" }}
-                    <button
-                      type="button"
-                      class="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-500 hover:text-gray-700 focus:outline-none toggle-password"
-                      data-target="{{ form.password1.id_for_label }}"
-                      aria-label="Toggle password visibility"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-open" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-closed hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Password2 Field -->
-                <div>
-                  {{ form.password2.label_tag }}
-                  <div class="relative">
-                    {{ form.password2|add_class:"block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" }}
-                    <button
-                      type="button"
-                      class="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-500 hover:text-gray-700 focus:outline-none toggle-password"
-                      data-target="{{ form.password2.id_for_label }}"
-                      aria-label="Toggle password visibility"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-open" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 eye-closed hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            {% endif %}
-
-            {# STEP 3: Skills Selection #}
-            {% if step == 3 %}
-            <input type="hidden" id="selected_skills" name="selected_skills" value="">
-            <p class="text-gray-600 text-sm mb-2">
-              Select at least {{ min_selections }} skills:
-            </p>
-
-            <!-- Wrapped search input and hint inside a relative container -->
-            <div class="relative">
-              <input
-                type="text"
-                id="skill-search"
-                class="w-full px-4 py-2 mb-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                placeholder="Search skills..."
-              />
-
-              <!-- Skill Suggestions -->
-              <div id="skill-hints" class="absolute left-0 mt-1 w-full border border-gray-200 rounded bg-white shadow z-20 max-h-60 overflow-y-auto hidden"></div>
-            </div>
-
-            <!-- Selected Skill Tags -->
-            <div id="selected-skills-container" class="mb-3 flex flex-wrap gap-2"></div>
-            <div id="selected-count" class="text-gray-600 font-medium mb-4"></div>
-
-            <!-- Hidden all skills for search -->
-            <div id="all-skills-json" class="hidden">
-              {{ all_skills|json_script:"all-skills-data" }}
-            </div>
-            {% endif %}
-
-
-            {# STEP 4: Research Areas Selection as clickable items #}
-            {% if step == 4 %}
-              <div class="space-y-4">
-                <p class="text-gray-600 text-sm">Select at least one research area by clicking on your preferred categories:</p>
-                <div id="selected-categories-count" class="text-gray-600 font-medium mb-4"></div>
-                <div class="grid grid-cols-2 gap-4">
-                  {% for category in available_categories %}
-                    <div class="research-category-item cursor-pointer p-2 rounded border border-gray-300 hover:bg-gray-100" data-category-id="{{ category.id }}">
-                      <span class="text-sm text-gray-700">{{ category.name }}</span>
-                    </div>
-                  {% endfor %}
-                </div>
-                <!-- Hidden field to store selected research area IDs -->
-                <input type="hidden" id="selected_categories" name="selected_categories" value="">
-                <!-- Inline error message container -->
-                <div id="research-error" class="text-red-600 text-sm mt-2"></div>
-              </div>
-            {% endif %}
-
-            <!-- Navigation Buttons -->
-            <div class="flex items-center justify-between">
-              {% if step > 0 %}
-                <button 
-                  type="button" 
-                  class="text-sm text-gray-500 hover:text-gray-700 transition-all duration-200"
-                  onclick="window.history.back()"
-                >
-                  ← Back
-                </button>
-              {% endif %}
-              <button 
-                type="submit" 
-                class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg transition-all duration-300 shadow-md"
-              >
-                {% if step == 4 %}
-                  Complete Registration
-                {% else %}
-                  Next →
-                {% endif %}
-              </button>
-            </div>
-          </form>
+      <!-- Step Progress -->
+      <div class="mb-6">
+        <div class="flex justify-between text-xs text-gray-500 mb-1">
+          <span>Step {{ step|add:1 }} of 5</span>
+          <span>{{ progress }}%</span>
         </div>
+        <div class="w-full bg-gray-100 rounded-full h-1.5">
+          <div class="bg-blue-600 h-1.5 rounded-full transition-all duration-300" style="width: {{ progress }}%"></div>
+        </div>
+      </div>
+
+      <!-- Registration Form -->
+      <form method="POST" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %}
+        <input type="hidden" name="step" value="{{ step }}">
+
+        {% if step == 0 %}
+<div class="space-y-4">
+  <!-- First Name -->
+  <div>
+    <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.first_name.label }}</label>
+    <div class="relative">
+      {{ form.first_name|attr:"placeholder:First name"|add_class:"w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+        </svg>
       </div>
     </div>
   </div>
-</main>
+
+  <!-- Last Name -->
+  <div>
+    <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.last_name.label }}</label>
+    <div class="relative">
+      {{ form.last_name|attr:"placeholder:Last name"|add_class:"w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Username -->
+  <div>
+    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.username.label }}</label>
+    <div class="relative">
+      {{ form.username|attr:"placeholder:Choose a username"|add_class:"w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- Email -->
+  <div>
+    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.email.label }}</label>
+    <div class="relative">
+      <input
+        type="email"
+        name="email"
+        id="{{ form.email.id_for_label }}"
+        value="{{ form.email.value|default_if_none:'' }}"
+        placeholder="you@example.com"
+        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      />
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+          <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Birthdate -->
+  <div>
+    <label for="{{ form.birthdate.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.birthdate.label }}</label>
+    <div class="relative">
+      <input
+        type="date"
+        name="birthdate"
+        id="{{ form.birthdate.id_for_label }}"
+        max="{{ today|date:"Y-m-d"|add:"-13 years" }}"
+        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      />
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+        </svg>
+      </div>
+    </div>
+    <p id="birthdate-error" class="mt-2 text-xs text-red-600 hidden">You must be at least 13 years old.</p>
+  </div>
+
+  <!-- Terms Checkbox -->
+  <div class="flex items-center">
+    {{ form.terms_and_conditions|add_class:"h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" }}
+    <label for="{{ form.terms_and_conditions.id_for_label }}" class="ml-2 text-sm text-gray-600">
+      I agree to the
+      <a href="{% url 'users-terms' %}" class="text-blue-600 hover:text-blue-800 font-medium">
+        Terms and Conditions
+      </a>
+    </label>
+  </div>
+</div>
+{% endif %}
+
+
+        {% if step == 1 %}
+        <!-- Email Verification -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Verification Code</label>
+          <div class="relative">
+            <input
+              id="verification_code"
+              name="verification_code"
+              type="text"
+              class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Enter 6-digit code"
+            >
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5 2a2 2 0 00-2 2v14l3.5-2 3.5 2 3.5-2 3.5 2V4a2 2 0 00-2-2H5zm2.5 3a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm6.207.293a1 1 0 00-1.414 0l-6 6a1 1 0 101.414 1.414l6-6a1 1 0 000-1.414zM12.5 10a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" clip-rule="evenodd" />
+              </svg>
+            </div>
+          </div>
+          <p class="mt-2 text-xs text-gray-500">
+            Check your email for the verification code sent to your inbox.
+          </p>
+        </div>
+        {% endif %}
+
+        {% if step == 2 %}
+        <!-- Password Setup -->
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ form.password1.label }}</label>
+            <div class="relative">
+              {{ form.password1|add_class:"w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 focus:outline-none">
+                <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ form.password2.label }}</label>
+            <div class="relative">
+              {{ form.password2|add_class:"w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      
+      {% if step == 3 %}
+<div class="space-y-6">
+  <label for="skill-search" class="block text-sm font-medium text-gray-700">Search and Select Skills</label>
+
+  <div class="relative">
+    <input
+      type="text"
+      id="skill-search"
+      placeholder="Type a skill..."
+      class="w-full pl-4 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+    >
+    <div id="skill-hints" class="absolute z-20 w-full bg-white shadow-md rounded mt-1 hidden max-h-60 overflow-y-auto"></div>
+  </div>
+
+  <div id="selected-skills-container" class="flex flex-wrap gap-2"></div>
+
+  <input type="hidden" id="selected_skills" name="selected_skills" value="">
+
+  <!-- Hidden all skills JSON -->
+  <div id="all-skills-json" class="hidden">
+    {{ all_skills|json_script:"all-skills-data" }}
+  </div>
+</div>
+{% endif %}
+      
+      {% if step == 4 %}
+<div class="space-y-6">
+  <label class="block text-sm font-medium text-gray-700 mb-2">
+    Select your Research Interests
+  </label>
+  <p class="text-xs text-gray-500 mb-4">
+    Choose at least one category to get better research recommendations.
+  </p>
+
+  <div class="grid grid-cols-2 gap-3">
+    {% for category in available_categories %}
+      <div
+  class="cursor-pointer p-3 rounded-lg border border-gray-300 hover:bg-blue-50 transition overflow-hidden text-ellipsis whitespace-nowrap text-center"
+  data-category-id="{{ category.id }}"
+  onclick="toggleCategorySelection(this)"
+>
+  {{ category.name }}
+</div>
+
+    {% endfor %}
+  </div>
+
+  <input type="hidden" name="selected_categories" id="selected_categories" value="">
+  <div id="research-error" class="text-xs text-red-600 hidden mt-2"></div>
+</div>
+      {% endif %}
+
+
+
+        <!-- Navigation Buttons -->
+        <div class="flex items-center justify-between pt-4">
+          {% if step > 0 %}
+            <button type="button" onclick="window.history.back()" class="text-sm text-gray-500 hover:text-gray-700 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+              Back
+            </button>
+          {% else %}
+            <div></div>
+          {% endif %}
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg transition-all font-medium">
+            {% if step == 4 %}Complete Registration{% else %}Next{% endif %}
+          </button>
+        </div>
+      </form>
+
+      <div class="mt-6 text-center text-sm text-gray-600">
+        Already have an account?
+        <a href="{% url 'login' %}" class="text-blue-600 hover:text-blue-800 font-medium">
+          Sign in
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-const required = {{ min_selections|default:"0" }};
-const currentStep = {{ step|default:"0" }};
-let selectedSkillIds = []; // ✅ GLOBAL declaration
 
-document.addEventListener("DOMContentLoaded", function () {
-  // Toggle categories (if present)
-  document.querySelectorAll(".category-header").forEach(header => {
-    header.addEventListener("click", () => {
-      const container = header.closest(".category-container");
-      const subcatList = container.querySelector(".subcategories-container");
-      subcatList.classList.toggle("hidden");
-      const arrow = header.querySelector(".arrow-icon");
-      arrow.classList.toggle("rotate-90");
-    });
-  });
+let selectedCategoryIds = [];
 
-  document.querySelectorAll(".subcategory-header").forEach(subHeader => {
-    subHeader.addEventListener("click", () => {
-      const container = subHeader.closest(".subcategory-container");
-      const skillList = container.querySelector(".skills-container");
-      skillList.classList.toggle("hidden");
-      const arrow = subHeader.querySelector(".arrow-icon");
-      arrow.classList.toggle("rotate-90");
-    });
-  });
-
-  // Select Research Categories (Step 4)
-  let selectedCategoryIds = [];
-  document.querySelectorAll(".research-category-item").forEach(item => {
-    item.addEventListener("click", function () {
-      const categoryId = this.getAttribute("data-category-id");
-      if (this.classList.contains("selected")) {
-        this.classList.remove("selected");
-        selectedCategoryIds = selectedCategoryIds.filter(id => id !== categoryId);
-      } else {
-        this.classList.add("selected");
-        selectedCategoryIds.push(categoryId);
-      }
-      updateSelectedCategoryCount();
-    });
-  });
-
-  function updateSelectedCategoryCount() {
-    const count = selectedCategoryIds.length;
-    const display = document.getElementById("selected-categories-count");
-    if (display) {
-      display.textContent = `Selected research areas: ${count}`;
-      display.className = count >= 1 ? "text-green-600 font-medium mb-4" : "text-gray-600 font-medium mb-4";
-    }
+function toggleCategorySelection(div) {
+  const id = div.getAttribute('data-category-id');
+  if (div.classList.contains('bg-blue-100')) {
+    div.classList.remove('bg-blue-100');
+    selectedCategoryIds = selectedCategoryIds.filter(cid => cid !== id);
+  } else {
+    div.classList.add('bg-blue-100');
+    selectedCategoryIds.push(id);
   }
+  document.getElementById('selected_categories').value = selectedCategoryIds.join(',');
+}
 
-  // Form Submit Handler
-  const form = document.querySelector("form");
-  form.addEventListener("submit", function (event) {
-    if (currentStep === 3) {
-      const hiddenSkills = document.getElementById('selected_skills');
-      if (hiddenSkills) {
-        hiddenSkills.value = JSON.stringify(selectedSkillIds);
-      }
-      if (selectedSkillIds.length < required) {
-        event.preventDefault();
-        alert(`Please select at least ${required} skills to proceed.`);
-      }
-    }
-
-    if (currentStep === 4) {
-      const hiddenCategories = document.getElementById('selected_categories');
-      if (hiddenCategories) {
-        hiddenCategories.value = selectedCategoryIds.join(",");
-      }
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.querySelector('form');
+  form.addEventListener('submit', function (e) {
+    if ({{ step|default:"0" }} == 4) {
       if (selectedCategoryIds.length < 1) {
-        event.preventDefault();
-        document.getElementById('research-error').textContent = "Please select at least one research area.";
-      } else {
-        document.getElementById('research-error').textContent = "";
+        e.preventDefault();
+        document.getElementById('research-error').classList.remove('hidden');
+        document.getElementById('research-error').textContent = "Please select at least one research category.";
       }
     }
+  });
+});
 
-    if (!form.checkValidity()) {
-      event.preventDefault();
+
+
+function togglePassword() {
+  const inputs = document.querySelectorAll('[name="password1"], [name="password2"]');
+  const icon = document.getElementById('eyeIcon');
+  inputs.forEach(input => {
+    if (input.type === "password") {
+      input.type = "text";
+      icon.innerHTML = `
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 012.322-4.362m1.38-1.385A9.958 9.958 0 0112 5c4.477 0 8.268 2.943 9.542 7a9.963 9.963 0 01-4.423 5.568M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M3 3l18 18" />`;
+    } else {
+      input.type = "password";
+      icon.innerHTML = `
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
     }
   });
+}
 
-  // Toggle password visibility
-  document.querySelectorAll('.toggle-password').forEach(button => {
-    button.addEventListener('click', function () {
-      const targetId = this.getAttribute('data-target');
-      const passwordInput = document.getElementById(targetId);
-      if (passwordInput) {
-        const isVisible = passwordInput.type === 'text';
-        passwordInput.type = isVisible ? 'password' : 'text';
-        const openEye = this.querySelector('.eye-open');
-        const closedEye = this.querySelector('.eye-closed');
-        openEye.classList.toggle('hidden', !isVisible);
-        closedEye.classList.toggle('hidden', isVisible);
-      }
-    });
+document.addEventListener('DOMContentLoaded', function() {
+  const birthdateInput = document.getElementById('{{ form.birthdate.id_for_label }}');
+  const errorText = document.getElementById('birthdate-error');
+
+  birthdateInput.addEventListener('change', function() {
+    const birthdate = new Date(this.value);
+    const today = new Date();
+    const age = today.getFullYear() - birthdate.getFullYear();
+    const m = today.getMonth() - birthdate.getMonth();
+    const realAge = (m < 0 || (m === 0 && today.getDate() < birthdate.getDate())) ? age - 1 : age;
+
+    if (realAge < 13) {
+      errorText.classList.remove('hidden');
+      birthdateInput.classList.add('border-red-400');
+    } else {
+      errorText.classList.add('hidden');
+      birthdateInput.classList.remove('border-red-400');
+    }
   });
-
-  updateSelectedCategoryCount();
 });
 </script>
-
 <script>
-if (currentStep === 3) {
-  const skillSearchInput = document.getElementById("skill-search");
-  const skillHints = document.getElementById("skill-hints");
-  const selectedSkillsInput = document.getElementById("selected_skills");
-  const selectedSkillsContainer = document.getElementById("selected-skills-container");
-  const allSkills = JSON.parse(document.getElementById("all-skills-data").textContent);
+document.addEventListener('DOMContentLoaded', function () {
+  if ({{ step|default:"0" }} == 3) {
+    const skillSearchInput = document.getElementById('skill-search');
+    const skillHints = document.getElementById('skill-hints');
+    const selectedSkillsInput = document.getElementById('selected_skills');
+    const selectedSkillsContainer = document.getElementById('selected-skills-container');
+    const allSkills = JSON.parse(document.getElementById('all-skills-data').textContent);
+    let selectedSkillIds = [];
 
-  function highlightMatch(text, query) {
-    const re = new RegExp(`(${query})`, "gi");
-    return text.replace(re, "<span class='highlight'>$1</span>");
-  }
-
-  function updateSkillHints(query) {
-    skillHints.innerHTML = "";
-    if (!query) return skillHints.classList.add("hidden");
-
-    const matched = allSkills.filter(skill =>
-      skill.name.toLowerCase().includes(query.toLowerCase())
-    );
-
-    if (matched.length === 0) return skillHints.classList.add("hidden");
-
-    matched.forEach(skill => {
-      if (selectedSkillIds.includes(skill.id.toString())) return;
-
-      const div = document.createElement("div");
-      div.className = "p-2 hover:bg-gray-100 cursor-pointer";
-      div.dataset.id = skill.id;
-      div.innerHTML = `<span class="text-sm">${highlightMatch(skill.name, query)}</span>`;
-      skillHints.appendChild(div);
-    });
-
-    skillHints.classList.remove("hidden");
-  }
-
-  function updateSelectedSkills() {
-    selectedSkillsContainer.innerHTML = "";
-    selectedSkillIds.forEach(id => {
-      const skill = allSkills.find(s => s.id.toString() === id);
-      if (!skill) return;
-      const tag = document.createElement("span");
-      tag.className = "inline-flex items-center bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm cursor-pointer";
-      tag.textContent = `${skill.name} ×`;
-      tag.addEventListener("click", () => {
-        selectedSkillIds = selectedSkillIds.filter(sid => sid !== id);
-        selectedSkillsInput.value = JSON.stringify(selectedSkillIds);
-        updateSelectedSkills();
-        updateSelectedCount();
+    function updateSkillHints(query) {
+      skillHints.innerHTML = "";
+      if (!query) {
+        skillHints.classList.add('hidden');
+        return;
+      }
+      const matches = allSkills.filter(skill => skill.name.toLowerCase().includes(query.toLowerCase()));
+      matches.forEach(skill => {
+        if (selectedSkillIds.includes(skill.id.toString())) return;
+        const div = document.createElement('div');
+        div.className = "p-2 hover:bg-gray-100 cursor-pointer";
+        div.dataset.id = skill.id;
+        div.textContent = skill.name;
+        skillHints.appendChild(div);
       });
-      selectedSkillsContainer.appendChild(tag);
+      skillHints.classList.remove('hidden');
+    }
+
+    skillSearchInput.addEventListener('input', () => {
+      updateSkillHints(skillSearchInput.value.trim());
+    });
+
+    skillHints.addEventListener('click', (e) => {
+      const target = e.target.closest('div[data-id]');
+      if (!target) return;
+      const id = target.dataset.id;
+      if (!selectedSkillIds.includes(id)) {
+        selectedSkillIds.push(id);
+        selectedSkillsInput.value = JSON.stringify(selectedSkillIds);
+        const tag = document.createElement('span');
+        tag.className = "inline-flex items-center bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm cursor-pointer";
+        tag.textContent = allSkills.find(s => s.id.toString() === id).name + ' ×';
+        tag.addEventListener('click', () => {
+          selectedSkillIds = selectedSkillIds.filter(sid => sid !== id);
+          selectedSkillsInput.value = JSON.stringify(selectedSkillIds);
+          tag.remove();
+        });
+        selectedSkillsContainer.appendChild(tag);
+      }
+      skillHints.classList.add('hidden');
+      skillSearchInput.value = "";
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!skillHints.contains(e.target) && e.target !== skillSearchInput) {
+        skillHints.classList.add('hidden');
+      }
     });
   }
-
-  function updateSelectedCount() {
-    const countText = document.getElementById("selected-count");
-    countText.textContent = `Selected skills: ${selectedSkillIds.length}/${required}`;
-    countText.className = selectedSkillIds.length >= required
-      ? "text-green-600 font-medium mb-4"
-      : "text-gray-600 font-medium mb-4";
-  }
-
-  skillSearchInput.addEventListener("input", () => {
-    updateSkillHints(skillSearchInput.value.trim());
-  });
-
-  skillHints.addEventListener("click", (e) => {
-    const target = e.target.closest("div[data-id]");
-    if (!target) return;
-    const id = target.dataset.id;
-    if (!selectedSkillIds.includes(id.toString())) {
-      selectedSkillIds.push(id.toString());
-      selectedSkillsInput.value = JSON.stringify(selectedSkillIds);
-      updateSelectedSkills();
-      updateSelectedCount();
-    }
-    skillSearchInput.value = "";
-    skillHints.classList.add("hidden");
-  });
-
-  document.addEventListener("click", (e) => {
-    if (!skillHints.contains(e.target) && e.target !== skillSearchInput) {
-      skillHints.classList.add("hidden");
-    }
-  });
-
-  updateSelectedSkills();
-  updateSelectedCount();
-}
+});
 </script>
-
-<style>
-  #skill-hints span.highlight {
-    background-color: #dbeafe;
-    color: #1d4ed8;
-    font-weight: 600;
-    border-radius: 3px;
-    padding: 0 2px;
-  }
-
-  #skill-hints {
-    max-height: 15rem;
-    overflow-y: auto;
-    z-index: 9999;
-  }
-  .research-category-item.selected {
-    background-color: #dbeafe; /* light blue background */
-    border-color: #3b82f6;      /* blue border */
-    color: #1e40af;             /* dark blue text */
-    font-weight: 600;
-  }
-
-  .research-category-item.selected span {
-    color: #1e40af;
-  }
-</style>
 
 {% endblock content %}
