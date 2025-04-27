@@ -144,7 +144,7 @@
         <a class="block nav-link text-lg font-medium" href="{% url 'users-services' %}">Services</a>
         <a class="block nav-link text-lg font-medium" href="{% url 'marketplace' %}">Marketplace</a>
         <a class="block nav-link text-lg font-medium" href="{% url 'journal_list' %}">Resource Hub</a>
-        <a class="block nav-link text-lg font-medium" href="{% url 'users-contact' %}">Contact</a>
+        <a class="block nav-link text-lg font-medium" href="{% url 'contact' %}">Contact</a>
         <a class="block nav-link text-lg font-medium" href="{% url 'ai_assistant:ai_home' %}">AI Assistant</a>
         {% if user.is_authenticated %}
           <a href="{% url 'users-profile' %}" class="flex items-center space-x-3 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors">
