@@ -4,6 +4,7 @@ from pathlib import Path
 
 # To keep secret keys in environment variables
 import dj_database_url
+from django.contrib import staticfiles
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -135,12 +136,12 @@ WSGI_APPLICATION = 'user_management.wsgi.application'
 
 # Database
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 # DATABASE_URL = "postgresql://postgres:hnzfXICblatumDEsKpTKIYSgunxotHzn@interchange.proxy.rlwy.net:39796/railway"
 # DATABASES = {
 #     "default": dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
@@ -262,4 +263,6 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 CRISPY_TEMPLATE_PACK = 'bootstrap5'  # Or 'bootstrap4', depending on your version of Bootstrap
 
 TIME_ZONE = "Asia/Yekaterinburg"
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 
