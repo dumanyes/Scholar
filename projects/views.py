@@ -1,49 +1,50 @@
-from urllib import request
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
-from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
-from django.urls import reverse_lazy, reverse
-from django.views import View
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.views.decorators.http import require_POST
-from django.views.generic import DetailView, UpdateView, DeleteView, CreateView, ListView
-from django.contrib import messages
-from django.shortcuts import get_object_or_404, render, redirect
-from django.db.models import Q, OuterRef, Subquery, CharField, Case, When, Count, Exists, Sum
 import json
 from datetime import timedelta
+import numpy as np
+from numpy.linalg import norm
+from sklearn.feature_extraction.text import TfidfVectorizer
 from django.utils import timezone
+from django.urls import reverse, reverse_lazy
+from django.contrib import messages
+from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Q, Count, Sum, Case, When
+from django.views import View
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.views.generic import (
+    ListView, DetailView, UpdateView,
+    DeleteView, CreateView
+)
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-
-from .forms import ProjectApplicationForm, ProjectForm
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+from projects.models import (
+    Project, Category, ProjectApplication,
+    ChatMessage, ChatRoom
+)
+from projects.recommendation import rank_projects_with_faiss
 from .models import (
     Notification, Skill, Language, RequiredRole,
-    ChatFolder, ChatRoom, FavoriteProject, Project, ProjectApplication,
-    Category, ChatMessage, User, ProjectInvitation, PinnedProject
+    ChatFolder, FavoriteProject, PinnedProject,
+    ProjectInvitation, User
 )
-from projects.models import Project, ProjectApplication, Category, ChatMessage, ChatRoom
-from projects.recommendation import rank_projects_with_faiss, recommend_projects_for_user
+from .forms import ProjectApplicationForm, ProjectForm
 
-# ---------------------------
-# Helper functions for reverse recommendations
-# ---------------------------
-from sklearn.feature_extraction.text import TfidfVectorizer
-from numpy.linalg import norm
-import numpy as np
 
 def compute_faiss_match(project, user):
     """
     Computes a FAISS-based similarity percentage between a project's profile and a user's profile.
     """
-    # Build the project profile text
     project_text = " ".join([skill.name for skill in project.skills_required.all()])
     project_text += " " + (project.project_mission or "")
     project_text += " " + (project.project_objectives or "")
     project_text += " " + (project.description or "")
     project_text += " " + " ".join([cat.name for cat in project.category.all()])
 
-    # Build the user profile text
     user_skills_text = " ".join([skill.name for skill in user.profile.skills.all()])
     bio_text = user.profile.bio or ""
     user_categories_text = " ".join([cat.name for cat in user.profile.categories.all()])
@@ -292,8 +293,6 @@ class MarkChatReadView(LoginRequiredMixin, View):
         return JsonResponse({'success': False, 'error': 'No room_id provided'})
 
 
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 
 @method_decorator(csrf_exempt, name='dispatch')
 class FolderCreateView(LoginRequiredMixin, CreateView):
@@ -399,19 +398,21 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
             context['user_application'] = self.object.applications.filter(applicant=self.request.user).first()
         return context
 
-
 class ApplyProjectView(View):
     def get(self, request, project_id):
         project = get_object_or_404(Project, id=project_id)
+
         if ProjectApplication.objects.filter(project=project, applicant=request.user).exists():
             messages.info(request, "You have already applied to this project.")
             return redirect('project-detail', pk=project.id)
+
         form = ProjectApplicationForm(project=project)
         context = {'project': project, 'form': form}
         return render(request, 'marketplace/apply_project.html', context)
 
     def post(self, request, project_id):
         project = get_object_or_404(Project, id=project_id)
+
         if ProjectApplication.objects.filter(project=project, applicant=request.user).exists():
             messages.info(request, "You have already applied to this project.")
             return redirect('project-detail', pk=project.id)
@@ -427,24 +428,23 @@ class ApplyProjectView(View):
             application.resume_link = form.cleaned_data.get('resume_link')
             application.save()
 
-            # ✅ Notify applicant (self)
-            Notification.objects.create(
+            # Send to applicant
+            send_notification(
                 user=request.user,
-                message=f"You have applied to the project '{project.title}'.",
+                message=f"🔔 You have successfully applied to the project '{project.title}'.",
                 link=reverse('project-detail', kwargs={'pk': project.pk})
             )
 
-            # ✅ Notify project owner
-            Notification.objects.create(
-                user=project.owner,
-                message=f"{request.user.username} has applied to your project '{project.title}'.",
-                link=reverse('project-detail', kwargs={'pk': project.pk})
-            )
+            # Send to owner if needed (AND if it's not the same user)
+            owner_profile = project.owner.profile
+            if project.owner != request.user and owner_profile.notify_on_application and owner_profile.email_notifications:
+                send_notification(
+                    user=project.owner,
+                    message=f"🔔 {request.user.username} has applied to your project '{project.title}'.",
+                    link=reverse('project-detail', kwargs={'pk': project.pk})
+                )
 
-            # ✅ WebSocket real-time update for both users
-            from asgiref.sync import async_to_sync
-            from channels.layers import get_channel_layer
-
+            # WebSocket обновление
             channel_layer = get_channel_layer()
             for user in [request.user, project.owner]:
                 async_to_sync(channel_layer.group_send)(
@@ -460,11 +460,10 @@ class ApplyProjectView(View):
                     }
                 )
 
-            messages.success(request, 'Your application has been submitted successfully!')
+            messages.success(request, "Your application has been submitted successfully!")
             return redirect('project-detail', pk=project.id)
 
         return render(request, 'marketplace/apply_project.html', {'project': project, 'form': form})
-
 
 
 class DeleteApplicationView(LoginRequiredMixin, DeleteView):
@@ -488,14 +487,6 @@ def withdraw_application(request, project_id):
     else:
         messages.error(request, "You have not applied to this project.")
     return redirect('marketplace')
-
-
-from django.views.generic import ListView
-from django.db.models import Q, Count, Sum
-from django.contrib.auth.mixins import LoginRequiredMixin
-from projects.models import Project, Category
-from .models import PinnedProject
-
 class MyProjectsView(LoginRequiredMixin, ListView):
     template_name = 'marketplace/my_projects.html'
     context_object_name = 'projects'
@@ -535,18 +526,13 @@ class MyProjectsView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         all_projects = self.get_queryset()
-
-        # Pinned projects: last 5 pinned by the user
         pinned_projects = PinnedProject.objects.filter(user=self.request.user)\
             .select_related('project').order_by('-pinned_at')[:5]
-
-        # Analytics / Statistics
         stats = all_projects.aggregate(
             active_count=Count('id', filter=Q(is_active=True)),
             total_views=Sum('view_count'),
             total_applications=Sum('application_count')
         )
-
         context.update({
             'pinned_projects': [pp.project for pp in pinned_projects],
             'active_count': stats['active_count'] or 0,
@@ -562,8 +548,6 @@ class MyProjectsView(LoginRequiredMixin, ListView):
             'sort': self.request.GET.get('sort', '-created_at'),
         })
         return context
-
-
 
 class ProjectCreateView(LoginRequiredMixin, CreateView):
     model = Project
@@ -611,13 +595,11 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
             role_objs = RequiredRole.objects.filter(id__in=role_ids)
             self.object.required_roles.set(role_objs)
         messages.success(self.request, "✅ Project created successfully!")
-        # Redirect to the reverse recommendation view
         return redirect(reverse('project-recommendations', kwargs={'project_id': self.object.id}))
 
     def form_invalid(self, form):
         messages.error(self.request, "Something went wrong. Please check your inputs.")
         return self.render_to_response(self.get_context_data(form=form))
-
     def get_recommended_users(self, project, top_n=20):
         from django.contrib.auth import get_user_model
         User = get_user_model()
@@ -629,7 +611,6 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
                 scored_candidates.append((user, score))
         scored_candidates.sort(key=lambda x: x[1], reverse=True)
         return [user for user, score in scored_candidates][:top_n]
-
 
 class ProjectUpdateView(LoginRequiredMixin, UpdateView):
     model = Project
@@ -792,31 +773,37 @@ def user_profile(request, username):
     return render(request, 'marketplace/project_profile.html', context)
 
 
+
 @login_required
 def update_application(request, pk, status):
     application = get_object_or_404(ProjectApplication, pk=pk, project__owner=request.user)
-    previous_status = application.status
+    old_status = application.status
+
     application.status = status
     application.save()
-    if previous_status != status:
-        Notification.objects.create(
-            user=application.applicant,
-            message=f"Your application to {application.project.title} has been {status.lower()}",
-            link=reverse('project-detail', kwargs={'pk': application.project.pk})
-        )
-        from asgiref.sync import async_to_sync
-        from channels.layers import get_channel_layer
 
+    if old_status != status:
+        applicant = application.applicant
+        applicant_profile = applicant.profile
+
+        # Check settings before sending notification
+        if applicant_profile.notify_on_application_status_change and applicant_profile.email_notifications:
+            message = f"Your application to '{application.project.title}' has been {status.lower()}."
+            link = reverse('project-detail', kwargs={'pk': application.project.pk})
+
+            send_notification(user=applicant, message=message, link=link)
+
+        # WebSocket real-time update (always update panel, even if no notification)
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
-            f"marketplace_{application.applicant.id}",
+            f"marketplace_{applicant.id}",
             {
                 "type": "send_update",
                 "data": {
-                    "notifications_count": Notification.objects.filter(user=application.applicant, read=False).count(),
-                    "unread_chat_count": ChatMessage.objects.filter(room__participants=application.applicant,
-                                                                    read=False).exclude(
-                        sender=application.applicant).count()
+                    "notifications_count": Notification.objects.filter(user=applicant, read=False).count(),
+                    "unread_chat_count": ChatMessage.objects.filter(
+                        room__participants=applicant, read=False
+                    ).exclude(sender=applicant).count(),
                 }
             }
         )
@@ -957,11 +944,7 @@ def update_profile_preferences(request):
         else:
             return HttpResponseRedirect(reverse('marketplace'))
 
-
-# Reverse recommendation functions
-
 def recommend_users_for_project(project, top_n=20):
-    from django.contrib.auth import get_user_model
     User = get_user_model()
     candidates = User.objects.filter(is_active=True).exclude(id=project.owner.id)
     scored_candidates = []
@@ -972,54 +955,70 @@ def recommend_users_for_project(project, top_n=20):
     scored_candidates.sort(key=lambda x: x[1], reverse=True)
     return [user for user, score in scored_candidates][:top_n]
 
-
-
 @login_required
 def project_recommendations_view(request, project_id):
     project = get_object_or_404(Project, pk=project_id, owner=request.user)
+
+    # Получаем только пользователей, которые разрешили приглашения
     recommended_users = ProjectCreateView().get_recommended_users(project, top_n=20)
+    recommended_users = [user for user in recommended_users if getattr(user.profile, 'allow_project_invites', True)]
+
     for user in recommended_users:
         user.match_score = project.get_skill_match(user)
         user.faiss_match = compute_faiss_match(project, user)
         user.matched_skills = get_matched_skills(project, user)
         # Проверяем, есть ли уже приглашение для этого пользователя
         user.invited = ProjectInvitation.objects.filter(project=project, invited_user=user).exists()
+
     context = {
         'project': project,
         'recommended_users': recommended_users,
     }
     return render(request, 'marketplace/project_recommendations.html', context)
 
+from projects.utils import send_notification
 
 @require_POST
 @login_required
 def invite_user_to_project(request, project_id, user_id):
-    # Проверяем, что текущий пользователь является владельцем проекта
     project = get_object_or_404(Project, pk=project_id, owner=request.user)
     invited_user = get_object_or_404(User, pk=user_id)
 
-    # Создаем приглашение (или получаем существующее)
+    # Проверка: разрешено ли приглашать этого пользователя
+    if not invited_user.profile.allow_project_invites:
+        return JsonResponse({'success': False, 'message': 'User does not accept project invitations.'}, status=403)
+
+    # Пытаемся создать приглашение
     invitation, created = ProjectInvitation.objects.get_or_create(
         project=project,
         invited_user=invited_user,
         defaults={'invited_by': request.user}
     )
 
-    # Создаем уведомления
-    Notification.objects.create(
-        user=invited_user,
-        message=f"You have been invited to join the project '{project.title}' by {request.user.username}.",
-        link=reverse('project-detail', kwargs={'pk': project.id})
-    )
-    Notification.objects.create(
-        user=request.user,
-        message=f"Invitation sent to {invited_user.username} for project '{project.title}'.",
-        link=reverse('project-detail', kwargs={'pk': project.id})
-    )
-    messages.success(request, f"Invitation sent to {invited_user.username}.")
+    if created:
+        # Отправить уведомление приглашённому пользователю, если включены настройки
+        if invited_user.profile.allow_project_invites and invited_user.profile.email_notifications:
+            send_notification(
+                user=invited_user,
+                message=f"You have been invited to join the project '{project.title}' by {request.user.username}.",
+                link=reverse('project-detail', kwargs={'pk': project.pk}),
+                notification_type="general"
+            )
 
-    # Возвращаем JSON-ответ для обновления состояния кнопки
-    return JsonResponse({'success': True, 'message': f"Invitation sent to {invited_user.username}."})
+        # Отправить уведомление себе
+        send_notification(
+            user=request.user,
+            message=f"Invitation sent to {invited_user.username} for project '{project.title}'.",
+            link=reverse('project-detail', kwargs={'pk': project.pk}),
+            notification_type="general"
+        )
+
+        messages.success(request, f"Invitation successfully sent to {invited_user.username}.")
+        return JsonResponse({'success': True, 'message': f"Invitation sent to {invited_user.username}."})
+
+    else:
+        # Приглашение уже существует
+        return JsonResponse({'success': False, 'message': 'User has already been invited.'})
 
 @require_POST
 @login_required
@@ -1034,8 +1033,6 @@ def cancel_invite_user_to_project(request, project_id, user_id):
     else:
         return JsonResponse({'error': 'Invitation not found'}, status=404)
 
-
-# Update views.py toggle_pin_project view
 @require_POST
 @login_required
 def toggle_pin_project(request, project_id):

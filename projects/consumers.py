@@ -1,4 +1,3 @@
-# consumers.py
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
@@ -130,7 +129,7 @@ class MarketplaceConsumer(AsyncJsonWebsocketConsumer):
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
     async def receive_json(self, content):
-        pass  # No need for client -> server messages for now
+        pass
 
     async def send_update(self, event):
         await self.send_json(event["data"])

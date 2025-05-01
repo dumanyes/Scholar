@@ -1,43 +1,51 @@
-
 import os
 import requests
+from django.contrib.auth.forms import SetPasswordForm
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
-from django.urls import reverse_lazy
-from django.contrib.auth.views import LoginView, PasswordChangeView
-from django.contrib.messages.views import SuccessMessageMixin
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView
 from cities_light.models import Country, City
-from django.views.generic import TemplateView
-
+from django.views.generic import TemplateView, FormView
 from users.models import University
 from dashboard.forms import ContactForm
 from .forms import LoginForm, UpdateUserForm, UpdateProfileForm
 from .models import Profile
-from projects.models import Skill, Interest, Project
-from django.views import View
+from projects.models import Interest
 import json
+from random import randint
+from django.shortcuts import get_object_or_404
+from django.urls import reverse
+from django.core.mail import send_mail
+from django.conf import settings
 import logging
+from django.views import View
+from django.contrib.auth.models import User
 from .forms import RegisterForm
+from projects.models import Category, Skill
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.db.models import Count
+from django.db.models.functions import TruncMonth
+from projects.models import Project
+from django.contrib.auth.views import (
+    PasswordResetView,
+    PasswordResetConfirmView,
+)
+from django.contrib.messages.views import SuccessMessageMixin
+from django.urls import reverse_lazy
 
-# Logger setup
+from django.http import HttpResponse
+
+
+
 logger = logging.getLogger(__name__)
 
-# ORCID OAuth Constants (from environment variables)
 ORCID_CLIENT_ID = os.getenv('ORCID_CLIENT_ID')
 ORCID_CLIENT_SECRET = os.getenv('ORCID_CLIENT_SECRET')
 ORCID_REDIRECT_URI = os.getenv('ORCID_REDIRECT_URI')
 
-from django.db.models import Count
-from django.core.cache import cache
-
-# users/views.py
-import json
-from django.shortcuts import render
-from django.db.models import Count
-from django.db.models.functions import TruncMonth
-from django.contrib.auth.models import User
-from projects.models import Project, Category, Skill
 
 
 def home(request):
@@ -97,7 +105,6 @@ def user_profile(request, username):
         'profile': user.profile,
         'country': user.profile.country,
         'skills': user.profile.skills.all(),
-        # You can add additional context as needed
     })
 
 class EditProfileView(View):
@@ -116,7 +123,6 @@ class EditProfileView(View):
             'cities': City.objects.all(),
             'universities': University.objects.all(),
             'min_selections': self.min_selections,
-            # When not in email-verification mode, no need to show the code input.
             'email_verification_required': False,
         }
         return render(request, self.template_name, context)
@@ -167,10 +173,8 @@ class EditProfileView(View):
                         'email_verification_required': True,
                     }
                     return render(request, self.template_name, context)
-            # Save user and profile
             user = user_form.save()
             profile = profile_form.save(commit=False)
-            # Process location fields.
             country_id = request.POST.get('country')
             city_id = request.POST.get('city')
             profile.country = Country.objects.filter(id=country_id).first() if country_id else None
@@ -207,7 +211,7 @@ class EditProfileView(View):
                 profile.categories.clear()
 
             profile.save()
-            profile_form.save_m2m()  # Save many-to-many relationships
+            profile_form.save_m2m()
             messages.success(request, "Profile updated successfully!")
             return redirect('users-profile')
         else:
@@ -224,50 +228,9 @@ class EditProfileView(View):
         }
         return render(request, self.template_name, context)
 
-
-
-logger = logging.getLogger(__name__)
-
-import os
-import json
-import logging
-from random import randint
-from django.shortcuts import render, redirect
-from django.views import View
-from django.contrib import messages
-from django.core.mail import send_mail
-from django.conf import settings
-from django.contrib.auth.models import User
-from django.urls import reverse
-from .forms import RegisterForm
-from projects.models import (
-    User,
-    Skill,
-)
-
-logger = logging.getLogger(__name__)
-
-
-import json
-from random import randint
-from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
-from django.contrib import messages
-from django.core.mail import send_mail
-from django.conf import settings
-import logging
-
-from django.views import View
-from django.contrib.auth.models import User
-from .forms import RegisterForm
-from projects.models import Category, Skill
-
-logger = logging.getLogger(__name__)
-
 class RegisterView(View):
     form_class = RegisterForm
     template_name = 'users/register.html'
-    # Добавляем новый шаг "research" для выбора областей исследований
     steps = ['personal', 'verify', 'password', 'skills', 'research']
     min_selections = 5
 
@@ -470,7 +433,6 @@ class RegisterView(View):
             return redirect(reverse('users-register'))
 
 
-
 class ResendCodeView(View):
     def get(self, request):
         email = request.session.get('registration_data', {}).get('email')
@@ -498,9 +460,11 @@ class CustomLoginView(LoginView):
         if not remember_me:
             self.request.session.set_expiry(0)
             self.request.session.modified = True
-        return super().form_valid(form)
 
-
+        response = super().form_valid(form)
+        if self.request.session.pop('redirect_after_login', False):
+            return redirect('set-password')
+        return response
 
 
 def orcid_authorize(request):
@@ -515,7 +479,6 @@ def orcid_authorize(request):
         'redirect_uri': ORCID_REDIRECT_URI,
     }
     return redirect(f"{orcid_url}?{requests.compat.urlencode(params)}")
-
 
 def get_orcid_id_from_orcid_oauth(request):
     if 'code' not in request.GET:
@@ -585,44 +548,28 @@ class SettingsView(LoginRequiredMixin, TemplateView):
     template_name = 'users/settings.html'
 
 
-
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-
 @login_required
 def settings_view(request):
-    profile = request.user.profile
-
     if request.method == 'POST':
+        profile = request.user.profile
         profile.allow_project_invites = request.POST.get('allow_project_invites') == 'on'
         profile.email_notifications = request.POST.get('email_notifications') == 'on'
         profile.notify_on_application = request.POST.get('notify_on_application') == 'on'
         profile.notify_on_application_status_change = request.POST.get('notify_on_application_status_change') == 'on'
         profile.notify_on_chat_message = request.POST.get('notify_on_chat_message') == 'on'
-        profile.preferred_language = request.POST.get('preferred_language')
+        # profile.preferred_language = request.POST.get('preferred_language')
         profile.save()
 
-        return redirect('user-profile', username=request.user.username)
+        request.user.refresh_from_db()
+        messages.success(request, "✅ Settings saved successfully.")
+        return redirect('users-profile')  # 👈 redirect to profile page
 
-
+    request.user.refresh_from_db()
     return render(request, 'users/settings.html', {
-        'profile': profile
+        'profile': request.user.profile
     })
 
 
-
-# users/views.py
-
-from django.contrib.auth.views import (
-    PasswordResetView,
-    PasswordResetDoneView,
-    PasswordResetConfirmView,
-    PasswordResetCompleteView,
-)
-from django.contrib.messages.views import SuccessMessageMixin
-from django.urls import reverse_lazy
-
-# Password Reset Request View
 class CustomPasswordResetView(SuccessMessageMixin, PasswordResetView):
     template_name = 'users/password_reset.html'
     email_template_name = 'users/password_reset_email.html'
@@ -636,9 +583,81 @@ class CustomPasswordResetView(SuccessMessageMixin, PasswordResetView):
         context['protocol'] = 'https' if request.is_secure() else 'http'
         return context
 
-# Password Reset Confirm View (user clicks email link)
+    def form_valid(self, form):
+        email = form.cleaned_data["email"]
+        user_queryset = form.get_users(email)
+        user = next(user_queryset, None)
+
+        if not user:
+            return HttpResponse("❌ No user found with that email.")
+
+        from django.utils.http import urlsafe_base64_encode
+        from django.utils.encoding import force_bytes
+        from django.contrib.auth.tokens import default_token_generator
+        from django.urls import reverse
+        from django.core.mail import send_mail
+
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+
+        protocol = 'https' if self.request.is_secure() else 'http'
+        domain = self.request.get_host()
+
+        reset_link = f"{protocol}://{domain}{reverse('password_reset_confirm', kwargs={'uidb64': uid, 'token': token})}"
+
+        email_subject = "Password Reset on ScholarHub"
+        email_body = f"""
+    Hello {user.get_full_name() or user.username},
+
+    You requested a password reset.
+
+    Reset link:
+    {reset_link}
+
+    If you did not request this, please ignore.
+
+    Thanks,
+    ScholarHub Team
+        """
+
+        send_mail(
+            subject=email_subject,
+            message=email_body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
+        return super().form_valid(form)
+
 class CustomPasswordResetConfirmView(SuccessMessageMixin, PasswordResetConfirmView):
     template_name = 'users/password_reset_confirm.html'
     success_message = "Your password has been set. You can now log in with your new password."
     success_url = reverse_lazy('login')
+
+
+class SetPasswordView(LoginRequiredMixin, FormView):
+    template_name = 'users/set_password.html'
+    form_class = SetPasswordForm
+    success_url = reverse_lazy('users-home')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        form.save()
+        update_session_auth_hash(self.request, self.request.user)  # ✅ здесь фикс
+        if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'success'})
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({
+                'status': 'error',
+                'errors': form.errors
+            }, status=400)
+        return super().form_invalid(form)
+
 

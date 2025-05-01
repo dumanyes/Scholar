@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScholarHub Notification</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #f9fafb;
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .language-selector {
+      text-align: right;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .language-selector a {
+      margin-left: 8px;
+      color: #4b5563;
+      text-decoration: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .language-selector a:hover {
+      background-color: #f3f4f6;
+    }
+
+    .language-selector a.active {
+      font-weight: 600;
+      color: #2563eb;
+      background-color: #eff6ff;
+    }
+
+    .content-section {
+      display: none;
+    }
+
+    .content-section.active {
+      display: block;
+    }
+
+    .button {
+      display: inline-block;
+      padding: 12px 32px;
+      background-color: #2563eb;
+      color: white;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .button:hover {
+      background-color: #1d4ed8;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 6px rgba(37, 99, 235, 0.1);
+    }
+
+    .footer {
+      color: #9ca3af;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <table align="center" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
+    <tr>
+      <td style="padding:30px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:white; border-radius:16px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background-color:#eff6ff; padding:24px 32px; text-align:center;">
+              <img src="/media/logo.png" alt="ScholarHub Logo" style="height:40px; width:auto;">
+            </td>
+          </tr>
+
+          <!-- Language Selector -->
+          <tr>
+            <td style="padding:20px 32px 0;">
+              <div class="language-selector">
+                <span style="color:#6b7280;">Language:</span>
+                <a href="#" class="active" onclick="switchLanguage('en'); return false;">EN</a>
+                <a href="#" onclick="switchLanguage('kz'); return false;">KZ</a>
+                <a href="#" onclick="switchLanguage('ru'); return false;">RU</a>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Content - English -->
+          <tr>
+            <td style="padding:20px 32px;">
+              <div id="content-en" class="content-section active">
+                <h2 style="color:#111827; margin-top:0; margin-bottom:16px; font-weight:600;">🔔 New Notification!</h2>
+                <p style="color:#4b5563; margin-bottom:24px; line-height:1.5;">
+                  You have a new update on ScholarHub.<br><br>
+                  <strong>{{ message }}</strong>
+                </p>
+                <div style="text-align:center; padding:10px 0 20px;">
+                  <a href="{{ link }}" class="button">View Notification</a>
+                </div>
+              </div>
+
+              <!-- Content - Kazakh -->
+              <div id="content-kz" class="content-section">
+                <h2 style="color:#111827; margin-top:0; margin-bottom:16px; font-weight:600;">🔔 Жаңа хабарландыру!</h2>
+                <p style="color:#4b5563; margin-bottom:24px; line-height:1.5;">
+                  ScholarHub жүйесінде сізге жаңа жаңарту бар.<br><br>
+                  <strong>{{ message }}</strong>
+                </p>
+                <div style="text-align:center; padding:10px 0 20px;">
+                  <a href="{{ link }}" class="button">Хабарландыруды көру</a>
+                </div>
+              </div>
+
+              <!-- Content - Russian -->
+              <div id="content-ru" class="content-section">
+                <h2 style="color:#111827; margin-top:0; margin-bottom:16px; font-weight:600;">🔔 Новое уведомление!</h2>
+                <p style="color:#4b5563; margin-bottom:24px; line-height:1.5;">
+                  У вас новое уведомление на ScholarHub.<br><br>
+                  <strong>{{ message }}</strong>
+                </p>
+                <div style="text-align:center; padding:10px 0 20px;">
+                  <a href="{{ link }}" class="button">Посмотреть уведомление</a>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Notification Preview -->
+          <tr>
+            <td style="padding:0 32px 32px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb; border-radius:8px; padding:16px;">
+                <tr>
+                  <td style="text-align:center;">
+                    <p style="margin:0; color:#6b7280; font-size:14px;">
+                      <span id="preview-en" class="content-section active">📬 Check your ScholarHub account for more details</span>
+                      <span id="preview-kz" class="content-section">📬 ScholarHub аккаунтыңыздан толығырақ қараңыз</span>
+                      <span id="preview-ru" class="content-section">📬 Подробнее смотрите в вашем аккаунте ScholarHub</span>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <script>
+    function switchLanguage(lang) {
+      var contentSections = document.getElementsByClassName('content-section');
+      for (var i = 0; i < contentSections.length; i++) {
+        contentSections[i].classList.remove('active');
+      }
+      document.getElementById('content-' + lang).classList.add('active');
+      document.getElementById('preview-' + lang).classList.add('active');
+
+      var languageLinks = document.querySelectorAll('.language-selector a');
+      for (var i = 0; i < languageLinks.length; i++) {
+        languageLinks[i].classList.remove('active');
+      }
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

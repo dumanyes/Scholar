@@ -27,5 +27,4 @@ def save_profile(sender, instance, **kwargs):
         try:
             instance.profile.save()
         except (AttributeError, KeyError, OperationalError):
-            # The profile may not yet exist, so simply pass.
             pass

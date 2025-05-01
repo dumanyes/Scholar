@@ -1,6 +1,5 @@
 import os
 import sys
-
 from django.conf import settings
 from django.utils import timezone
 from django.db import models
@@ -8,9 +7,9 @@ from django.contrib.auth.models import User
 from PIL import Image
 from cities_light.models import Country, City
 from datetime import date
-
 from projects.models import Category
-
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class University(models.Model):
@@ -34,7 +33,6 @@ class Profile(models.Model):
     university = models.ForeignKey(University, blank=True, null=True, on_delete=models.SET_NULL)
 
     # Professional Details
-    # Now referencing the Skill and Interest models from projects app.
     skills = models.ManyToManyField('projects.Skill', blank=True, related_name='users')
     categories = models.ManyToManyField(Category, blank=True, related_name='profiles')
 
@@ -46,6 +44,8 @@ class Profile(models.Model):
     github = models.URLField(blank=True, default="")
     google_scholar = models.URLField(blank=True, default="")
     telegram = models.CharField(max_length=100, blank=True, default="")
+
+    telegram_chat_id = models.BigIntegerField(null=True, blank=True)
 
     # Location
     country = models.ForeignKey(Country, on_delete=models.SET_NULL, null=True, blank=True)
@@ -64,24 +64,21 @@ class Profile(models.Model):
     notify_on_application = models.BooleanField(default=True)
     notify_on_application_status_change = models.BooleanField(default=True)
     notify_on_chat_message = models.BooleanField(default=True)
-    preferred_language = models.CharField(max_length=10, choices=[
-        ('en', 'English'),
-        ('ru', 'Русский'),
-        ('kk', 'Қазақша'),
-    ], default='en')
+    # preferred_language = models.CharField(max_length=10, choices=[
+    #     ('en', 'English'),
+    #     ('ru', 'Русский'),
+    #     ('kk', 'Қазақша'),
+    # ], default='en')
 
     def __str__(self):
         return f"{self.user.username}'s Profile"
 
     def save(self, *args, **kwargs):
-        # First, save the instance normally.
         super().save(*args, **kwargs)
 
-        # If there is an avatar, get its path.
         if self.avatar and self.avatar.name:
             avatar_path = self.avatar.path
 
-            # Check if the file exists before processing
             if not os.path.exists(avatar_path):
                 print(f"Avatar file not found at: {avatar_path}")
                 # Set to default avatar if file is missing
@@ -91,7 +88,6 @@ class Profile(models.Model):
 
             try:
                 img = Image.open(avatar_path)
-                # Resize if necessary
                 if img.width > 300 or img.height > 300:
                     output_size = (300, 300)
                     img.thumbnail(output_size, Image.ANTIALIAS)
@@ -116,16 +112,10 @@ class Profile(models.Model):
         if self.birthdate:
             today = date.today()
             return today.year - self.birthdate.year - ((today.month, today.day) < (self.birthdate.month, self.birthdate.day))
-        return None  # Return None if birthdate is not provided
-
-
-# Signals to automatically create and save a Profile when a User is created/updated.
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+        return None
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
-    # Skip signal during migrate/makemigrations
     if 'migrate' in sys.argv or 'makemigrations' in sys.argv:
         return
     if created and not hasattr(instance, 'profile'):
@@ -133,11 +123,10 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    # Skip signal during migrate/makemigrations
     if 'migrate' in sys.argv or 'makemigrations' in sys.argv:
         return
     try:
         if hasattr(instance, 'profile'):
             instance.profile.save()
     except Profile.DoesNotExist:
-        pass  # Just ignore if profile wasn't created yet
+        pass

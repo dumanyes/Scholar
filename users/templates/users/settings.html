@@ -2,11 +2,21 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{% trans Settings %}{% endblock %}
+{% block title %}{% trans "Settings" %}{% endblock %}
 
 {% block content %}
 <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg mt-8">
     <h2 class="text-3xl font-bold text-gray-800 mb-6 pb-4 border-b border-gray-200">{% trans "Account Settings" %}</h2>
+{% if messages %}
+  <div class="mb-4">
+    {% for message in messages %}
+      <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
     <form method="post">
         {% csrf_token %}
 
@@ -21,7 +31,7 @@
                 <div class="relative inline-block w-12 mr-2 align-middle">
                     <input type="checkbox" name="allow_project_invites" id="allow_project_invites"
                            class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-2 border-gray-300 appearance-none cursor-pointer"
-                           {% if profile.allow_project_invites %}{% trans "checked" %}{% endif %}>
+                           {% if profile.allow_project_invites %}checked{% endif %}>
                     <label for="allow_project_invites" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
                 </div>
             </div>
@@ -35,7 +45,7 @@
                 <div class="relative inline-block w-12 mr-2 align-middle">
                     <input type="checkbox" name="email_notifications" id="email_notifications"
                            class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-2 border-gray-300 appearance-none cursor-pointer"
-                           {% if profile.email_notifications %}{% trans "checked" %}{% endif %}>
+                           {% if profile.email_notifications %}checked{% endif %}>
                     <label for="email_notifications" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
                 </div>
             </div>
@@ -49,7 +59,7 @@
                 <div class="relative inline-block w-12 mr-2 align-middle">
                     <input type="checkbox" name="notify_on_application" id="notify_on_application"
                            class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-2 border-gray-300 appearance-none cursor-pointer"
-                           {% if profile.notify_on_application %}{% trans "checked" %}{% endif %}>
+                           {% if profile.notify_on_application %}checked{% endif %}>
                     <label for="notify_on_application" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
                 </div>
             </div>
@@ -63,7 +73,7 @@
                 <div class="relative inline-block w-12 mr-2 align-middle">
                     <input type="checkbox" name="notify_on_application_status_change" id="notify_on_application_status_change"
                            class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-2 border-gray-300 appearance-none cursor-pointer"
-                           {% if profile.notify_on_application_status_change %}{% trans "checked" %}{% endif %}>
+                           {% if profile.notify_on_application_status_change %}checked{% endif %}>
                     <label for="notify_on_application_status_change" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
                 </div>
             </div>
@@ -77,20 +87,20 @@
                 <div class="relative inline-block w-12 mr-2 align-middle">
                     <input type="checkbox" name="notify_on_chat_message" id="notify_on_chat_message"
                            class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-2 border-gray-300 appearance-none cursor-pointer"
-                           {% if profile.notify_on_chat_message %}{% trans "checked" %}{% endif %}>
+                           {% if profile.notify_on_chat_message %}checked{% endif %}>
                     <label for="notify_on_chat_message" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
                 </div>
             </div>
 
             <!-- Preferred Language -->
-            <div>
-                <label for="preferred_language" class="block text-gray-700 font-semibold mb-2">{% trans "Preferred Language" %}</label>
-                <select name="preferred_language" id="preferred_language" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                    <option value="en" {% if profile.preferred_language == 'en' %}selected{% endif %}>English</option>
-                    <option value="ru" {% if profile.preferred_language == 'ru' %}selected{% endif %}>Русский</option>
-                    <option value="kk" {% if profile.preferred_language == 'kk' %}selected{% endif %}>Қазақша</option>
-                </select>
-            </div>
+{#            <div>#}
+{#                <label for="preferred_language" class="block text-gray-700 font-semibold mb-2">{% trans "Preferred Language" %}</label>#}
+{#                <select name="preferred_language" id="preferred_language" class="w-full px-4 py-2 border border-gray-300 rounded-lg">#}
+{#                    <option value="en" {% if profile.preferred_language == 'en' %}selected{% endif %}>English</option>#}
+{#                    <option value="ru" {% if profile.preferred_language == 'ru' %}selected{% endif %}>Русский</option>#}
+{#                    <option value="kk" {% if profile.preferred_language == 'kk' %}selected{% endif %}>Қазақша</option>#}
+{#                </select>#}
+{#            </div>#}
 
         </div>
 
@@ -113,4 +123,33 @@
     background-color: #3B82F6;
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const emailNotifications = document.getElementById('email_notifications');
+    const dependentToggles = [
+        document.getElementById('notify_on_application'),
+        document.getElementById('notify_on_application_status_change'),
+        document.getElementById('notify_on_chat_message')
+    ];
+
+    function updateDependentToggles() {
+        if (!emailNotifications.checked) {
+            dependentToggles.forEach(toggle => {
+                toggle.checked = false;
+                toggle.disabled = true;
+                toggle.parentElement.classList.add('opacity-50', 'cursor-not-allowed');
+            });
+        } else {
+            dependentToggles.forEach(toggle => {
+                toggle.disabled = false;
+                toggle.parentElement.classList.remove('opacity-50', 'cursor-not-allowed');
+            });
+        }
+    }
+
+    emailNotifications.addEventListener('change', updateDependentToggles);
+    updateDependentToggles(); // Initialize on page load
+});
+</script>
 {% endblock %}

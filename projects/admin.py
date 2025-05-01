@@ -10,8 +10,6 @@ from .models import (
     RequiredRole,
     ProjectApplication
 )
-
-# Register basic models
 admin.site.register(Project)
 admin.site.register(Category)
 admin.site.register(InterestsCategory)

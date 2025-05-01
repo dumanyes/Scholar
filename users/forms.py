@@ -1,12 +1,13 @@
 from datetime import date
-
-from django import forms
-from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 import re
+from django import forms
+from django.contrib.auth.models import User
 from .models import Profile, University
-from projects.models import Skill, Interest
+from projects.models import Skill, Category
+
+
 
 def validate_username(value):
     if len(value) < 3:
@@ -122,11 +123,6 @@ class LoginForm(AuthenticationForm):
         else:
             self.request.session.set_expiry(0)  # Session expires on browser close
 
-from django import forms
-from django.contrib.auth.models import User
-from .models import Profile, University
-from projects.models import Skill, Category
-
 class UpdateUserForm(forms.ModelForm):
     username = forms.CharField(max_length=100, required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control'}))
@@ -181,7 +177,6 @@ class UpdateProfileForm(forms.ModelForm):
             skill_ids = [int(s) for s in skills_str.split(",") if s]
         except ValueError:
             raise forms.ValidationError("Invalid skills data.")
-        from projects.models import Skill
         skills = Skill.objects.filter(id__in=skill_ids)
         if not skills.exists():
             raise forms.ValidationError("Please select at least one valid skill.")
@@ -194,7 +189,6 @@ class UpdateProfileForm(forms.ModelForm):
             category_ids = [int(c) for c in categories_str.split(",") if c]
         except ValueError:
             raise forms.ValidationError("Invalid categories data.")
-        from projects.models import Category
         categories = Category.objects.filter(id__in=category_ids)
         if not categories.exists():
             raise forms.ValidationError("Please select at least one category.")

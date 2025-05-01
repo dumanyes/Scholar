@@ -2,21 +2,18 @@ from django import forms
 from .models import Project, Skill, MaxWordsValidator, ProjectApplication, RequiredRole, Language
 
 class ProjectForm(forms.ModelForm):
-    # Skills: Must be at least one (validation in clean_skills_required)
     skills_required = forms.CharField(widget=forms.HiddenInput(), required=True)
-    # Required roles: Now set as required so that the user must select at least one.
     required_roles = forms.CharField(widget=forms.HiddenInput(), required=True)
 
     languages = forms.ModelMultipleChoiceField(
         queryset=Language.objects.all(),
         required=True,
-        widget=forms.CheckboxSelectMultiple,  # Or use SelectMultiple for dropdown style
+        widget=forms.CheckboxSelectMultiple,
         help_text="Select at least one language"
     )
 
     class Meta:
         model = Project
-        # Note: 'category' is handled via JavaScript.
         fields = [
             'title',
             'description',
@@ -42,7 +39,6 @@ class ProjectForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # If editing an existing project, prepopulate hidden fields with current values.
         if self.instance and self.instance.pk:
             skills = ",".join(str(skill.id) for skill in self.instance.skills_required.all())
             roles = ",".join(str(role.id) for role in self.instance.required_roles.all())
@@ -94,7 +90,6 @@ class ProjectForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        # Process categories from the hidden input (IDs expected)
         categories_str = self.data.get('categories', '')
         category_ids = [cid.strip() for cid in categories_str.split(',') if cid.strip()]
         if not category_ids:
