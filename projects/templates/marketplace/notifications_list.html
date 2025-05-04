@@ -1,174 +1,107 @@
 {% extends "users/base.html" %}
 {% load static %}
+
 {% block content %}
-    <script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          primary: '#6D3AFF',
-          secondary: '#8B5CFF',
-          accent: '#FF69B4',
-          dark: '#1A1A2E',
-        }
-      }
-    }
-  }
-</script>
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
 
 <!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
 
-<!-- Chart.js CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-
-<style>
-  .gradient-text {
-    background: linear-gradient(135deg, #6D3AFF 0%, #FF69B4 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .feature-card {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .feature-card:hover {
-    transform: translateY(-5px);
-  }
-</style>
-
-<div class="min-h-screen bg-white">
+<div class="min-h-screen bg-gray-50">
   <!-- Header -->
-  <header class="bg-white border-b border-gray-200 sticky top-0 z-10">
-    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-      <div class="flex items-center gap-3">
+  <header class="bg-white shadow-sm sticky top-0 z-10">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-4">
         <!-- Back Button -->
-        <button onclick="window.history.back()" class="p-2 rounded-full hover:bg-gray-100 transition">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <a href="{% url 'marketplace' %}" class="p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
-        </button>
-        <h1 class="text-xl font-semibold text-gray-800">Notifications</h1>
-        {% if unread_count and unread_count > 0 %}
-          <span class="bg-blue-600 text-white text-xs font-medium px-2 py-0.5 rounded-full">
-            {{ unread_count }}
-          </span>
-        {% endif %}
+        </a>
+        <div class="flex items-center">
+          <h1 class="text-xl font-bold text-gray-900">Notifications</h1>
+          {% if notifications_count > 0 %}
+            <span class="ml-2 bg-blue-600 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+              {{ notifications_count }}
+            </span>
+          {% endif %}
+        </div>
       </div>
       <!-- Mark all as read button -->
-      <a href="{% url 'mark_all_notifications_read' %}" class="text-sm px-3 py-1.5 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition flex items-center gap-1">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-        </svg>
-        Mark all as read
+      <a href="{% url 'mark_all_notifications_read' %}" class="text-sm font-medium px-4 py-2 rounded-lg bg-white border border-blue-600 text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors flex items-center gap-2">
+        <i class="fas fa-check"></i> Mark all as read
       </a>
     </div>
   </header>
 
+  <!-- Filter Tabs -->
+  <div class="bg-white border-b border-gray-200">
+    <div class="max-w-5xl mx-auto px-4">
+      <div class="flex items-center overflow-x-auto scrollbar-hide py-2">
+        <!-- All -->
+        <a href="?period=all" class="flex items-center px-4 py-2 font-medium text-sm transition-colors {% if active_period == 'all' %}text-blue-600 border-b-2 border-blue-600{% else %}text-gray-500 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300{% endif %}">All</a>
+        <!-- Today -->
+        <a href="?period=today" class="flex items-center px-4 py-2 font-medium text-sm transition-colors {% if active_period == 'today' %}text-blue-600 border-b-2 border-blue-600{% else %}text-gray-500 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300{% endif %}">Today</a>
+        <!-- This Week -->
+        <a href="?period=this_week" class="flex items-center px-4 py-2 font-medium text-sm transition-colors {% if active_period == 'this_week' %}text-blue-600 border-b-2 border-blue-600{% else %}text-gray-500 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300{% endif %}">This Week</a>
+        <!-- Older -->
+        <a href="?period=older" class="flex items-center px-4 py-2 font-medium text-sm transition-colors {% if active_period == 'older' %}text-blue-600 border-b-2 border-blue-600{% else %}text-gray-500 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300{% endif %}">Older</a>
+      </div>
+    </div>
+  </div>
+
   <!-- Notifications List -->
-  <div class="container mx-auto px-4 py-6 max-w-3xl">
-    {% if notifications %}
-      <ul class="space-y-3">
-        {% for notification in notifications %}
-          <li class="p-4 rounded-lg transition-all duration-200 hover:shadow-md
-                     {% if notification.read %}bg-white border border-gray-200{% else %}bg-blue-50 border border-blue-100{% endif %}">
-            <div class="flex items-start gap-3">
-              <!-- Notification Icon -->
-              <div class="p-2 rounded-full
-                   {% if notification.read %}
-                     bg-gray-100
-                   {% else %}
-                     bg-blue-100
-                   {% endif %}">
-                {% if notification.type == "comment" %}
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4" />
-                  </svg>
-                {% elif notification.type == "like" %}
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8a6 6 0 0112 0c0 4-6 10-6 10S4 12 4 8z" />
-                  </svg>
-                {% elif notification.type == "follow" %}
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3M6 9a4 4 0 110 8 4 4 0 010-8z" />
-                  </svg>
-                {% elif notification.type == "feature" %}
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l2.362 7.238h7.605c.969 0 1.371 1.24.588 1.81l-6.157 4.467l2.362 7.238c.3.921-.755 1.688-1.54 1.118l-6.157-4.467l-6.157 4.467c-.785.57-1.84-.197-1.54-1.118l2.362-7.238L.345 11.965c-.783-.57-.38-1.81.588-1.81h7.605l2.362-7.238z" />
-                  </svg>
-                {% elif notification.type == "reminder" %}
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0a9 9 0 0118 0z" />
-                  </svg>
-                {% elif notification.type == "accepted" %}
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2l4 -4" />
-                  </svg>
-                {% elif notification.type == "rejected" %}
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m4-10a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                {% elif notification.type == "message" %}
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4" />
-                  </svg>
-                {% elif notification.type == "applied" %}
-                  <!-- New Applied Notification Icon -->
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6M9 16h6" />
-                  </svg>
-                {% else %}
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                  </svg>
+  <div class="max-w-3xl mx-auto px-4 py-6">
+    <ul class="space-y-2">
+      {% for notification in notifications %}
+        <li class="bg-white rounded-xl shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md {% if not notification.read %}border-l-4 border-blue-500{% endif %}">
+          <div class="flex items-start p-4">
+            <div class="flex-shrink-0 mr-4">
+              <div class="p-2 rounded-full {% if notification.read %}bg-gray-100 text-gray-600{% else %}bg-blue-100 text-blue-600{% endif %}">
+                {% if notification.type == 'comment' %}<i class="fas fa-comment"></i>
+                {% elif notification.type == 'like' %}<i class="fas fa-heart"></i>
+                {% elif notification.type == 'follow' %}<i class="fas fa-user-plus"></i>
+                {% elif notification.type == 'feature' %}<i class="fas fa-star"></i>
+                {% elif notification.type == 'reminder' %}<i class="fas fa-clock"></i>
+                {% elif notification.type == 'accepted' %}<i class="fas fa-check-circle"></i>
+                {% elif notification.type == 'rejected' %}<i class="fas fa-times-circle"></i>
+                {% elif notification.type == 'message' %}<i class="fas fa-envelope"></i>
+                {% elif notification.type == 'applied' %}<i class="fas fa-file-alt"></i>
+                {% else %}<i class="fas fa-bell"></i>
                 {% endif %}
-              </div>
-              <!-- Notification Content -->
-              <div class="flex-1">
-                <a href="{{ notification.link }}" class="block">
-                  <p class="text-gray-800 {% if not notification.read %}font-medium{% endif %}">
-                    {{ notification.message }}
-                  </p>
-                  <div class="flex items-center mt-1 text-xs text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0a9 9 0 0118 0z" />
-                    </svg>
-                    {{ notification.created_at|date:"M d, Y H:i" }}
-                  </div>
-                </a>
-              </div>
-              <!-- Action Buttons -->
-              <div class="flex items-center gap-2">
-                {% if not notification.read %}
-                  <button onclick="location.href='{% url 'mark_notification_read' notification.id %}'" class="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100" aria-label="Mark as read">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </button>
-                {% endif %}
-                <button class="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100" aria-label="Dismiss">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
               </div>
             </div>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <div class="text-center py-12">
-        <div class="bg-gray-100 w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-          </svg>
-        </div>
-        <h3 class="text-lg font-medium text-gray-700">No notifications</h3>
-        <p class="text-gray-500 mt-1">You're all caught up!</p>
-      </div>
-    {% endif %}
+            <div class="flex-1">
+              <a href="{{ notification.link }}" class="block">
+                <p class="text-gray-900 {% if not notification.read %}font-medium{% endif %}">{{ notification.message }}</p>
+                <div class="flex items-center mt-2 text-xs text-gray-500">
+                  <i class="far fa-calendar mr-1"></i>
+                  {{ notification.created_at|date:"M d, Y" }}
+                  <i class="far fa-clock ml-2 mr-1"></i>
+                  {{ notification.created_at|time:"H:i" }}
+                </div>
+              </a>
+            </div>
+            <div class="flex flex-shrink-0 ml-2">
+              {% if not notification.read %}
+                <a href="{% url 'mark_notification_read' notification.id %}" class="p-1.5 rounded-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"><i class="fas fa-check"></i></a>
+              {% endif %}
+              <button class="p-1.5 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"><i class="fas fa-times"></i></button>
+            </div>
+          </div>
+        </li>
+      {% empty %}
+        <li class="text-center py-16 bg-white rounded-xl shadow-sm">
+          <div class="bg-gray-100 w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center"><i class="fas fa-bell-slash text-gray-400 text-2xl"></i></div>
+          <h3 class="text-lg font-semibold text-gray-800 mb-2">All caught up!</h3>
+          <p class="text-gray-500 max-w-md mx-auto">You don't have any notifications at the moment. We'll notify you when something new happens.</p>
+        </li>
+      {% endfor %}
+    </ul>
+
+
   </div>
 </div>
+
 {% endblock %}

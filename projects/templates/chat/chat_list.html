@@ -8,125 +8,130 @@
   <title>Chats</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @keyframes pulse-new {
-      0% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.05); opacity: 0.7; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-    .pulse-new {
-      animation: pulse-new 1s ease-in-out;
-    }
-  </style>
 </head>
-<body class="flex flex-col h-screen bg-gray-50 text-gray-800 relative">
-  <div id="connection-error" class="hidden fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-full shadow z-50">
-    Connection lost. Reconnecting...
+<body class="flex flex-col h-screen bg-gray-100 text-gray-800 antialiased">
+  <!-- Status notifications -->
+  <div id="connection-error" class="hidden fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-2 rounded-lg shadow-lg z-50 flex items-center space-x-2">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+    </svg>
+    <span>Connection lost. Reconnecting...</span>
   </div>
 
-  <div id="new-messages-indicator" class="hidden fixed bottom-16 left-1/2 transform -translate-x-1/2 bg-gray-200 text-gray-800 px-4 py-2 rounded-full shadow z-40 cursor-pointer">
-    New messages
+  <div id="new-messages-indicator" class="hidden fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-white text-gray-800 px-4 py-2 rounded-lg shadow-lg z-40 cursor-pointer flex items-center space-x-2">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+      <path d="M3 3a1 1 0 000 2h11a1 1 0 100-2H3zM3 7a1 1 0 000 2h7a1 1 0 100-2H3zM3 11a1 1 0 100 2h4a1 1 0 100-2H3zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z" />
+    </svg>
+    <span class="font-medium">New messages</span>
   </div>
 
-  <header class="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200 shadow">
-    <a href="{% url 'marketplace' %}" class="flex items-center text-gray-600 hover:text-gray-800 transition">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <!-- Header with back button and title -->
+  <header class="flex items-center justify-between px-4 py-4 bg-white border-b border-gray-200 shadow-sm">
+    <a href="{% url 'marketplace' %}" class="flex items-center text-gray-700 hover:text-blue-600 transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
       </svg>
-      <span class="font-medium">Back</span>
+      <span class="font-medium">Marketplace</span>
     </a>
-    <h1 class="text-xl font-semibold">Chats</h1>
+    <h1 class="text-xl font-bold">Messages</h1>
     <div class="w-6"></div>
   </header>
 
-  <section class="px-4 py-3 bg-white border-b border-gray-200">
-    <div class="relative">
-      <input type="search" name="q" placeholder="Search chats..."
-             value="{{ request.GET.q }}"
-             class="w-full bg-gray-50 rounded-full px-4 py-2 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 transition">
-      <svg class="w-5 h-5 text-gray-500 absolute top-1/2 right-4 transform -translate-y-1/2"
-           fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-      </svg>
-    </div>
-  </section>
 
-  <main id="chat-list" class="flex-1 overflow-y-auto bg-gray-50 px-4 py-4 space-y-3">
+
+  <!-- Main chat list -->
+  <main id="chat-list" class="flex-1 overflow-y-auto bg-gray-100 px-4 py-3 space-y-2">
     {% if chat_data %}
       {% for item in chat_data %}
         {% if item.other_user and item.other_user.id %}
         <a href="{% url 'chat' user_id=item.other_user.id %}" data-chat-id="{{ item.room.id }}"
-           class="folder-chat flex items-center justify-between bg-white rounded-lg p-4 border border-gray-200 hover:bg-gray-100 transition relative">
-          <div class="flex items-center gap-3 flex-1">
-            {% if item.other_user.profile.avatar %}
-              <img src="{{ item.other_user.profile.avatar.url }}" alt="{{ item.other_user.username }}" class="w-12 h-12 rounded-full object-cover border border-gray-300">
-            {% else %}
-              <div class="w-12 h-12 rounded-full bg-gray-400 flex items-center justify-center">
-                <span class="text-white text-lg font-bold">{{ item.other_user.username|slice:":1"|upper }}</span>
+           class="folder-chat flex items-center bg-white rounded-lg p-3 border border-gray-200 hover:bg-gray-50 transition-all duration-200 relative overflow-hidden">
+          <div class="flex items-start gap-3 flex-1 min-w-0">
+            <!-- Avatar section -->
+            <div class="flex-shrink-0">
+              {% if item.other_user.profile.avatar %}
+                <img src="{{ item.other_user.profile.avatar.url }}" alt="{{ item.other_user.username }}" class="w-12 h-12 rounded-full object-cover border border-gray-200">
+              {% else %}
+                <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                  <span class="text-lg font-bold">{{ item.other_user.username|slice:":1"|upper }}</span>
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Content section -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <span class="font-semibold text-gray-900 truncate">{{ item.other_user.username }}</span>
+                <span data-time class="text-xs text-gray-500 flex-shrink-0">
+                  {% if item.last_message %}
+                    {{ item.last_message.timestamp|date:"H:i" }}
+                  {% endif %}
+                </span>
               </div>
-            {% endif %}
-            <div class="flex-1">
-              <div class="flex items-center">
-                <span class="text-sm font-semibold">{{ item.other_user.username }}</span>
-                {% if item.unread_count > 0 %}
-                  <span data-unread-id="{{ item.room.id }}" class="ml-2 bg-gray-800 text-xs text-white px-2 py-0.5 rounded-full transition duration-300">
-                    {{ item.unread_count }}
-                  </span>
-                {% endif %}
-              </div>
-              <p data-snippet class="text-xs text-gray-600 truncate">
+
+              <p data-snippet class="text-sm text-gray-600 truncate mt-1 pr-4">
                 {% if item.last_message %}
                   {% if item.last_message.sender == request.user.id %}
-                    <span class="text-gray-500">You:</span>
+                    <span class="text-gray-500 font-medium">You: </span>
                   {% endif %}
-                  {{ item.last_message.content|truncatechars:40 }}
+                  {{ item.last_message.content|truncatechars:50 }}
                 {% else %}
-                  No messages yet
+                  <span class="text-gray-400 italic">No messages yet</span>
                 {% endif %}
               </p>
             </div>
           </div>
-          <div data-time class="text-xs text-gray-600 ml-2">
-            {% if item.last_message %}
-              {{ item.last_message.timestamp|date:"H:i" }}
-            {% endif %}
-          </div>
+
+          <!-- Unread indicator -->
           {% if item.unread_count > 0 %}
-          <div class="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1">
-            <div class="w-2 h-8 bg-gray-800 rounded-r-full"></div>
-          </div>
+            <div class="absolute top-1/2 right-3 transform -translate-y-1/2 flex items-center">
+              <span data-unread-id="{{ item.room.id }}" class="bg-blue-500 text-xs text-white font-medium px-2 py-1 rounded-full shadow-sm">
+                {{ item.unread_count }}
+              </span>
+            </div>
+            <!-- Side indicator -->
+            <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
           {% endif %}
         </a>
         {% endif %}
       {% endfor %}
     {% else %}
-      <div class="flex flex-col items-center justify-center h-full text-gray-500">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                d="M8 12h.01M12 12h.01M16 12h.01M21 12
-                   c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3
-                   20l1.395-3.72C3.512 15.042 3 13.574 3
-                   12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-        </svg>
-        <p class="text-lg font-medium">No conversations found</p>
-        <p class="text-sm mt-2">Try adjusting your search or start a new conversation</p>
-        <button class="mt-6 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition">
-          Start a new conversation
+      <!-- Empty state -->
+      <div class="flex flex-col items-center justify-center h-64 text-center px-4 mt-8">
+        <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12
+                     c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3
+                     20l1.395-3.72C3.512 15.042 3 13.574 3
+                     12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800 mb-1">No conversations yet</h3>
+        <p class="text-gray-500 mb-6">Start chatting with other users or search for specific conversations</p>
+        <button class="px-5 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition flex items-center space-x-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+          </svg>
+          <span>New conversation</span>
         </button>
       </div>
     {% endif %}
   </main>
 
-  <div id="typing-indicator" class="fixed bottom-4 left-4 bg-gray-100 px-3 py-2 rounded-full shadow z-30 flex items-center space-x-1" style="display: none;">
-    <div class="w-2 h-2 bg-gray-800 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
-    <div class="w-2 h-2 bg-gray-800 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
-    <div class="w-2 h-2 bg-gray-800 rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
-    <span class="text-xs text-gray-800">Typing...</span>
+  <!-- Typing indicator -->
+  <div id="typing-indicator" class="fixed bottom-20 left-4 bg-white px-3 py-2 rounded-lg shadow-lg z-30 flex items-center space-x-2" style="display: none;">
+    <div class="flex space-x-1">
+      <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+      <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+      <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+    </div>
+    <span class="text-xs font-medium text-gray-700">Someone is typing...</span>
   </div>
 
-  <footer class="border-t border-gray-200 bg-white p-4">
-    <p class="text-sm text-gray-600 text-center">Select a conversation to view messages.</p>
+  <!-- Footer -->
+  <footer class="border-t border-gray-200 bg-white p-4 shadow-inner">
+    <p class="text-sm text-gray-600 text-center">Select a conversation to view messages</p>
   </footer>
 
   <script>
@@ -138,6 +143,7 @@
       };
     }
 
+    // Web socket connection
     const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
     const chatListSocket = new WebSocket(wsScheme + "://" + window.location.host + "/ws/chat-list/");
 
@@ -145,26 +151,71 @@
       if (data.chat_id) {
         const chatItem = document.querySelector(`a[data-chat-id="${data.chat_id}"]`);
         if (chatItem) {
+          // Handle unread badge
           const badge = chatItem.querySelector(`span[data-unread-id="${data.chat_id}"]`);
-          if (badge) {
-            if (parseInt(data.unread_count) === 0) {
-              badge.style.display = 'none';
-            } else {
+          const sideIndicator = chatItem.querySelector('.absolute.left-0.top-0.bottom-0.w-1');
+
+          if (parseInt(data.unread_count) === 0) {
+            // Remove unread indicators
+            if (badge) badge.remove();
+            if (sideIndicator) sideIndicator.remove();
+          } else {
+            // Update or create badge
+            if (badge) {
               badge.textContent = data.unread_count;
-              badge.style.display = 'inline-block';
-              badge.classList.add('pulse-new');
-              setTimeout(() => badge.classList.remove('pulse-new'), 1000);
+              badge.classList.add('animate-pulse');
+              setTimeout(() => badge.classList.remove('animate-pulse'), 1000);
+            } else {
+              // Create new badge and indicator if they don't exist
+              const badgeContainer = document.createElement('div');
+              badgeContainer.className = 'absolute top-1/2 right-3 transform -translate-y-1/2 flex items-center';
+              badgeContainer.innerHTML = `
+                <span data-unread-id="${data.chat_id}" class="bg-blue-500 text-xs text-white font-medium px-2 py-1 rounded-full shadow-sm animate-pulse">
+                  ${data.unread_count}
+                </span>
+              `;
+              chatItem.appendChild(badgeContainer);
+
+              if (!sideIndicator) {
+                const indicator = document.createElement('div');
+                indicator.className = 'absolute left-0 top-0 bottom-0 w-1 bg-blue-500';
+                chatItem.appendChild(indicator);
+              }
+
+              setTimeout(() => {
+                const newBadge = chatItem.querySelector(`span[data-unread-id="${data.chat_id}"]`);
+                if (newBadge) newBadge.classList.remove('animate-pulse');
+              }, 1000);
             }
           }
+
+          // Update message snippet
           const snippetElem = chatItem.querySelector('[data-snippet]');
           if (snippetElem && data.last_message !== undefined) {
             const senderId = parseInt(data.sender_id);
             const currentUserId = parseInt({{ current_user_id }});
-            snippetElem.textContent = (senderId === currentUserId ? "You: " : "") + data.last_message;
+
+            snippetElem.innerHTML = '';
+            if (senderId === currentUserId) {
+              const youSpan = document.createElement('span');
+              youSpan.className = 'text-gray-500 font-medium';
+              youSpan.textContent = 'You: ';
+              snippetElem.appendChild(youSpan);
+            }
+
+            snippetElem.appendChild(document.createTextNode(data.last_message));
           }
+
+          // Update timestamp
           const timeElem = chatItem.querySelector('[data-time]');
           if (timeElem && data.timestamp) {
             timeElem.textContent = data.timestamp;
+          }
+
+          // Move the updated chat to the top
+          const parent = chatItem.parentNode;
+          if (parent && parent.firstChild !== chatItem) {
+            parent.insertBefore(chatItem, parent.firstChild);
           }
         }
       }
@@ -191,7 +242,30 @@
     chatListSocket.onclose = function(e) {
       console.error("ChatList WebSocket closed unexpectedly:", e);
       document.getElementById('connection-error').style.display = 'block';
+
+      // Auto reconnect after 5 seconds
+      setTimeout(() => {
+        window.location.reload();
+      }, 5000);
     };
+
+    // Add smooth scroll to top when new message notification is clicked
+    const newMessagesIndicator = document.getElementById('new-messages-indicator');
+    if (newMessagesIndicator) {
+      newMessagesIndicator.addEventListener('click', () => {
+        const chatList = document.getElementById('chat-list');
+        chatList.scrollTo({ top: 0, behavior: 'smooth' });
+        newMessagesIndicator.style.display = 'none';
+      });
+    }
+
+    // Show new messages indicator when scrolled down and new message arrives
+    const chatList = document.getElementById('chat-list');
+    chatList.addEventListener('scroll', debounce(() => {
+      if (chatList.scrollTop > 100) {
+        // Logic to check if new messages arrived while scrolled down
+      }
+    }, 200));
   </script>
 </body>
 </html>

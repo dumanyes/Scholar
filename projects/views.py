@@ -360,6 +360,7 @@ def unread_chat_count(request):
     return {'unread_chat_count': 0}
 
 
+
 class NotificationsListView(LoginRequiredMixin, ListView):
     model = Notification
     template_name = 'marketplace/notifications_list.html'
@@ -367,7 +368,31 @@ class NotificationsListView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return Notification.objects.filter(user=self.request.user).order_by('-created_at')
+        qs = Notification.objects.filter(user=self.request.user)
+
+        period = self.request.GET.get('period', 'all')
+        now = timezone.now()
+        today = now.date()
+
+        week_start = today - timedelta(days=today.weekday())
+
+        if period == 'today':
+            qs = qs.filter(created_at__date=today)
+        elif period == 'this_week':
+            qs = qs.filter(created_at__date__gte=week_start, created_at__date__lte=today)
+        elif period == 'older':
+
+            qs = qs.exclude(created_at__date__gte=week_start)
+
+
+        return qs.order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        # pass active tab to template
+        ctx['active_period'] = self.request.GET.get('period', 'all')
+        return ctx
+
 
 
 class ProjectDetailView(LoginRequiredMixin, DetailView):

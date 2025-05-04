@@ -2,326 +2,368 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <!-- Ensure proper scaling on mobile devices -->
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-     <link rel="icon" href="/media/img_5.png" type="image/x-icon">
-  <!-- Include Tailwind CSS -->
+  <link rel="icon" href="/media/img_5.png" type="image/x-icon">
   <script src="https://cdn.tailwindcss.com"></script>
   <title>Chat with {{ other_user.username }}</title>
-  <style>
-    :root {
-      /* Light theme colors */
-      --primary-color: #1F2937; /* dark gray for accents */
-      --accent-color: #3B82F6;  /* blue accent */
-      --background-color: #F9FAFB; /* very light gray background */
-      --text-primary: #1F2937;  /* dark text */
-      --text-secondary: #4B5563; /* medium gray */
-      --border-color: #D1D5DB;   /* light gray border */
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          animation: {
+            'bounce-slow': 'bounce 1.5s infinite',
+            'fade-in': 'fadeIn 0.3s ease forwards',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0', transform: 'translateY(8px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' }
+            }
+          }
+        }
+      }
     }
-    body {
-      background-color: var(--background-color);
-      color: var(--text-primary);
-    }
-    @keyframes fade-in {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .animate-fade-in {
-      animation: fade-in 0.3s ease;
-    }
-    /* Typing indicator styling */
-    .typing-indicator {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-    }
-    .typing-dot {
-      width: 0.4rem;
-      height: 0.4rem;
-      background-color: var(--accent-color);
-      border-radius: 50%;
-      animation: typingBounce 1s infinite;
-    }
-    @keyframes typingBounce {
-      0%, 80%, 100% { transform: translateY(0); }
-      40% { transform: translateY(-6px); }
-    }
-    /* New messages indicator & connection error styling */
-    .new-messages-indicator,
-    .connection-error {
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 0.5rem 1rem;
-      border-radius: 9999px;
-      color: #fff;
-      cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      display: none; /* hidden by default */
-      z-index: 50;
-    }
-    .new-messages-indicator {
-      bottom: 5rem;
-      background-color: var(--accent-color);
-    }
-    .connection-error {
-      top: 4rem;
-      background-color: #DC2626; /* red */
-    }
-  </style>
+  </script>
 </head>
-<body class="flex flex-col h-screen text-gray-800 relative">
-
-  <!-- Connection Error State -->
-  <div class="connection-error" id="connection-error">
-    Connection lost. Reconnecting...
+<body class="flex flex-col h-screen bg-gray-50 text-gray-800 antialiased">
+  <!-- Status notifications - Positioned with Tailwind -->
+  <div id="connection-error" class="hidden fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-2 rounded-lg shadow-lg z-50 flex items-center space-x-2">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+    </svg>
+    <span>Connection lost. Reconnecting...</span>
   </div>
 
-  <!-- New Messages Indicator -->
-  <div class="new-messages-indicator" id="new-messages-indicator">
-    ↓ New messages
+  <div id="new-messages-indicator" class="hidden fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-40 cursor-pointer flex items-center space-x-2 transition-all duration-200">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" />
+    </svg>
+    <span class="font-medium">New messages</span>
   </div>
 
-  <!-- Header -->
-  <header class="p-4 bg-white border-b border-gray-200 shadow flex items-center justify-between">
-    <div class="flex items-center gap-4">
-      <!-- Back Button -->
-      <a href="{% url 'chat_list' %}" class="flex items-center text-gray-600 hover:text-gray-800">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-        Back
-      </a>
-      <!-- Other User Avatar -->
-      {% if other_user.profile.avatar %}
-        <img src="{{ other_user.profile.avatar.url }}" alt="{{ other_user.username }}" class="w-10 h-10 rounded-full object-cover shadow-sm">
-      {% else %}
-        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white font-medium text-lg shadow-sm">
-          {{ other_user.username|first|upper }}
-        </div>
-      {% endif %}
-      <div>
-        <h2 class="font-semibold">@{{ other_user.username }}</h2>
-        <p class="text-xs text-gray-500">
-          {% if other_user.is_online %}
-            <span class="inline-block w-2 h-2 bg-green-500 rounded-full mr-1"></span>
-            Online
-          {% else %}
-            <span class="inline-block w-2 h-2 bg-gray-400 rounded-full mr-1"></span>
-            Last seen:
-            {% if other_user.profile.last_online %}
-              {{ other_user.profile.last_online|date:"jS M, H:i" }}
+  <!-- Header with user info -->
+  <header class="bg-white border-b border-gray-200 shadow-sm">
+    <div class="max-w-4xl mx-auto w-full">
+      <div class="px-4 py-3 flex items-center gap-3">
+        <!-- Back to chat list -->
+        <a href="{% url 'chat_list' %}" class="flex items-center text-gray-600 hover:text-blue-600 transition-colors p-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          <span class="sr-only">Back</span>
+        </a>
+
+        <!-- Avatar + Username (clickable) -->
+        <div class="flex items-center gap-3 flex-1">
+          <a href="{% url 'project-user-profile' other_user.username %}" class="flex items-center gap-3">
+            {% if other_user.profile.avatar %}
+              <img src="{{ other_user.profile.avatar.url }}" alt="{{ other_user.username }}" class="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-sm">
             {% else %}
-              Unavailable
+              <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-lg font-medium shadow-sm">
+                {{ other_user.username|first|upper }}
+              </div>
             {% endif %}
-          {% endif %}
-        </p>
+            <div class="flex flex-col">
+              <h2 class="font-semibold text-gray-900 hover:underline">{{ other_user.username }}</h2>
+              <p class="text-xs text-gray-500">
+                {% if other_user.is_online %}
+                  <span class="inline-block w-2 h-2 bg-green-500 rounded-full mr-1.5"></span> Online now
+                {% else %}
+                  <span class="inline-block w-2 h-2 bg-gray-400 rounded-full mr-1.5"></span>
+                  Last seen:
+                  {% if other_user.profile.last_online %}
+                    {{ other_user.profile.last_online|date:"jS M, H:i" }}
+                  {% else %}
+                    Unavailable
+                  {% endif %}
+                {% endif %}
+              </p>
+            </div>
+          </a>
+        </div>
+
+
       </div>
     </div>
   </header>
 
   <!-- Chat Messages Container -->
-  <main id="message-list" class="flex-1 overflow-y-auto bg-white px-4 py-4 relative">
-    {% for message in chat_messages %}
-      <div class="{% if message.sender.id == request.user.id %}ml-auto max-w-[75%] flex flex-col items-end mb-4{% else %}mr-auto max-w-[75%] mb-4{% endif %} animate-fade-in">
-        <div class="flex items-end gap-2">
-          {% if message.sender.id != request.user.id %}
-            {% if message.sender.profile.avatar %}
-              <img src="{{ message.sender.profile.avatar.url }}" alt="{{ message.sender.username }}" class="w-8 h-8 rounded-full object-cover">
-            {% else %}
-              <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-800">
-                {{ message.sender.username|first|upper }}
+  <main id="message-list" class="flex-1 overflow-y-auto px-4 py-6 bg-gray-50 relative">
+    <div class="max-w-2xl mx-auto space-y-6">
+      {% for message in chat_messages %}
+        <div class="{% if message.sender.id == request.user.id %}flex flex-col items-end{% else %}flex flex-col items-start{% endif %} animate-fade-in">
+          <!-- Message bubble with proper spacing and alignment -->
+          <div class="flex {% if message.sender.id == request.user.id %}justify-end{% endif %} max-w-[85%] sm:max-w-[75%]">
+            <!-- Avatar for received messages -->
+            {% if message.sender.id != request.user.id %}
+              <div class="flex-shrink-0 mr-2 self-end">
+                {% if message.sender.profile.avatar %}
+                  <img src="{{ message.sender.profile.avatar.url }}" alt="{{ message.sender.username }}" class="w-8 h-8 rounded-full object-cover border border-gray-200">
+                {% else %}
+                  <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-medium">
+                    {{ message.sender.username|first|upper }}
+                  </div>
+                {% endif %}
               </div>
             {% endif %}
-          {% endif %}
-          <!-- Chat bubble styling -->
-          <div class="{% if message.sender.id == request.user.id %}bg-blue-500 text-white{% else %}bg-gray-100 text-gray-800{% endif %}
-                      rounded-2xl shadow-sm px-4 py-3
-                      {% if message.sender.id == request.user.id %}rounded-tr-none{% else %}rounded-tl-none{% endif %}">
-            <p class="text-sm">{{ message.content }}</p>
+
+            <!-- Message content -->
+            <div class="{% if message.sender.id == request.user.id %}bg-blue-500 text-white{% else %}bg-white text-gray-800 border border-gray-200{% endif %}
+                        px-4 py-2.5 rounded-2xl shadow-sm
+                        {% if message.sender.id == request.user.id %}rounded-tr-none{% else %}rounded-tl-none{% endif %}">
+              <p class="text-sm whitespace-pre-wrap">{{ message.content }}</p>
+            </div>
+          </div>
+
+          <!-- Timestamp with proper alignment -->
+          <div class="{% if message.sender.id == request.user.id %}text-right{% else %}text-left{% endif %} mt-1 px-2">
+            <span class="text-xs text-gray-500">
+              {{ message.timestamp|date:"H:i" }}
+            </span>
           </div>
         </div>
-        <span class="text-xs text-gray-500 mt-1">
-          {{ message.timestamp|date:"H:i" }}
-        </span>
+      {% empty %}
+        <!-- Empty state -->
+        <div class="flex flex-col items-center justify-center h-64 py-12 text-center">
+          <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-800 mb-1">No messages yet</h3>
+          <p class="text-gray-500 max-w-sm">Send your first message to start a conversation with {{ other_user.username }}</p>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Typing indicator with Tailwind animations -->
+    <div id="typing-indicator" class="hidden fixed bottom-20 left-4 bg-white border border-gray-200 px-3 py-2 rounded-full shadow-md z-30 flex items-center space-x-2">
+      <div class="flex space-x-1">
+        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
       </div>
-    {% empty %}
-      <div class="flex flex-col items-center justify-center h-full text-center text-gray-500">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-        </svg>
-        <h3 class="text-lg font-medium">No messages yet</h3>
-        <p class="mt-1">Start the conversation with {{ other_user.username }}</p>
-      </div>
-    {% endfor %}
-    <!-- Typing Indicator -->
-    <div class="typing-indicator absolute bottom-2 left-2 bg-gray-100 border border-gray-200 px-3 py-2 rounded-full"
-         id="typing-indicator" style="display: none;">
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
+      <span class="text-xs font-medium text-gray-700">{{ other_user.username }} is typing...</span>
     </div>
   </main>
 
-  <!-- Message Input -->
-  <footer class="border-t border-gray-200 bg-white p-4">
-    <form method="POST" id="chat-form">
-      {% csrf_token %}
-      <div class="flex items-center gap-3">
-        <textarea name="content" rows="1" class="block w-full px-4 py-2 text-sm bg-gray-100 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 resize-none text-gray-800" placeholder="Type your message..."></textarea>
-        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 shadow-md transition duration-200">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+
+  <footer class="border-t border-gray-200 bg-white py-3 px-4">
+    <div class="max-w-2xl mx-auto">
+      <form id="chat-form" class="flex items-end gap-2">
+        {% csrf_token %}
+        <div class="relative flex-1">
+          <textarea
+            name="content"
+            id="chat-input"
+            rows="1"
+            class="block w-full px-4 py-3 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none overflow-hidden"
+            placeholder="Type your message..."
+          ></textarea>
+        </div>
+        <button
+          type="submit"
+          class="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-3 shadow-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
           </svg>
         </button>
-      </div>
-    </form>
+      </form>
+    </div>
   </footer>
 
  <script>
-  // Auto-scroll to bottom on page load
-  const messageList = document.getElementById('message-list');
-  messageList.scrollTop = messageList.scrollHeight;
+  (function() {
+    // Auto-scroll to bottom on page load
+    const messageList = document.getElementById('message-list');
+    const chatForm = document.getElementById('chat-form');
+    const textarea = document.getElementById('chat-input');
+    const typingIndicator = document.getElementById('typing-indicator');
+    const newMessagesIndicator = document.getElementById('new-messages-indicator');
+    const connectionError = document.getElementById('connection-error');
+    let typingTimeout;
 
-  // Auto-expand textarea on input
-  const textarea = document.querySelector('textarea[name="content"]');
-  textarea.addEventListener('input', function() {
-    this.style.height = 'auto';
-    this.style.height = (this.scrollHeight) + 'px';
-    if (this.scrollHeight > 200) {
-      this.style.height = '200px';
-    }
-  });
+    // Initial scroll to bottom
+    messageList.scrollTop = messageList.scrollHeight;
 
-  // Grab references to dynamic elements
-  const typingIndicator = document.getElementById('typing-indicator');
-  const newMessagesIndicator = document.getElementById('new-messages-indicator');
-  const connectionError = document.getElementById('connection-error');
+    // Auto-expand textarea with smooth transitions
+    textarea.addEventListener('input', function() {
+      this.style.height = 'auto';
+      const newHeight = Math.min(this.scrollHeight, 200);
+      this.style.height = `${newHeight}px`;
+      this.style.overflowY = newHeight >= 200 ? 'auto' : 'hidden';
+    });
 
-  // Setup WebSocket connection (wss for HTTPS)
-  const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
-  const roomId = "{{ room_id }}";
-  const chatSocket = new WebSocket(wsScheme + "://" + window.location.host + "/ws/chat/" + roomId + "/");
+    // WebSocket setup
+    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+    const roomId = "{% autoescape on %}{{ room_id }}{% endautoescape %}";
+    const userId = parseInt("{% autoescape on %}{{ request.user.id }}{% endautoescape %}");
+    const chatSocket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${roomId}/`);
 
-  chatSocket.onopen = function() {
-    console.log("WebSocket connection established.");
-    connectionError.style.display = 'none';
-  };
-  chatSocket.onerror = function(e) {
-    console.error("WebSocket error:", e);
-    connectionError.style.display = 'block';
-  };
-  chatSocket.onclose = function(e) {
-    console.error("WebSocket closed unexpectedly:", e);
-    connectionError.style.display = 'block';
-  };
+    // WebSocket event handlers
+    chatSocket.onopen = () => {
+      console.log("WebSocket connection established.");
+      connectionError.classList.add('hidden');
+    };
 
-  // Listen for incoming messages
-  chatSocket.onmessage = function(e) {
-    const data = JSON.parse(e.data);
-    console.log("Received data:", data);
+    chatSocket.onerror = (e) => {
+      console.error("WebSocket error:", e);
+      connectionError.classList.remove('hidden');
+    };
 
-    // Handle typing indicator events
-    if (data.type === 'typing') {
-      typingIndicator.style.display = 'flex';
-      return;
-    }
-    if (data.type === 'stop_typing') {
-      typingIndicator.style.display = 'none';
-      return;
-    }
+    chatSocket.onclose = (e) => {
+      console.error("WebSocket closed:", e);
+      connectionError.classList.remove('hidden');
+      setTimeout(() => window.location.reload(), 5000);
+    };
 
-    // Create a new chat message element
-    const messageDiv = document.createElement('div');
-    let senderSideClass = "mr-auto max-w-[75%] mb-4 animate-fade-in";
-    if (parseInt(data.sender_id) === parseInt({{ request.user.id }})) {
-      senderSideClass = "ml-auto max-w-[75%] flex flex-col items-end mb-4 animate-fade-in";
-    }
+    // Message handling
+    chatSocket.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      console.log("Received data:", data);
 
-    // Build the avatar HTML if needed
-    let avatarHTML = "";
-    if (parseInt(data.sender_id) !== parseInt({{ request.user.id }})) {
-      if (data.sender_avatar) {
-        avatarHTML = `<img src="${data.sender_avatar}" alt="${data.sender}" class="w-8 h-8 rounded-full object-cover">`;
-      } else {
-        const letter = data.sender ? data.sender[0].toUpperCase() : '';
-        avatarHTML = `<div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-800">
-                        ${letter}
-                      </div>`;
+      if (handleSpecialEvents(data)) return;
+      updateMessageList(data);
+      handleScrollPosition(data);
+    };
+
+    // Form submission handler
+    chatForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const msg = textarea.value.trim();
+      if (!msg) return;
+
+      chatSocket.send(JSON.stringify({ message: msg }));
+      textarea.value = '';
+      textarea.style.height = '40px';
+      textarea.focus();
+    });
+
+    // Typing indicator with debounce
+    textarea.addEventListener('input', () => {
+      chatSocket.send(JSON.stringify({ type: 'typing' }));
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        chatSocket.send(JSON.stringify({ type: 'stop_typing' }));
+      }, 2000);
+    });
+
+    // Enter key handler (without shift)
+    textarea.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        chatForm.dispatchEvent(new Event('submit'));
       }
+    });
+
+    // Scroll position tracking
+    messageList.addEventListener('scroll', () => {
+      const isAtBottom = messageList.scrollHeight - messageList.scrollTop <= messageList.clientHeight + 100;
+      if (isAtBottom) newMessagesIndicator.classList.add('hidden');
+    });
+
+    // New messages indicator click handler
+    newMessagesIndicator.addEventListener('click', () => {
+      messageList.scrollTop = messageList.scrollHeight;
+      newMessagesIndicator.classList.add('hidden');
+    });
+
+    // Helper functions
+    function handleSpecialEvents(data) {
+      if (data.type === 'typing') {
+        typingIndicator.classList.remove('hidden');
+        return true;
+      }
+      if (data.type === 'stop_typing') {
+        typingIndicator.classList.add('hidden');
+        return true;
+      }
+      return false;
     }
 
-    // Determine bubble styling
-    let bubbleClasses = "bg-gray-100 text-gray-800 rounded-2xl rounded-tl-none px-4 py-3 shadow-sm";
-    if (parseInt(data.sender_id) === parseInt({{ request.user.id }})) {
-      bubbleClasses = "bg-blue-500 text-white rounded-2xl rounded-tr-none px-4 py-3 shadow-sm";
+    function updateMessageList(data) {
+      const emptyState = messageList.querySelector('.h-64.flex-col');
+      if (emptyState) emptyState.remove();
+
+      const messageContainer = createMessageContainer(data);
+      const messageListContent = messageList.querySelector('.max-w-2xl') || messageList;
+      messageListContent.appendChild(messageContainer);
     }
 
-    // Construct message bubble HTML
-    messageDiv.className = senderSideClass;
-    messageDiv.innerHTML = `
-      <div class="flex items-end gap-2">
-        ${avatarHTML}
-        <div class="${bubbleClasses}">
-          <p class="text-sm">${data.message}</p>
+    function createMessageContainer(data) {
+      const isUserMessage = parseInt(data.sender_id) === userId;
+      const container = document.createElement('div');
+
+      container.classList.add('animate-fade-in', 'flex', 'flex-col',
+        isUserMessage ? 'items-end' : 'items-start');
+
+      container.innerHTML = `
+        <div class="flex ${isUserMessage ? 'justify-end' : ''} max-w-[85%] sm:max-w-[75%]">
+          ${!isUserMessage ? createAvatar(data) : ''}
+          <div class="${getBubbleClasses(isUserMessage)}">
+            <p class="text-sm whitespace-pre-wrap">${data.message}</p>
+          </div>
         </div>
-      </div>
-      <span class="text-xs text-gray-500 mt-1">${data.timestamp || ''}</span>
-    `;
+        <div class="mt-1 px-2 ${isUserMessage ? 'text-right' : 'text-left'}">
+          <span class="text-xs text-gray-500">
+            ${data.timestamp || new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+          </span>
+        </div>
+      `;
 
-    messageList.appendChild(messageDiv);
+      return container;
+    }
 
-    // If the message is not from the current user, then check scroll position for indicator display
-    if (parseInt(data.sender_id) !== parseInt({{ request.user.id }})) {
-      const isAtBottom = messageList.scrollHeight - messageList.scrollTop <= messageList.clientHeight + 50;
-      if (!isAtBottom && newMessagesIndicator) {
-        newMessagesIndicator.style.display = 'block';
+    function createAvatar(data) {
+      if (data.sender_avatar) {
+        return `
+          <div class="flex-shrink-0 mr-2 self-end">
+            <img src="${data.sender_avatar}" alt="${data.sender}"
+              class="w-8 h-8 rounded-full object-cover border border-gray-200">
+          </div>`;
+      }
+
+      const letter = data.sender ? data.sender[0].toUpperCase() : '';
+      return `
+        <div class="flex-shrink-0 mr-2 self-end">
+          <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600
+            flex items-center justify-center text-xs font-medium">
+            ${letter}
+          </div>
+        </div>`;
+    }
+
+    function getBubbleClasses(isUserMessage) {
+      return `px-4 py-2.5 rounded-2xl shadow-sm ${
+        isUserMessage
+          ? 'bg-blue-500 text-white rounded-tr-none'
+          : 'bg-white text-gray-800 border border-gray-200 rounded-tl-none'
+      }`;
+    }
+
+    function handleScrollPosition(data) {
+      const isAtBottom = messageList.scrollHeight - messageList.scrollTop <= messageList.clientHeight + 100;
+      const isOtherUser = parseInt(data.sender_id) !== userId;
+
+      if (isOtherUser && !isAtBottom) {
+        newMessagesIndicator.classList.remove('hidden');
       } else {
         messageList.scrollTop = messageList.scrollHeight;
+        newMessagesIndicator.classList.add('hidden');
       }
-    } else {
-      // For messages sent by the current user, always auto-scroll down
-      messageList.scrollTop = messageList.scrollHeight;
     }
-  };
 
-  // Scroll event listener to automatically hide the new messages indicator
-  messageList.addEventListener('scroll', function() {
-    const isAtBottom = messageList.scrollHeight - messageList.scrollTop <= messageList.clientHeight + 50;
-    if (isAtBottom) {
-      newMessagesIndicator.style.display = 'none';
-    }
-  });
+    // Auto-reconnect and initial focus
+    setInterval(() => {
+      if (chatSocket.readyState === WebSocket.CLOSED) {
+        console.log("Attempting WebSocket reconnection...");
+        window.location.reload();
+      }
+    }, 10000);
 
-  // New messages indicator click scrolls to the bottom
-  if (newMessagesIndicator) {
-    newMessagesIndicator.addEventListener('click', function() {
-      messageList.scrollTop = messageList.scrollHeight;
-      newMessagesIndicator.style.display = 'none';
-    });
-  }
-
-  // Sending a chat message via WebSocket
-  const chatForm = document.getElementById('chat-form');
-  chatForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const msg = textarea.value.trim();
-    if (msg === "") return;
-    chatSocket.send(JSON.stringify({'message': msg}));
-    textarea.value = '';
-    textarea.style.height = 'auto';
-  });
-
-  // Notify server on typing status with debouncing
-  let typingTimeout;
-  textarea.addEventListener('input', function() {
-    chatSocket.send(JSON.stringify({'type': 'typing'}));
-    clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(() => {
-      chatSocket.send(JSON.stringify({'type': 'stop_typing'}));
-    }, 1000);
-  });
+    textarea.focus();
+  })();
 </script>
 
 </body>
