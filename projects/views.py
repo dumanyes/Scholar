@@ -589,12 +589,32 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
         return context
 
     def post(self, request, *args, **kwargs):
+        # ensure self.object exists for get_context_data
+        self.object = None
+
+        # preprocess the hidden M2M fields only if non-empty
         post_data = request.POST.copy()
         for field in ['languages', 'skills_required', 'required_roles', 'category']:
-            if field in post_data:
-                post_data.setlist(field, post_data.get(field, '').split(','))
+            raw = post_data.get(field, '')
+            if raw.strip():
+                post_data.setlist(field, raw.split(','))
         self.request.POST = post_data
-        return super().post(request, *args, **kwargs)
+
+        # build & validate the form
+        form = self.get_form()
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            # DEBUG: log full errors to server-side log
+            import logging
+            logging.debug("ProjectCreateView form errors: %s", form.errors.as_json())
+
+            # SURFACE each field error back to the user as a flash message
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+
+            return self.form_invalid(form)
 
     def form_valid(self, form):
 

@@ -290,10 +290,13 @@
     {% endfor %}
   </div>
 
-  <input type="hidden"
-         name="skills_required"
-         id="skills-hidden"
-         value="{{ form.skills_required.value|join:',' }}" />
+  {% with skills_list=form.skills_required.value|default_if_none:""|split:"," %}
+<input type="hidden"
+       name="skills_required"
+       id="skills-hidden"
+       value="{{ skills_list|join:',' }}" />
+{% endwith %}
+
   <div id="skills-error" class="text-red-600 text-xs mt-1"></div>
 </div>
 
