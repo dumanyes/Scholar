@@ -1,190 +1,272 @@
 {% extends "users/base.html" %}
 {% load i18n %}
+{% load my_filters %}
 {% load static widget_tweaks %}
+
 
 {% block title %}ScholarHub - Register{% endblock title %}
 
 {% block content %}
 
-<div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-  <div class="max-w-xl mx-auto">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+/>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<div class="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-2xl w-full">
 
     <!-- Registration Card -->
-    <div class="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
-      {% if form.errors %}
-      <div class="mb-4 p-4 border-l-4 border-red-400 bg-red-50 text-red-700 rounded-lg flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-        </svg>
-        {% for field, errors in form.errors.items %}{{ errors|striptags }}{% endfor %}
-      </div>
-      {% endif %}
-
-      <!-- Header Section -->
-      <div class="text-center mb-8">
+    <div class="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
+      
+      <!-- Header Section with Logo -->
+      <div class="text-center p-8 border-b border-gray-100">
         <div class="flex justify-center">
-          <img src="/media/img_1-removebg-preview%20(1).png" class="h-[160px] w-auto" alt="ScholarHub Logo">
+          <img src="/media/img_1-removebg-preview%20(1).png" class="h-24 w-auto" alt="ScholarHub Logo">
         </div>
         <h2 class="mt-4 text-2xl font-bold text-gray-900">
           {% trans "Join ScholarHub" %}
         </h2>
         <p class="mt-2 text-sm text-gray-600">
-          {% trans "Start connecting with researchers worldwide." %}
+          {% trans "Connect with researchers worldwide and share your academic work" %}
         </p>
       </div>
 
       <!-- Step Progress -->
-      <div class="mb-6">
-        <div class="flex justify-between text-xs text-gray-500 mb-1">
-          <span>Step {{ step|add:1 }} of 5</span>
-          <span>{{ progress }}%</span>
+      <div class="px-8 pt-6">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-sm font-medium text-gray-700">Step {{ step|add:1 }} of 5</span>
+          <span class="text-sm font-medium text-blue-600">{{ progress }}% Complete</span>
         </div>
-        <div class="w-full bg-gray-100 rounded-full h-1.5">
-          <div class="bg-blue-600 h-1.5 rounded-full transition-all duration-300" style="width: {{ progress }}%"></div>
+        <div class="w-full bg-gray-100 rounded-full h-2">
+          <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: {{ progress }}%"></div>
+        </div>
+
+        <!-- Step Description -->
+        <div class="mt-2 mb-6">
+          <h3 class="text-lg font-medium text-gray-900">
+            {% if step == 0 %}Basic Information
+            {% elif step == 1 %}Email Verification
+            {% elif step == 2 %}Create Password
+            {% elif step == 3 %}Your Skills
+            {% elif step == 4 %}Research Interests
+            {% endif %}
+          </h3>
         </div>
       </div>
 
+      <!-- Alert for Errors -->
+      {% if form.errors %}
+      <div class="mx-8 mb-6 p-4 border-l-4 border-red-500 bg-red-50 text-red-700 rounded-md flex items-start">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+        </svg>
+        <div>
+          <div class="font-medium">Please correct the following errors:</div>
+          <ul class="mt-1 list-disc list-inside text-sm">
+            {% for field, errors in form.errors.items %}
+            <li>{{ errors|striptags }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      {% endif %}
+
       <!-- Registration Form -->
-      <form method="POST" enctype="multipart/form-data" class="space-y-6">
+      <form method="POST" enctype="multipart/form-data" class="px-8 pb-8">
         {% csrf_token %}
         <input type="hidden" name="step" value="{{ step }}">
 
+        <!-- Step 1: Personal Information -->
         {% if step == 0 %}
-<div class="space-y-4">
-  <!-- First Name -->
-  <div>
-    <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.first_name.label }}</label>
-    <div class="relative">
-      {{ form.first_name|attr:"placeholder:First name"|add_class:"w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
-      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-        </svg>
-      </div>
-    </div>
-  </div>
+        <div class="space-y-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- First Name -->
+            <div>
+              <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.first_name.label }}</label>
+              <div class="relative rounded-md shadow-sm">
+                {{ form.first_name|attr:"placeholder:First name"|add_class:"w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+            </div>
 
-  <!-- Last Name -->
-  <div>
-    <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.last_name.label }}</label>
-    <div class="relative">
-      {{ form.last_name|attr:"placeholder:Last name"|add_class:"w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
-      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-        </svg>
-      </div>
-    </div>
-  </div>
-
-  <!-- Username -->
-  <div>
-    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.username.label }}</label>
-    <div class="relative">
-      {{ form.username|attr:"placeholder:Choose a username"|add_class:"w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
-      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-        </svg>
-      </div>
-    </div>
-  </div>
-
-
-
-  <!-- Email -->
-  <div>
-    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.email.label }}</label>
-    <div class="relative">
-      <input
-        type="email"
-        name="email"
-        id="{{ form.email.id_for_label }}"
-        value="{{ form.email.value|default_if_none:'' }}"
-        placeholder="you@example.com"
-        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-      />
-      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-          <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-        </svg>
-      </div>
-    </div>
-  </div>
-
-  <!-- Birthdate -->
-  <div>
-    <label for="{{ form.birthdate.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.birthdate.label }}</label>
-    <div class="relative">
-      <input
-        type="date"
-        name="birthdate"
-        id="{{ form.birthdate.id_for_label }}"
-        max="{{ today|date:"Y-m-d"|add:"-13 years" }}"
-        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-      />
-      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
-        </svg>
-      </div>
-    </div>
-    <p id="birthdate-error" class="mt-2 text-xs text-red-600 hidden">You must be at least 13 years old.</p>
-  </div>
-
-  <!-- Terms Checkbox -->
-  <div class="flex items-center">
-    {{ form.terms_and_conditions|add_class:"h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" }}
-    <label for="{{ form.terms_and_conditions.id_for_label }}" class="ml-2 text-sm text-gray-600">
-      I agree to the
-      <a href="{% url 'users-terms' %}" class="text-blue-600 hover:text-blue-800 font-medium">
-        Terms and Conditions
-      </a>
-    </label>
-  </div>
-</div>
-{% endif %}
-
-
-        {% if step == 1 %}
-        <!-- Email Verification -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Verification Code</label>
-          <div class="relative">
-            <input
-              id="verification_code"
-              name="verification_code"
-              type="text"
-              class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter 6-digit code"
-            >
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M5 2a2 2 0 00-2 2v14l3.5-2 3.5 2 3.5-2 3.5 2V4a2 2 0 00-2-2H5zm2.5 3a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm6.207.293a1 1 0 00-1.414 0l-6 6a1 1 0 101.414 1.414l6-6a1 1 0 000-1.414zM12.5 10a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" clip-rule="evenodd" />
-              </svg>
+            <!-- Last Name -->
+            <div>
+              <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.last_name.label }}</label>
+              <div class="relative rounded-md shadow-sm">
+                {{ form.last_name|attr:"placeholder:Last name"|add_class:"w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
-          <p class="mt-2 text-xs text-gray-500">
-            Check your email for the verification code sent to your inbox.
-          </p>
+
+          <!-- Username -->
+          <div>
+            <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.username.label }}</label>
+            <div class="relative rounded-md shadow-sm">
+              {{ form.username|attr:"placeholder:Choose a unique username"|add_class:"w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-xs text-gray-400">
+                @username
+              </div>
+            </div>
+            <p class="mt-1 text-xs text-gray-500">This will be your public profile URL</p>
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.email.label }}</label>
+            <div class="relative rounded-md shadow-sm">
+              <input
+                type="email"
+                name="email"
+                id="{{ form.email.id_for_label }}"
+                value="{{ form.email.value|default_if_none:'' }}"
+                placeholder="you@example.com"
+                class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                  <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                </svg>
+              </div>
+            </div>
+            <p class="mt-1 text-xs text-gray-500">We'll send a verification code to this address</p>
+          </div>
+
+          <!-- Birthdate -->
+<div>
+  <label
+    for="{{ form.birthdate.id_for_label }}"
+    class="block text-sm font-medium text-gray-700 mb-1"
+  >
+    {{ form.birthdate.label }}
+  </label>
+  <div class="relative rounded-md shadow-sm">
+    <!-- switch to a text input for Flatpickr -->
+    <input
+      type="text"
+      name="birthdate"
+      id="{{ form.birthdate.id_for_label }}"
+      placeholder="Select your birthdate"
+      class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-md
+             focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+             bg-white cursor-pointer"
+    />
+    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd"
+          d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2
+             2v10a2 2 0 002 2h12a2 2 0
+             002-2V6a2 2 0 00-2-2h-1V3a1
+             1 0 10-2 0v1H7V3a1 1 0
+             00-1-1zm0 5a1 1 0 000
+             2h8a1 1 0 100-2H6z"
+          clip-rule="evenodd" />
+      </svg>
+    </div>
+  </div>
+  <p
+    id="birthdate-error"
+    class="mt-1 text-xs text-red-600 hidden"
+  >
+    You must be at least 13 years old to use ScholarHub.
+  </p>
+</div>
+
+
+          <!-- Terms Checkbox -->
+          <div class="mt-6">
+            <div class="flex items-start">
+              {{ form.terms_and_conditions|add_class:"h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-0.5" }}
+              <label for="{{ form.terms_and_conditions.id_for_label }}" class="ml-3 text-sm text-gray-600">
+                I agree to the
+                <a href="{% url 'users-terms' %}" class="text-blue-600 hover:text-blue-800 font-medium underline">
+                  Terms and Conditions
+                </a>
+                and acknowledge the
+                <a href="{% url 'privacy-policy' %}" class="text-blue-600 hover:text-blue-800 font-medium underline">
+                  Privacy Policy
+                </a>
+              </label>
+            </div>
+          </div>
         </div>
         {% endif %}
 
+        <!-- Step 2: Email Verification -->
+        {% if step == 1 %}
+        <div class="space-y-6">
+          <div class="bg-blue-50 rounded-lg p-4 mb-6">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3 flex-1 md:flex md:justify-between">
+                <p class="text-sm text-blue-700">
+                  We've sent a verification code to email
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-center">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Enter Verification Code</label>
+            <div class="mt-2 flex justify-center">
+              <div class="verification-input-container space-x-2 flex">
+                <input type="text" maxlength="6" id="verification_code" name="verification_code" 
+                  class="w-full py-3 px-4 text-center text-xl tracking-widest border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="123456" autocomplete="off">
+              </div>
+            </div>
+            <p class="mt-4 text-sm text-gray-600">
+  Didn’t receive the code? 
+  <button
+    type="button"
+    id="resend-code-btn"
+    class="text-blue-600 hover:text-blue-800 font-medium"
+  >
+    Resend code
+  </button>
+  <span id="resend-feedback" class="ml-2 text-sm text-green-600 hidden">
+    ✅ New code sent!
+  </span>
+</p>
+
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Step 3: Password Setup -->
         {% if step == 2 %}
-        <!-- Password Setup -->
-        <div class="space-y-4">
+        <div class="space-y-6">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">{{ form.password1.label }}</label>
-            <div class="relative">
-              {{ form.password1|add_class:"w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
+            <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700">{{ form.password1.label }}</label>
+            <div class="relative mt-1 rounded-md shadow-sm">
+              {{ form.password1|attr:"placeholder:Choose a strong password"|add_class:"w-full pl-10 pr-12 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
                 </svg>
               </div>
-              <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 focus:outline-none">
-                <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <button type="button" onclick="togglePassword('password1')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 focus:outline-none">
+                <svg class="password-eye h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
@@ -192,93 +274,195 @@
             </div>
           </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">{{ form.password2.label }}</label>
-            <div class="relative">
-              {{ form.password2|add_class:"w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
+          <div class="password-strength mt-3">
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-xs text-gray-500">Password strength</span>
+              <span class="text-xs font-medium text-gray-700" id="password-strength-text">Weak</span>
+            </div>
+            <div class="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
+              <div id="password-strength-meter" class="h-full bg-red-500 transition-all duration-300" style="width: 10%"></div>
+            </div>
+            <ul class="mt-3 grid grid-cols-2 gap-x-4 gap-y-2">
+              <li class="text-xs flex items-center text-gray-500" id="length-check">
+                <svg class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                At least 8 characters
+              </li>
+              <li class="text-xs flex items-center text-gray-500" id="uppercase-check">
+                <svg class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Uppercase letter
+              </li>
+              <li class="text-xs flex items-center text-gray-500" id="lowercase-check">
+                <svg class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Lowercase letter
+              </li>
+              <li class="text-xs flex items-center text-gray-500" id="number-check">
+                <svg class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Number
+              </li>
+                <li class="text-xs flex items-center text-gray-500" id="special-char-check">
+    <svg class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+    Special character (!@#$% etc.)
+  </li>
+            </ul>
+          </div>
+
+          <div class="mt-6">
+            <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700">{{ form.password2.label }}</label>
+            <div class="relative mt-1 rounded-md shadow-sm">
+              {{ form.password2|attr:"placeholder:Confirm your password"|add_class:"w-full pl-10 pr-12 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
                 </svg>
               </div>
+              <button type="button" onclick="togglePassword('password2')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 focus:outline-none">
+                <svg class="password-eye h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </button>
             </div>
+            <p id="password-match" class="mt-2 text-xs text-gray-500">Both passwords must match</p>
           </div>
         </div>
         {% endif %}
-      
-      {% if step == 3 %}
-<div class="space-y-6">
-  <label for="skill-search" class="block text-sm font-medium text-gray-700">Search and Select Skills</label>
 
-  <div class="relative">
-    <input
-      type="text"
-      id="skill-search"
-      placeholder="Type a skill..."
-      class="w-full pl-4 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-    >
-    <div id="skill-hints" class="absolute z-20 w-full bg-white shadow-md rounded mt-1 hidden max-h-60 overflow-y-auto"></div>
+        <!-- Step 4: Skills Selection -->
+        {% if step == 3 %}
+        <div class="space-y-6">
+          <p class="text-sm text-gray-600 mb-4">
+              Select skills that represent your expertise. These will help others find you for collaboration.
+          </p>
+
+          <div class="relative">
+            <label for="skill-search" class="block text-sm font-medium text-gray-700 mb-1">Search and Select Skills</label>
+            <div class="relative">
+              <input
+                type="text"
+                id="skill-search"
+                placeholder="Type a skill (e.g., Data Analysis, Machine Learning)"
+                class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                </svg>
+              </div>
+            </div>
+            <div id="skill-hints" class="absolute z-20 w-full bg-white shadow-lg rounded-md mt-1 hidden max-h-60 overflow-y-auto border border-gray-200 divide-y divide-gray-100"></div>
+              
+              
+              <div class="mt-4">
+    <p class="text-sm text-gray-600 mb-2">Or pick from the full list:</p>
+    <div id="all-skills-list" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 
+                               max-h-60 overflow-y-auto border border-gray-200 p-2 bg-gray-50 rounded-md">
+      {% for skill in skills %}
+        <button
+          type="button"
+          data-id="{{ skill.id }}"
+          class="skill-list-button px-2 py-1 bg-white text-gray-700 border border-gray-300 rounded text-sm 
+                 hover:bg-gray-100 transition-colors"
+        >
+          {{ skill.name }}
+        </button>
+      {% endfor %}
+    </div>
   </div>
+          </div>
 
-  <div id="selected-skills-container" class="flex flex-wrap gap-2"></div>
+          <div class="mt-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Selected Skills</label>
+            <div id="selected-skills-container" class="min-h-16 p-3 border border-gray-200 rounded-md bg-gray-50 flex flex-wrap gap-2"></div>
+            <p id="no-skills-selected" class="text-sm text-gray-500 p-3">No skills selected yet</p>
+          </div>
 
-  <input type="hidden" id="selected_skills" name="selected_skills" value="">
+          
 
-  <!-- Hidden all skills JSON -->
-  <div id="all-skills-json" class="hidden">
-    {{ all_skills|json_script:"all-skills-data" }}
-  </div>
-</div>
-{% endif %}
-      
-      {% if step == 4 %}
+          <input type="hidden" id="selected_skills" name="selected_skills" value="">
+
+          <!-- Hidden all skills JSON -->
+          <div id="all-skills-json" class="hidden">
+            {{ all_skills|json_script:"all-skills-data" }}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Step 5: Research Interests -->
+<!-- Step 5: Research Interests -->
+{% if step == 4 %}
 <div class="space-y-6">
-  <label class="block text-sm font-medium text-gray-700 mb-2">
-    Select your Research Interests
-  </label>
-  <p class="text-xs text-gray-500 mb-4">
-    Choose at least one category to get better research recommendations.
+  <p class="text-sm text-gray-600 mb-4">
+    Select research areas you're interested in. We'll use these to recommend relevant content and connections.
   </p>
 
-  <div class="grid grid-cols-2 gap-3">
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1 sm:gap-2">
     {% for category in available_categories %}
-      <div
-  class="cursor-pointer p-3 rounded-lg border border-gray-300 hover:bg-blue-50 transition overflow-hidden text-ellipsis whitespace-nowrap text-center"
-  data-category-id="{{ category.id }}"
-  onclick="toggleCategorySelection(this)"
->
-  {{ category.name }}
-</div>
-
+    <div
+      class="cursor-pointer p-2 border border-gray-300 rounded-md hover:bg-blue-50 hover:border-blue-300 transition-all
+             group flex items-center min-w-0 max-w-[200px]"
+      data-category-id="{{ category.id }}"
+      onclick="toggleCategorySelection(this)"
+    >
+      <span 
+        class="text-xs sm:text-sm px-1 break-words line-clamp-2 overflow-hidden text-ellipsis" 
+        title="{{ category.name }}"
+        style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;"
+      >
+        {{ category.name }}
+      </span>
+      <div class="check-icon hidden ml-2 text-blue-600 flex-shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+        </svg>
+      </div>
+    </div>
     {% endfor %}
   </div>
 
   <input type="hidden" name="selected_categories" id="selected_categories" value="">
-  <div id="research-error" class="text-xs text-red-600 hidden mt-2"></div>
+  <div id="research-error" class="text-sm text-red-600 hidden mt-2"></div>
 </div>
-      {% endif %}
-
-
+{% endif %}
 
         <!-- Navigation Buttons -->
-        <div class="flex items-center justify-between pt-4">
-          {% if step > 0 %}
-            <button type="button" onclick="window.history.back()" class="text-sm text-gray-500 hover:text-gray-700 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        <div class="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
+          <div>
+            {% if step > 0 %}
+              <button type="button" onclick="window.history.back()" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back
+              </button>
+            {% endif %}
+          </div>
+          <button type="submit" class="inline-flex items-center px-6 py-2.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            {% if step == 4 %}
+              Complete Registration
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
-              Back
-            </button>
-          {% else %}
-            <div></div>
-          {% endif %}
-          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg transition-all font-medium">
-            {% if step == 4 %}Complete Registration{% else %}Next{% endif %}
+            {% else %}
+              Continue
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            {% endif %}
           </button>
         </div>
       </form>
 
-      <div class="mt-6 text-center text-sm text-gray-600">
+      <div class="px-8 py-4 bg-gray-50 border-t border-gray-200 text-center text-sm">
         Already have an account?
         <a href="{% url 'login' %}" class="text-blue-600 hover:text-blue-800 font-medium">
           Sign in
@@ -289,139 +473,313 @@
 </div>
 
 <script>
-
-let selectedCategoryIds = [];
-
-function toggleCategorySelection(div) {
-  const id = div.getAttribute('data-category-id');
-  if (div.classList.contains('bg-blue-100')) {
-    div.classList.remove('bg-blue-100');
-    selectedCategoryIds = selectedCategoryIds.filter(cid => cid !== id);
+// Password toggle functionality
+function togglePassword(fieldId) {
+  const input = document.querySelector(`[name="${fieldId}"]`);
+  const icon  = input.parentNode.querySelector('.password-eye');
+  if (input.type === "password") {
+    input.type = "text";
+    icon.innerHTML = `
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 012.322-4.362m1.38-1.385A9.958 9.958 0 0112 5c4.477 0 8.268 2.943 9.542 7a9.963 9.963 0 01-4.423 5.568M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M3 3l18 18" />`;
   } else {
-    div.classList.add('bg-blue-100');
-    selectedCategoryIds.push(id);
+    input.type = "password";
+    icon.innerHTML = `
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
   }
-  document.getElementById('selected_categories').value = selectedCategoryIds.join(',');
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-  const form = document.querySelector('form');
-  form.addEventListener('submit', function (e) {
-    if ({{ step|default:"0" }} == 4) {
-      if (selectedCategoryIds.length < 1) {
-        e.preventDefault();
-        document.getElementById('research-error').classList.remove('hidden');
-        document.getElementById('research-error').textContent = "Please select at least one research category.";
-      }
-    }
-  });
-});
-
-
-
-function togglePassword() {
-  const inputs = document.querySelectorAll('[name="password1"], [name="password2"]');
-  const icon = document.getElementById('eyeIcon');
-  inputs.forEach(input => {
-    if (input.type === "password") {
-      input.type = "text";
-      icon.innerHTML = `
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 012.322-4.362m1.38-1.385A9.958 9.958 0 0112 5c4.477 0 8.268 2.943 9.542 7a9.963 9.963 0 01-4.423 5.568M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M3 3l18 18" />`;
-    } else {
-      input.type = "password";
-      icon.innerHTML = `
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
-    }
-  });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  // --- AGE VERIFICATION ---
   const birthdateInput = document.getElementById('{{ form.birthdate.id_for_label }}');
-  const errorText = document.getElementById('birthdate-error');
+  if (birthdateInput) {
+    const errorText = document.getElementById('birthdate-error');
+    birthdateInput.addEventListener('change', function() {
+      const bd = new Date(this.value), today = new Date();
+      let age = today.getFullYear() - bd.getFullYear();
+      const m = today.getMonth() - bd.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < bd.getDate())) age--;
+      if (age < 13) {
+        errorText.classList.remove('hidden');
+        birthdateInput.classList.add('border-red-500','ring-1','ring-red-500');
+      } else {
+        errorText.classList.add('hidden');
+        birthdateInput.classList.remove('border-red-500','ring-1','ring-red-500');
+      }
+    });
+  }
 
-  birthdateInput.addEventListener('change', function() {
-    const birthdate = new Date(this.value);
-    const today = new Date();
-    const age = today.getFullYear() - birthdate.getFullYear();
-    const m = today.getMonth() - birthdate.getMonth();
-    const realAge = (m < 0 || (m === 0 && today.getDate() < birthdate.getDate())) ? age - 1 : age;
+  // --- PASSWORD STRENGTH ---
+  const pwd1 = document.querySelector('[name="password1"]');
+  if (pwd1) {
+    const meter = document.getElementById('password-strength-meter');
+    const text  = document.getElementById('password-strength-text');
+    const checks= {
+      length:    document.getElementById('length-check'),
+      upper:     document.getElementById('uppercase-check'),
+      lower:     document.getElementById('lowercase-check'),
+      number:    document.getElementById('number-check'),
+      special:   document.getElementById('special-char-check')
+    };
+    const pwd2 = document.querySelector('[name="password2"]');
+    const matchText = document.getElementById('password-match');
 
-    if (realAge < 13) {
-      errorText.classList.remove('hidden');
-      birthdateInput.classList.add('border-red-400');
-    } else {
-      errorText.classList.add('hidden');
-      birthdateInput.classList.remove('border-red-400');
+    function updateCheck(el, ok) {
+      const svg = el.querySelector('svg');
+      if (ok) {
+        el.classList.remove('text-gray-500');
+        el.classList.add('text-green-600');
+        svg.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>`;
+      } else {
+        el.classList.add('text-gray-500');
+        el.classList.remove('text-green-600');
+        svg.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>`;
+      }
     }
-  });
-});
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  if ({{ step|default:"0" }} == 3) {
-    const skillSearchInput = document.getElementById('skill-search');
-    const skillHints = document.getElementById('skill-hints');
-    const selectedSkillsInput = document.getElementById('selected_skills');
-    const selectedSkillsContainer = document.getElementById('selected-skills-container');
-    const allSkills = JSON.parse(document.getElementById('all-skills-data').textContent);
-    let selectedSkillIds = [];
+
+    function updateStrength() {
+      const p = pwd1.value, n = p.length >= 8;
+      const U = /[A-Z]/.test(p), L = /[a-z]/.test(p);
+      const D = /\d/.test(p), S = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(p);
+      updateCheck(checks.length, n);
+      updateCheck(checks.upper, U);
+      updateCheck(checks.lower, L);
+      updateCheck(checks.number, D);
+      updateCheck(checks.special,S);
+      const score = [n,U,L,D,S].filter(x=>x).length * 20;
+      meter.style.width = score + '%';
+      if (score < 60) {
+        meter.className = 'h-full bg-red-500 transition-all duration-300';
+        text.textContent = 'Weak'; text.className='text-xs font-medium text-red-600';
+      } else if (score < 100) {
+        meter.className = 'h-full bg-yellow-500 transition-all duration-300';
+        text.textContent = 'Medium'; text.className='text-xs font-medium text-yellow-600';
+      } else {
+        meter.className = 'h-full bg-green-500 transition-all duration-300';
+        text.textContent = 'Strong'; text.className='text-xs font-medium text-green-600';
+      }
+    }
+
+    function checkMatch() {
+      if (!pwd2.value) {
+        matchText.textContent = 'Both passwords must match';
+        matchText.className = 'mt-2 text-xs text-gray-500';
+      } else if (pwd1.value === pwd2.value) {
+        matchText.textContent = 'Passwords match';
+        matchText.className = 'mt-2 text-xs text-green-600';
+      } else {
+        matchText.textContent = 'Passwords do not match';
+        matchText.className = 'mt-2 text-xs text-red-600';
+      }
+    }
+
+    pwd1.addEventListener('input', ()=>{ updateStrength(); checkMatch(); });
+    pwd2.addEventListener('input', checkMatch);
+  }
+
+  const step = {{ step|default:"0" }};
+
+  // --- SKILLS SELECTION (step 3) ---
+  if (step === 3) {
+    const skillSearchInput       = document.getElementById('skill-search');
+    const skillHints             = document.getElementById('skill-hints');
+    const selectedSkillsInput    = document.getElementById('selected_skills');
+    const selectedSkillsContainer= document.getElementById('selected-skills-container');
+    const noSkillsMsg            = document.getElementById('no-skills-selected');
+    const allSkills              = JSON.parse(document.getElementById('all-skills-data').textContent);
+    let   selectedSkillIds       = [];
 
     function updateSkillHints(query) {
-      skillHints.innerHTML = "";
-      if (!query) {
-        skillHints.classList.add('hidden');
-        return;
+      skillHints.innerHTML = '';
+      if (!query || query.length < 2) { skillHints.classList.add('hidden'); return; }
+      const matches = allSkills.filter(s=>
+        s.name.toLowerCase().includes(query.toLowerCase()) &&
+        !selectedSkillIds.includes(s.id.toString())
+      );
+      if (!matches.length) {
+        skillHints.innerHTML = '<div class="p-3 text-sm text-gray-500">No matching skills found</div>';
+      } else {
+        matches.slice(0,8).forEach(s=>{
+          const div = document.createElement('div');
+          div.className = 'p-3 hover:bg-gray-100 cursor-pointer text-sm';
+          div.dataset.id = s.id;
+          const i = s.name.toLowerCase().indexOf(query.toLowerCase());
+          if (i >= 0) {
+            div.innerHTML = `${s.name.slice(0,i)}<strong class="font-medium">${s.name.slice(i,i+query.length)}</strong>${s.name.slice(i+query.length)}`;
+          } else div.textContent = s.name;
+          skillHints.appendChild(div);
+        });
       }
-      const matches = allSkills.filter(skill => skill.name.toLowerCase().includes(query.toLowerCase()));
-      matches.forEach(skill => {
-        if (selectedSkillIds.includes(skill.id.toString())) return;
-        const div = document.createElement('div');
-        div.className = "p-2 hover:bg-gray-100 cursor-pointer";
-        div.dataset.id = skill.id;
-        div.textContent = skill.name;
-        skillHints.appendChild(div);
-      });
       skillHints.classList.remove('hidden');
     }
 
-    skillSearchInput.addEventListener('input', () => {
-      updateSkillHints(skillSearchInput.value.trim());
+    function addSkill(id, name) {
+      if (selectedSkillIds.includes(id)) return;
+      selectedSkillIds.push(id);
+      selectedSkillsInput.value = JSON.stringify(selectedSkillIds);
+      const tag = document.createElement('span');
+      tag.className = 'inline-flex items-center bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm gap-1';
+      tag.innerHTML = `
+        ${name}
+        <button type="button" data-id="${id}" class="remove-skill ml-1 text-blue-500 hover:text-blue-700 focus:outline-none">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          </svg>
+        </button>`;
+      selectedSkillsContainer.appendChild(tag);
+      // ** highlight in full-list **
+      const listBtn = document.querySelector(`#all-skills-list .skill-list-button[data-id="${id}"]`);
+      if (listBtn) listBtn.classList.add('bg-blue-100','text-blue-700','border-blue-300');
+      updateNoSkillsMsg();
+    }
+
+    function removeSkill(id) {
+      selectedSkillIds = selectedSkillIds.filter(sid=>sid!==id);
+      selectedSkillsInput.value = JSON.stringify(selectedSkillIds);
+      const btn = selectedSkillsContainer.querySelector(`.remove-skill[data-id="${id}"]`);
+      if (btn) btn.closest('span').remove();
+      // ** un-highlight in full-list **
+      const listBtn = document.querySelector(`#all-skills-list .skill-list-button[data-id="${id}"]`);
+      if (listBtn) listBtn.classList.remove('bg-blue-100','text-blue-700','border-blue-300');
+      updateNoSkillsMsg();
+    }
+
+    function updateNoSkillsMsg() {
+      noSkillsMsg.classList.toggle('hidden', selectedSkillIds.length>0);
+    }
+
+    skillSearchInput.addEventListener('input', ()=>updateSkillHints(skillSearchInput.value.trim()));
+    skillSearchInput.addEventListener('focus', ()=>{
+      if (skillSearchInput.value.trim().length>=2) updateSkillHints(skillSearchInput.value.trim());
     });
 
-    skillHints.addEventListener('click', (e) => {
-      const target = e.target.closest('div[data-id]');
-      if (!target) return;
-      const id = target.dataset.id;
-      if (!selectedSkillIds.includes(id)) {
-        selectedSkillIds.push(id);
-        selectedSkillsInput.value = JSON.stringify(selectedSkillIds);
-        const tag = document.createElement('span');
-        tag.className = "inline-flex items-center bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm cursor-pointer";
-        tag.textContent = allSkills.find(s => s.id.toString() === id).name + ' ×';
-        tag.addEventListener('click', () => {
-          selectedSkillIds = selectedSkillIds.filter(sid => sid !== id);
-          selectedSkillsInput.value = JSON.stringify(selectedSkillIds);
-          tag.remove();
-        });
-        selectedSkillsContainer.appendChild(tag);
-      }
+    skillHints.addEventListener('click', e=>{
+      const tgt = e.target.closest('div[data-id]');
+      if (!tgt) return;
+      addSkill(tgt.dataset.id, allSkills.find(s=>s.id.toString()===tgt.dataset.id).name);
       skillHints.classList.add('hidden');
-      skillSearchInput.value = "";
+      skillSearchInput.value = '';
     });
 
-    document.addEventListener('click', (e) => {
-      if (!skillHints.contains(e.target) && e.target !== skillSearchInput) {
-        skillHints.classList.add('hidden');
+    selectedSkillsContainer.addEventListener('click', e=>{
+      const btn = e.target.closest('.remove-skill');
+      if (!btn) return;
+      removeSkill(btn.dataset.id);
+    });
+
+    // wire up the full-list buttons
+    document.querySelectorAll('#all-skills-list .skill-list-button')
+      .forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const id   = btn.dataset.id;
+          const name = btn.textContent.trim();
+          if (!selectedSkillIds.includes(id)) {
+            addSkill(id,name);
+          } else {
+            removeSkill(id);
+          }
+        });
+      });
+
+    updateNoSkillsMsg();
+  }
+
+  // --- RESEARCH CATEGORIES (step 4) ---
+  let selectedCategoryIds = [];
+  function toggleCategorySelection(div) {
+    const id = div.dataset.categoryId;
+    const icon = div.querySelector('.check-icon');
+    if (div.classList.contains('bg-blue-50')) {
+      div.classList.remove('bg-blue-50','border-blue-300');
+      div.classList.add('border-gray-300');
+      icon.classList.add('hidden');
+      selectedCategoryIds = selectedCategoryIds.filter(cid=>cid!==id);
+    } else {
+      div.classList.add('bg-blue-50','border-blue-300');
+      div.classList.remove('border-gray-300');
+      icon.classList.remove('hidden');
+      selectedCategoryIds.push(id);
+    }
+    document.getElementById('selected_categories').value = selectedCategoryIds.join(',');
+  }
+  document.querySelectorAll('[data-category-id]').forEach(div=>{
+    div.addEventListener('click', ()=>toggleCategorySelection(div));
+  });
+  document.querySelector('form').addEventListener('submit', function(e){
+    if (step==4 && selectedCategoryIds.length<1) {
+      e.preventDefault();
+      const err = document.getElementById('research-error');
+      err.textContent = 'Please select at least one research category.';
+      err.classList.remove('hidden');
+      err.scrollIntoView({ behavior:'smooth', block:'center' });
+    }
+  });
+
+  // --- FLATPICKR BIRTHDATE ---
+  const flatEl = document.getElementById("{{ form.birthdate.id_for_label }}");
+  if (flatEl) {
+    flatpickr(flatEl, {
+      altInput: true,
+      altFormat: "F j, Y",
+      dateFormat: "Y-m-d",
+      maxDate: new Date().fp_incr(-365*13),
+      defaultDate: new Date().fp_incr(-365*18),
+      onChange: (dates) => {
+        const errEl = document.getElementById("birthdate-error");
+        if (!dates.length) return;
+        const ageMs = Date.now() - dates[0].getTime();
+        const age   = Math.abs(new Date(ageMs).getUTCFullYear() - 1970);
+        if (age < 13) {
+          errEl.classList.remove("hidden");
+          flatEl.classList.add("border-red-500","ring-1","ring-red-500");
+        } else {
+          errEl.classList.add("hidden");
+          flatEl.classList.remove("border-red-500","ring-1","ring-red-500");
+        }
       }
     });
   }
 });
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  const btn      = document.getElementById('resend-code-btn');
+  const feedback = document.getElementById('resend-feedback');
+  if (!btn) return;
+
+  btn.addEventListener('click', function() {
+    // Disable while we wait
+    btn.disabled = true;
+    fetch("{% url 'resend-code' %}")
+      .then(resp => resp.json())
+      .then(data => {
+        if (data.success) {
+          feedback.classList.remove('hidden');
+          // hide again after 3s
+          setTimeout(() => feedback.classList.add('hidden'), 3000);
+        } else if (data.redirect_url) {
+          window.location = data.redirect_url;
+        }
+      })
+      .catch(err => {
+        console.error('Resend code error:', err);
+        alert('Could not resend code. Please try again.');
+      })
+      .finally(() => {
+        btn.disabled = false;
+      });
+  });
+});
+
+
 </script>
+
+
+
 
 {% endblock content %}

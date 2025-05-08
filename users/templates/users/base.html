@@ -219,45 +219,54 @@
                     <a class="nav-link text-base" href="{% url 'users-about' %}">About</a>
                     <a class="nav-link text-base" href="{% url 'marketplace' %}">Marketplace</a>
                     <a class="nav-link text-base" href="{% url 'contact' %}">Contact</a>
-                    <a class="nav-link text-base" href="{% url 'journal_list' %}">Resources</a>
+                    <a class="nav-link text-base" href="{% url 'journal_list' %}">Scientific Journals</a>
                     <a class="nav-link text-base" href="{% url 'ai_assistant:ai_home' %}">AI Assistant</a>
                 </div>
 
                 <div class="flex items-center space-x-4 ml-6">
                     {% if user.is_authenticated %}
-                    <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open" class="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
+                    <div class="relative" x-data="{ open: false }" x-init="open = false">
+                        <button @click="open = !open"
+                                class="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
                             {% if user.profile.avatar %}
-                                <img class="w-6 h-6 rounded-full object-cover"
-                                     src="{{ user.profile.avatar.url }}"
-                                     alt="{{ user.get_full_name }}">
+                            <img class="w-6 h-6 rounded-full object-cover"
+                                 src="{{ user.profile.avatar.url }}"
+                                 alt="{{ user.get_full_name }}">
                             {% else %}
-                                <div class="w-6 h-6 rounded-full flex items-center justify-center bg-[#2C3AD1] text-white">
-                                    <i class="fas fa-user text-xs"></i>
-                                </div>
+                            <div class="w-6 h-6 rounded-full flex items-center justify-center bg-[#2C3AD1] text-white">
+                                <i class="fas fa-user text-xs"></i>
+                            </div>
                             {% endif %}
                             <span>Profile</span>
-                            <i class="fas fa-chevron-down text-xs transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
+                            <i class="fas fa-chevron-down text-xs transition-transform duration-200"
+                               :class="{ 'rotate-180': open }"></i>
                         </button>
 
-                        <!-- Dropdown меню (только для десктопа) -->
-                        <div x-show="open" @click.away="open = false"
-                             class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200"
+                        <!-- Dropdown меню -->
+                        <div x-show="open"
                              x-transition:enter="transition ease-out duration-100"
                              x-transition:enter-start="opacity-0 scale-95"
                              x-transition:enter-end="opacity-100 scale-100"
                              x-transition:leave="transition ease-in duration-75"
                              x-transition:leave-start="opacity-100 scale-100"
-                             x-transition:leave-end="opacity-0 scale-95">
-                            <a href="{% url 'users-profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">My Profile</a>
-                            <a href="{% url 'users-edit-profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Edit Profile</a>
+                             x-transition:leave-end="opacity-0 scale-95"
+                             @click.away="open = false"
+                             class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200"
+                             style="display: none;">
+                            <a href="{% url 'users-profile' %}"
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">My Profile</a>
+                            <a href="{% url 'users-edit-profile' %}"
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Edit Profile</a>
                             <div class="border-t border-gray-200 my-1"></div>
-                            <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-50">Log Out</a>
+                            <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-50">Log
+                                Out</a>
                         </div>
                     </div>
                     {% else %}
-                    <a href="{% url 'login' %}" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Sign In</a>
-                    <a href="{% url 'users-register' %}" class="px-4 py-2 rounded-lg bg-[#2C3AD1] text-white hover:bg-[#1a237e]">
+                    <a href="{% url 'login' %}"
+                       class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Sign In</a>
+                    <a href="{% url 'users-register' %}"
+                       class="px-4 py-2 rounded-lg bg-[#2C3AD1] text-white hover:bg-[#1a237e]">
                         Get Started
                     </a>
                     {% endif %}
@@ -278,38 +287,46 @@
              class="lg:hidden hidden fixed w-full left-0 top-20 bg-white shadow-lg z-40 overflow-y-auto transition-all duration-300"
              style="max-height: 0;">
             <div class="container px-6 py-4 space-y-4">
-                <a class="block text-lg font-medium py-3 text-gray-700 hover:text-blue-600" href="{% url 'users-about' %}">About</a>
-                <a class="block text-lg font-medium py-3 text-gray-700 hover:text-blue-600" href="{% url 'marketplace' %}">Marketplace</a>
+                <a class="block text-lg font-medium py-3 text-gray-700 hover:text-blue-600"
+                   href="{% url 'users-about' %}">About</a>
+                <a class="block text-lg font-medium py-3 text-gray-700 hover:text-blue-600"
+                   href="{% url 'marketplace' %}">Marketplace</a>
                 <a class="block text-lg font-medium py-3 text-gray-700 hover:text-blue-600" href="{% url 'contact' %}">Contact</a>
-                <a class="block text-lg font-medium py-3 text-gray-700 hover:text-blue-600" href="{% url 'journal_list' %}">Resources</a>
-                <a class="block text-lg font-medium py-3 text-gray-700 hover:text-blue-600" href="{% url 'ai_assistant:ai_home' %}">AI Assistant</a>
+                <a class="block text-lg font-medium py-3 text-gray-700 hover:text-blue-600"
+                   href="{% url 'journal_list' %}">Resources</a>
+                <a class="block text-lg font-medium py-3 text-gray-700 hover:text-blue-600"
+                   href="{% url 'ai_assistant:ai_home' %}">AI Assistant</a>
 
                 <div class="pt-4 border-t border-gray-200">
                     {% if user.is_authenticated %}
                     <!-- Простая кнопка Profile без dropdown -->
-                    <a href="{% url 'users-profile' %}" class="w-full flex items-center space-x-2 px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700">
+                    <a href="{% url 'users-profile' %}"
+                       class="w-full flex items-center space-x-2 px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700">
                         {% if user.profile.avatar %}
-                            <img class="w-6 h-6 rounded-full object-cover"
-                                 src="{{ user.profile.avatar.url }}"
-                                 alt="{{ user.get_full_name }}">
+                        <img class="w-6 h-6 rounded-full object-cover"
+                             src="{{ user.profile.avatar.url }}"
+                             alt="{{ user.get_full_name }}">
                         {% else %}
-                            <div class="w-6 h-6 rounded-full flex items-center justify-center bg-[#2C3AD1] text-white">
-                                <i class="fas fa-user text-xs"></i>
-                            </div>
+                        <div class="w-6 h-6 rounded-full flex items-center justify-center bg-[#2C3AD1] text-white">
+                            <i class="fas fa-user text-xs"></i>
+                        </div>
                         {% endif %}
                         <span class="font-medium">Profile</span>
                     </a>
                     <!-- Отдельная кнопка Log Out -->
-                    <a href="{% url 'logout' %}" class="w-full flex items-center px-4 py-3 rounded-lg hover:bg-gray-50 text-red-600 mt-2">
+                    <a href="{% url 'logout' %}"
+                       class="w-full flex items-center px-4 py-3 rounded-lg hover:bg-gray-50 text-red-600 mt-2">
                         <i class="fas fa-sign-out-alt mr-2"></i>
                         <span class="font-medium">Log Out</span>
                     </a>
                     {% else %}
-                    <a href="{% url 'login' %}" class="w-full flex items-center px-4 py-3 rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700">
+                    <a href="{% url 'login' %}"
+                       class="w-full flex items-center px-4 py-3 rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700">
                         <i class="fas fa-sign-in-alt mr-2"></i>
                         <span class="font-medium">Sign In</span>
                     </a>
-                    <a href="{% url 'users-register' %}" class="w-full flex items-center px-4 py-3 rounded-lg bg-[#2C3AD1] text-white hover:bg-[#1a237e] mt-4">
+                    <a href="{% url 'users-register' %}"
+                       class="w-full flex items-center px-4 py-3 rounded-lg bg-[#2C3AD1] text-white hover:bg-[#1a237e] mt-4">
                         <i class="fas fa-user-plus mr-2"></i>
                         <span class="font-medium">Get Started</span>
                     </a>
@@ -324,53 +341,53 @@
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const mobileMenuButton = document.getElementById('mobileMenuButton');
-    const mobileMenu = document.getElementById('mobileMenu');
-    const menuIcon = mobileMenuButton.querySelector('i');
+    document.addEventListener('DOMContentLoaded', function() {
+        const mobileMenuButton = document.getElementById('mobileMenuButton');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const menuIcon = mobileMenuButton.querySelector('i');
 
-    // Функция для переключения мобильного меню
-    function toggleMobileMenu() {
-        const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
-        mobileMenuButton.setAttribute('aria-expanded', !isExpanded);
+        // Функция для переключения мобильного меню
+        function toggleMobileMenu() {
+            const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
+            mobileMenuButton.setAttribute('aria-expanded', !isExpanded);
 
-        if (!isExpanded) {
-            // Открываем меню
-            mobileMenu.classList.remove('hidden');
-            mobileMenu.style.maxHeight = mobileMenu.scrollHeight + 'px';
-            menuIcon.classList.replace('fa-bars', 'fa-times');
-        } else {
-            // Закрываем меню
-            mobileMenu.style.maxHeight = '0';
-            setTimeout(() => {
-                mobileMenu.classList.add('hidden');
-                menuIcon.classList.replace('fa-times', 'fa-bars');
-            }, 300);
+            if (!isExpanded) {
+                // Открываем меню
+                mobileMenu.classList.remove('hidden');
+                mobileMenu.style.maxHeight = mobileMenu.scrollHeight + 'px';
+                menuIcon.classList.replace('fa-bars', 'fa-times');
+            } else {
+                // Закрываем меню
+                mobileMenu.style.maxHeight = '0';
+                setTimeout(() => {
+                    mobileMenu.classList.add('hidden');
+                    menuIcon.classList.replace('fa-times', 'fa-bars');
+                }, 300);
+            }
         }
-    }
 
-    // Обработчик клика по кнопке меню
-    mobileMenuButton.addEventListener('click', function(e) {
-        e.stopPropagation();
-        toggleMobileMenu();
-    });
-
-    // Закрытие меню при клике вне его области
-    document.addEventListener('click', function(e) {
-        if (!mobileMenu.contains(e.target) &&
-            !mobileMenuButton.contains(e.target) &&
-            mobileMenuButton.getAttribute('aria-expanded') === 'true') {
+        // Обработчик клика по кнопке меню
+        mobileMenuButton.addEventListener('click', function(e) {
+            e.stopPropagation();
             toggleMobileMenu();
-        }
-    });
+        });
 
-    // Закрытие меню при изменении размера окна
-    window.addEventListener('resize', function() {
-        if (window.innerWidth >= 1024 && mobileMenuButton.getAttribute('aria-expanded') === 'true') {
-            toggleMobileMenu();
-        }
+        // Закрытие меню при клике вне его области
+        document.addEventListener('click', function(e) {
+            if (!mobileMenu.contains(e.target) &&
+                !mobileMenuButton.contains(e.target) &&
+                mobileMenuButton.getAttribute('aria-expanded') === 'true') {
+                toggleMobileMenu();
+            }
+        });
+
+        // Закрытие меню при изменении размера окна
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 1024 && mobileMenuButton.getAttribute('aria-expanded') === 'true') {
+                toggleMobileMenu();
+            }
+        });
     });
-});
 </script>
 
 <main class="pt-32 pb-20 px-0 flex-grow">
@@ -429,21 +446,13 @@ document.addEventListener('DOMContentLoaded', function() {
         {% endblock %}
     </div>
 </main>
-
+{% block footer %}
 <footer class="footer-bg mt-auto">
     <div class="container mx-auto px-6 py-16">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
             <div class="mb-8">
-                <div class="flex items-center space-x-2 mb-6">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" stroke-width="2" stroke-linecap="round"
-                              stroke-linejoin="round"></path>
-                        <path d="M2 17L12 22L22 17" stroke="white" stroke-width="2" stroke-linecap="round"
-                              stroke-linejoin="round"></path>
-                        <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linecap="round"
-                              stroke-linejoin="round"></path>
-                    </svg>
-                    <span class="text-xl font-bold text-white">Scholar<span class="text-secondary">Hub</span></span>
+                <div class="flex items-center mb-6 -ml-3">
+                    <img src="/media/logo.png" class="h-12 w-auto filter brightness-0 invert" alt="ScholarHub Logo">
                 </div>
                 <p class="text-sm text-gray-300 leading-relaxed">Connecting researchers worldwide through AI-powered
                     collaboration tools, advancing discoveries, and fostering global scientific cooperation.</p>
@@ -453,9 +462,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h4 class="footer-heading text-lg mb-5">About</h4>
                 <ul class="space-y-3">
                     <li><a href="{% url 'users-about' %}" class="footer-link">Our Mission</a></li>
-                    <li><a href="#" class="footer-link">Team</a></li>
-                    <li><a href="#" class="footer-link">Careers</a></li>
-                    <li><a href="#" class="footer-link">Partners</a></li>
+                    <li><a href="{% url 'users-about' %}" class="footer-link">Team</a></li>
+{#                    <li><a href="#" class="footer-link">Careers</a></li>#}
+{#                    <li><a href="#" class="footer-link">Partners</a></li>#}
                 </ul>
             </div>
 
@@ -464,8 +473,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <ul class="space-y-3">
                     <li><a href="{% url 'journal_list' %}" class="footer-link">Research Hub</a></li>
                     <li><a href="#" class="footer-link">Documentation</a></li>
-                    <li><a href="#" class="footer-link">Blog</a></li>
-                    <li><a href="#" class="footer-link">Tutorials</a></li>
+{#                    <li><a href="#" class="footer-link">Blog</a></li>#}
+{#                    <li><a href="#" class="footer-link">Tutorials</a></li>#}
                 </ul>
             </div>
 
@@ -473,9 +482,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h4 class="footer-heading text-lg mb-5">Legal</h4>
                 <ul class="space-y-3">
                     <li><a href="/privacy-policy" class="footer-link">Privacy Policy</a></li>
-                    <li><a href="#" class="footer-link">Terms of Service</a></li>
-                    <li><a href="#" class="footer-link">Cookie Policy</a></li>
-                    <li><a href="#" class="footer-link">Data Protection</a></li>
+                    <li><a href="{% url 'users-terms' %}" class="footer-link">Terms of Service</a></li>
+{#                    <li><a href="#" class="footer-link">Cookie Policy</a></li>#}
+{#                    <li><a href="#" class="footer-link">Data Protection</a></li>#}
                 </ul>
             </div>
         </div>
@@ -504,6 +513,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 </footer>
+{% endblock %}
 
 <script>
     const mobileMenuButton = document.getElementById("mobileMenuButton");

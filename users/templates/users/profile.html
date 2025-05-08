@@ -4,166 +4,343 @@
 {% block title %}{% trans "Profile" %}{% endblock %}
 
 {% block content %}
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
 <div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-
-            <!-- Left Column -->
-            <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl shadow-sm p-6 space-y-6 text-center hover:shadow-md transition-shadow">
-
-                    <div class="relative inline-block group">
-                        {% if user.profile.avatar %}
-                            <img class="w-32 h-32 rounded-full border-4 border-gray-50 shadow-lg mx-auto group-hover:border-blue-100 transition"
-                                 src="{{ user.profile.avatar.url }}" alt="{{ user.get_full_name }}">
-                        {% else %}
-                            <img class="w-32 h-32 rounded-full border-4 border-gray-50 shadow-lg mx-auto group-hover:border-blue-100 transition"
-                                 src="{{ MEDIA_URL }}default-avatar.png" alt="{{ user.get_full_name }}">
-                        {% endif %}
-                        {% if user.profile.is_verified %}
-                        <div class="absolute bottom-2 right-2 bg-blue-500 rounded-full p-1.5">
-                            <i class="fa-solid fa-check-circle text-white text-sm"></i>
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <h1 class="mt-4 text-2xl font-bold text-gray-900">{{ user.get_full_name }}</h1>
-                    <p class="text-gray-500">@{{ user.username }}</p>
-
-                    <div class="space-y-2">
-                        <p class="text-gray-700 font-medium flex items-center justify-center space-x-2">
-                            <i class="fas fa-briefcase text-blue-500 text-sm"></i>
-                            <span>{{ user.profile.position|default:_("Position not specified") }}</span>
-                        </p>
-                        <p class="text-gray-600 flex items-center justify-center space-x-2">
-                            <i class="fas fa-building text-blue-500 text-sm"></i>
-                            <span>{{ user.profile.organization|default:_("No organization specified") }}</span>
-                        </p>
-                        {% if user.profile.university %}
-                        <p class="text-gray-600 flex items-center justify-center space-x-2">
-                            <i class="fas fa-graduation-cap text-blue-500 text-sm"></i>
-                            <span>{{ user.profile.university }}</span>
-                        </p>
-                        {% endif %}
-                        {% if user.profile.country and user.profile.city %}
-                        <p class="text-gray-600 flex items-center justify-center space-x-2">
-                            <i class="fas fa-map-marker-alt text-blue-500 text-sm"></i>
-                            <span>{{ user.profile.city }}, {{ user.profile.country }}</span>
-                        </p>
-                        {% endif %}
-                    </div>
-
-                    <div class="grid grid-cols gap-4 mt-6 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                        <div>
-                            <div class="text-xl font-bold text-gray-900 flex items-center justify-center space-x-2">
-                                <i class="fas fa-project-diagram text-blue-500"></i>
-                                <span>{{ num_projects }}</span>
-                            </div>
-                            <div class="text-sm text-gray-500">{% trans "Projects" %}</div>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-col gap-3 mt-6">
-                        <a href="{% url 'users-edit-profile' %}"
-                           class="w-full inline-flex items-center justify-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-                            <i class="fa-solid fa-user-pen"></i>
-                            <span>{% trans "Edit Profile" %}</span>
-                        </a>
-
-                        <a href="{% url 'user-settings' %}"
-                           class="w-full inline-flex items-center justify-center bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition">
-                            <i class="fa-solid fa-gear"></i>
-                            <span>{% trans "Settings" %}</span>
-                        </a>
-                    </div>
-
+        <!-- Profile Header Section -->
+        <div class="mb-8 bg-white rounded-xl shadow-sm p-6">
+            <div class="flex justify-end mb-4">
+                <!-- Action buttons positioned at top-right -->
+                <div class="flex space-x-2">
+                    <a href="{% url 'users-edit-profile' %}" 
+                       class="flex items-center space-x-1 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition">
+                        <i class="fa-solid fa-pen-to-square text-sm"></i>
+                        <span class="text-sm font-medium">{% trans "Edit" %}</span>
+                    </a>
+                    <a href="{% url 'user-settings' %}"
+                       class="flex items-center space-x-1 bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-200 transition">
+                        <i class="fa-solid fa-gear text-sm"></i>
+                        <span class="text-sm font-medium">{% trans "Settings" %}</span>
+                    </a>
                 </div>
             </div>
-
-            <!-- Right Column -->
-            <div class="lg:col-span-3 space-y-8">
-                <div class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-                        <i class="fas fa-user-circle text-blue-500"></i>
-                        <span>{% trans "About" %}</span>
-                    </h2>
-                    <p class="text-gray-600">{{ user.profile.bio|default:_("This space awaits your intellectual narrative...") }}</p>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-                            <i class="fas fa-tools text-blue-500"></i>
-                            <span>{% trans "Skills" %}</span>
-                        </h2>
-                        <div class="flex flex-wrap gap-2">
-                            {% for skill in user.profile.skills.all %}
-                            <span class="inline-flex items-center bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm hover:bg-blue-100 transition">
-                                <i class="fas fa-code text-sm mr-1"></i>
-                                {{ skill.name }}
-                                {% if skill.approved %} <i class="fa-solid fa-check-circle ml-1 text-xs text-green-500"></i> {% endif %}
-                            </span>
-                            {% empty %}
-                            <p class="text-gray-500">{% trans "No skills added yet." %}</p>
-                            {% endfor %}
+            
+            <div class="">
+                <div class="flex flex-col sm:flex-row">
+                    <!-- Avatar Section with Verification Badge -->
+                    <div class="flex-shrink-0 relative">
+                        <div class="ring-4 ring-blue-50 rounded-full">
+                            {% if user.profile.avatar %}
+                                <img class="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover"
+                                     src="{{ user.profile.avatar.url }}" alt="{{ user.get_full_name }}">
+                            {% else %}
+                                <img class="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover"
+                                     src="{{ MEDIA_URL }}default-avatar.png" alt="{{ user.get_full_name }}">
+                            {% endif %}
+                        </div>
+                        {% if user.profile.is_verified %}
+                        <div class="absolute bottom-0 right-0 bg-blue-500 rounded-full p-1.5 shadow-sm">
+                            <i class="fa-solid fa-check text-white text-xs"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- User Info Section -->
+                    <div class="sm:ml-6 mt-4 sm:mt-6 flex-grow">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between">
+                            <div>
+                                <h1 class="text-2xl font-bold text-gray-900">{{ user.get_full_name }}</h1>
+                                <p class="text-gray-500">@{{ user.username }}</p>
+                            </div>
+                            
+                            <!-- Projects Count Card -->
+                            <div class="mt-4 sm:mt-0 flex items-center bg-blue-50 px-4 py-2 rounded-lg">
+                                <i class="fas fa-project-diagram text-blue-600 mr-2"></i>
+                                <span class="font-semibold text-gray-900">{{ num_projects }}</span>
+                                <span class="ml-1 text-gray-600">{% trans "Projects" %}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Position & Organization -->
+                        <div class="mt-4 flex flex-wrap gap-4">
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-briefcase text-blue-500 mr-2"></i>
+                                <span>{{ user.profile.position|default:_("Position not specified") }}</span>
+                            </div>
+                            
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-building text-blue-500 mr-2"></i>
+                                <span>{{ user.profile.organization|default:_("No organization specified") }}</span>
+                            </div>
+                            
+                            {% if user.profile.university %}
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-graduation-cap text-blue-500 mr-2"></i>
+                                <span>{{ user.profile.university }}</span>
+                            </div>
+                            {% endif %}
+                            
+                            {% if user.profile.country and user.profile.city %}
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-map-marker-alt text-blue-500 mr-2"></i>
+                                <span>{{ user.profile.city }}, {{ user.profile.country }}</span>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
-
-                    <div class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-                            <i class="fas fa-folder-open text-green-500"></i>
-                            <span>{% trans "Categories" %}</span>
-                        </h2>
-                        <div class="flex flex-wrap gap-2">
-                            {% for category in user.profile.categories.all %}
-                            <span class="inline-flex items-center bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm hover:bg-green-100 transition">
-                                <i class="fas fa-tag text-sm mr-1"></i>
-                                {{ category.name }}
-                                {% if category.approved %} <i class="fa-solid fa-check-circle ml-1 text-xs text-green-500"></i> {% endif %}
-                            </span>
-                            {% empty %}
-                            <p class="text-gray-500">{% trans "No categories selected yet." %}</p>
-                            {% endfor %}
-                        </div>
-                    </div>
                 </div>
-
-                <div class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-                        <i class="fas fa-address-card text-blue-500"></i>
-                        <span>{% trans "Contact & Links" %}</span>
-                    </h2>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-                        <a href="mailto:{{ user.email }}" class="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 group">
-                            <i class="fa-solid fa-envelope text-2xl text-gray-600 group-hover:text-blue-600 mb-2"></i>
-                            <span class="text-sm text-gray-600 group-hover:text-blue-600 text-center">{% trans "Email" %}</span>
+            </div>
+        </div>
+        
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- About Section -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-sm mb-6">
+                    <div class="border-b px-6 py-4 flex justify-between items-center">
+                        <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                            <i class="fas fa-user-circle text-blue-500 mr-2"></i>
+                            <span>{% trans "About" %}</span>
+                        </h2>
+                        <a href="{% url 'users-edit-profile' %}" class="text-blue-500 hover:text-blue-700">
+                            <i class="fa-solid fa-pen-to-square"></i>
                         </a>
+                    </div>
+                    <div class="p-6 text-gray-700">
+                        {% if user.profile.bio %}
+                            <p>{{ user.profile.bio }}</p>
+                        {% else %}
+                            <div class="text-center py-6">
+                                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 mb-4">
+                                    <i class="fas fa-user-edit text-blue-300 text-2xl"></i>
+                                </div>
+                                <p class="text-gray-500">{% trans "This space awaits your intellectual narrative..." %}</p>
+                                <a href="{% url 'users-edit-profile' %}" class="mt-3 inline-flex items-center text-blue-600 hover:underline">
+                                    <i class="fa-solid fa-plus mr-1 text-xs"></i>
+                                    {% trans "Add bio" %}
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Skills & Categories Section -->
+                <div class="mb-6">
+                    <!-- Combined Skills & Categories with tabs -->
+                    <div class="bg-white rounded-xl shadow-sm p-0 overflow-hidden">
+                        <!-- Tab Navigation -->
+                        <div class="flex border-b">
+                            <button id="skills-tab" onclick="showTab('skills')" class="flex-1 py-4 px-6 font-medium text-gray-900 border-b-2 border-blue-500 bg-blue-50 flex items-center justify-center">
+                                <i class="fas fa-tools text-blue-500 mr-2"></i>
+                                <span>{% trans "Skills" %}</span>
+                                <span class="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{{ user.profile.skills.all|length }}</span>
+                            </button>
+                            <button id="categories-tab" onclick="showTab('categories')" class="flex-1 py-4 px-6 font-medium text-gray-500 hover:text-gray-700 flex items-center justify-center">
+                                <i class="fas fa-folder-open text-green-500 mr-2"></i>
+                                <span>{% trans "Categories" %}</span>
+                                <span class="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{{ user.profile.categories.all|length }}</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Tab Content -->
+                        <div class="p-6">
+                            <!-- Skills Tab Content -->
+                            <div id="skills-content" class="block">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                    {% for skill in user.profile.skills.all %}
+                                    <div class="flex items-center p-3 bg-blue-50 rounded-lg border border-blue-100">
+                                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                                            <i class="fas fa-code text-blue-600"></i>
+                                        </div>
+                                        <div class="flex-grow">
+                                            <span class="font-medium text-gray-800">{{ skill.name }}</span>
+                                        </div>
+                                        {% if skill.approved %}
+                                        <div class="flex-shrink-0 ml-2">
+                                            <span class="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                                                <i class="fa-solid fa-check-circle mr-1"></i>
+                                                {% trans "Verified" %}
+                                            </span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% empty %}
+                                    <div class="col-span-3 py-8 text-center">
+                                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 mb-4">
+                                            <i class="fas fa-tools text-blue-300 text-2xl"></i>
+                                        </div>
+                                        <p class="text-gray-500">{% trans "No skills added yet." %}</p>
+                                        <a href="{% url 'users-edit-profile' %}" class="mt-3 inline-flex items-center text-blue-600 hover:underline">
+                                            <i class="fa-solid fa-plus mr-1 text-xs"></i>
+                                            {% trans "Add skills" %}
+                                        </a>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <!-- Categories Tab Content -->
+                            <div id="categories-content" class="hidden">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                    {% for category in user.profile.categories.all %}
+                                    <div class="flex items-center p-3 bg-green-50 rounded-lg border border-green-100">
+                                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-3">
+                                            <i class="fas fa-tag text-green-600"></i>
+                                        </div>
+                                        <div class="flex-grow">
+                                            <span class="font-medium text-gray-800">{{ category.name }}</span>
+                                        </div>
+                                        {% if category.approved %}
+                                        <div class="flex-shrink-0 ml-2">
+                                            <span class="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                                                <i class="fa-solid fa-check-circle mr-1"></i>
+                                                {% trans "Verified" %}
+                                            </span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% empty %}
+                                    <div class="col-span-3 py-8 text-center">
+                                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-50 mb-4">
+                                            <i class="fas fa-folder-open text-green-300 text-2xl"></i>
+                                        </div>
+                                        <p class="text-gray-500">{% trans "No categories selected yet." %}</p>
+                                        <a href="{% url 'users-edit-profile' %}" class="mt-3 inline-flex items-center text-green-600 hover:underline">
+                                            <i class="fa-solid fa-plus mr-1 text-xs"></i>
+                                            {% trans "Add categories" %}
+                                        </a>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <script>
+                    function showTab(tabName) {
+                        // Hide all tab contents
+                        document.getElementById('skills-content').classList.add('hidden');
+                        document.getElementById('categories-content').classList.add('hidden');
+                        
+                        // Show the selected tab content
+                        document.getElementById(tabName + '-content').classList.remove('hidden');
+                        
+                        // Update tab button styles
+                        document.getElementById('skills-tab').classList.remove('border-blue-500', 'bg-blue-50', 'text-gray-900');
+                        document.getElementById('skills-tab').classList.add('text-gray-500');
+                        document.getElementById('categories-tab').classList.remove('border-blue-500', 'bg-blue-50', 'text-gray-900');
+                        document.getElementById('categories-tab').classList.add('text-gray-500');
+                        
+                        // Highlight active tab
+                        if (tabName === 'skills') {
+                            document.getElementById('skills-tab').classList.add('border-blue-500', 'bg-blue-50', 'text-gray-900');
+                            document.getElementById('skills-tab').classList.remove('text-gray-500');
+                        } else {
+                            document.getElementById('categories-tab').classList.add('border-blue-500', 'bg-blue-50', 'text-gray-900');
+                            document.getElementById('categories-tab').classList.remove('text-gray-500');
+                        }
+                    }
+                </script>
+            </div>
+            
+            <!-- Contact & Links Section -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-sm">
+                    <div class="border-b px-6 py-4">
+                        <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                            <i class="fas fa-address-card text-blue-500 mr-2"></i>
+                            <span>{% trans "Contact & Links" %}</span>
+                        </h2>
+                    </div>
+                    
+                    <div class="divide-y">
+                        <a href="mailto:{{ user.email }}" class="flex items-center px-6 py-4 hover:bg-blue-50 transition group">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                                <i class="fa-solid fa-envelope text-blue-600"></i>
+                            </div>
+                            <div class="truncate">
+                                <span class="font-medium text-gray-900 group-hover:text-blue-600">{% trans "Email" %}</span>
+                                <p class="text-sm text-gray-500 truncate">{{ user.email }}</p>
+                            </div>
+                            <div class="ml-auto">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-gray-400 group-hover:text-blue-600"></i>
+                            </div>
+                        </a>
+                        
                         {% if user.profile.telegram %}
-                        <a href="https://t.me/{{ user.profile.telegram }}" class="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 group">
-                            <i class="fa-brands fa-telegram text-2xl text-gray-600 group-hover:text-[#0088cc] mb-2"></i>
-                            <span class="text-sm text-gray-600 group-hover:text-[#0088cc] text-center">Telegram</span>
+                        <a href="https://t.me/{{ user.profile.telegram }}" class="flex items-center px-6 py-4 hover:bg-blue-50 transition group">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-[#0088cc1a] flex items-center justify-center mr-3">
+                                <i class="fa-brands fa-telegram text-[#0088cc]"></i>
+                            </div>
+                            <div class="truncate">
+                                <span class="font-medium text-gray-900 group-hover:text-[#0088cc]">Telegram</span>
+                                <p class="text-sm text-gray-500 truncate">@{{ user.profile.telegram }}</p>
+                            </div>
+                            <div class="ml-auto">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-gray-400 group-hover:text-[#0088cc]"></i>
+                            </div>
                         </a>
                         {% endif %}
+                        
                         {% if user.profile.linkedin %}
-                        <a href="{{ user.profile.linkedin }}" class="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 group">
-                            <i class="fa-brands fa-linkedin text-2xl text-gray-600 group-hover:text-[#0A66C2] mb-2"></i>
-                            <span class="text-sm text-gray-600 group-hover:text-[#0A66C2] text-center">LinkedIn</span>
+                        <a href="{{ user.profile.linkedin }}" class="flex items-center px-6 py-4 hover:bg-blue-50 transition group">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-[#0A66C21a] flex items-center justify-center mr-3">
+                                <i class="fa-brands fa-linkedin text-[#0A66C2]"></i>
+                            </div>
+                            <div class="truncate">
+                                <span class="font-medium text-gray-900 group-hover:text-[#0A66C2]">LinkedIn</span>
+                                <p class="text-sm text-gray-500 truncate">{{ user.profile.linkedin|slice:":30" }}</p>
+                            </div>
+                            <div class="ml-auto">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-gray-400 group-hover:text-[#0A66C2]"></i>
+                            </div>
                         </a>
                         {% endif %}
+                        
                         {% if user.profile.github %}
-                        <a href="{{ user.profile.github }}" class="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 group">
-                            <i class="fa-brands fa-github text-2xl text-gray-600 group-hover:text-gray-900 mb-2"></i>
-                            <span class="text-sm text-gray-600 group-hover:text-gray-900 text-center">GitHub</span>
+                        <a href="{{ user.profile.github }}" class="flex items-center px-6 py-4 hover:bg-blue-50 transition group">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                                <i class="fa-brands fa-github text-gray-900"></i>
+                            </div>
+                            <div class="truncate">
+                                <span class="font-medium text-gray-900 group-hover:text-gray-900">GitHub</span>
+                                <p class="text-sm text-gray-500 truncate">{{ user.profile.github|slice:":30" }}</p>
+                            </div>
+                            <div class="ml-auto">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-gray-400 group-hover:text-gray-900"></i>
+                            </div>
                         </a>
                         {% endif %}
+                        
                         {% if user.profile.google_scholar %}
-                        <a href="{{ user.profile.google_scholar }}" class="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 group">
-                            <i class="fa-solid fa-graduation-cap text-2xl text-gray-600 group-hover:text-[#4285F4] mb-2"></i>
-                            <span class="text-sm text-gray-600 group-hover:text-[#4285F4] text-center">{% trans "Scholar" %}</span>
+                        <a href="{{ user.profile.google_scholar }}" class="flex items-center px-6 py-4 hover:bg-blue-50 transition group">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-[#4285F41a] flex items-center justify-center mr-3">
+                                <i class="fa-solid fa-graduation-cap text-[#4285F4]"></i>
+                            </div>
+                            <div class="truncate">
+                                <span class="font-medium text-gray-900 group-hover:text-[#4285F4]">{% trans "Scholar" %}</span>
+                                <p class="text-sm text-gray-500 truncate">{{ user.profile.google_scholar|slice:":30" }}</p>
+                            </div>
+                            <div class="ml-auto">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-gray-400 group-hover:text-[#4285F4]"></i>
+                            </div>
                         </a>
+                        {% endif %}
+                        
+                        {% if not user.profile.telegram and not user.profile.linkedin and not user.profile.github and not user.profile.google_scholar %}
+                        <div class="px-6 py-8 text-center">
+                            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+                                <i class="fas fa-link text-gray-400 text-2xl"></i>
+                            </div>
+                            <p class="text-gray-500">{% trans "No additional contact links added." %}</p>
+                            <a href="{% url 'users-edit-profile' %}" class="mt-3 inline-flex items-center text-blue-600 hover:underline">
+                                <i class="fa-solid fa-plus mr-1 text-xs"></i>
+                                {% trans "Add contact links" %}
+                            </a>
+                        </div>
                         {% endif %}
                     </div>
                 </div>

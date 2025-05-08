@@ -2,447 +2,477 @@
 {% load i18n %}
 {% load static %}
 {% load widget_tweaks %}
+{% load project_tags %}
 
 {% block title %}{% trans "Edit Profile" %}{% endblock %}
 
 {% block content %}
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<div class="container my-8">
-  <div class="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-6">
-    <h2 class="text-center text-2xl font-bold mb-6">
-      <i class="fas fa-user-edit mr-2"></i>{% trans "Edit Profile" %}
-    </h2>
-    <form method="post" action="{% url 'users-edit-profile' %}" enctype="multipart/form-data" id="profile-form">
-      {% csrf_token %}
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-center text-3xl font-bold text-gray-900">
+        {% trans "Edit Your Profile" %}
+      </h1>
+      <p class="text-center text-gray-600 mt-2">
+        {% trans "Update your information to help others find and connect with you" %}
+      </p>
+    </div>
 
-      <!-- Avatar Section with Live Preview -->
-      <div class="flex flex-col items-center mb-6">
-        <div class="relative">
-          {% if user.profile.avatar %}
-            <img id="avatar-preview" class="w-24 h-24 object-cover rounded-full border border-gray-300"
-                 src="{{ user.profile.avatar.url }}" alt="Profile Picture">
-          {% else %}
-            <img id="avatar-preview" class="w-24 h-24 object-cover rounded-full border border-gray-300"
-                 src="/media/default-avatar.png" alt="Profile Picture">
-          {% endif %}
-          <label class="absolute bottom-0 right-0 bg-gray-800 text-white p-2 rounded-full cursor-pointer hover:bg-gray-700" title="Upload new photo">
-            <i class="fas fa-camera"></i>
-            {{ profile_form.avatar|add_class:"hidden" }}
-          </label>
-        </div>
-        {% if profile_form.avatar.errors %}
-          <p class="text-red-600 text-sm mt-2">{{ profile_form.avatar.errors|join:", " }}</p>
-        {% endif %}
+    <!-- Form Container -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <!-- Form Sections Navigation -->
+      <div class="border-b border-gray-200">
+        <nav class="flex overflow-x-auto py-3 px-4" aria-label="Form sections">
+          <ul class="flex space-x-8">
+            <li>
+              <a href="#basic-info" class="text-blue-600 border-b-2 border-blue-600 pb-3 px-1 text-sm font-medium">
+                {% trans "Basic Info" %}
+              </a>
+            </li>
+            <li>
+              <a href="#professional" class="text-gray-600 hover:text-gray-900 px-1 text-sm font-medium">
+                {% trans "Professional" %}
+              </a>
+            </li>
+            <li>
+              <a href="#skills" class="text-gray-600 hover:text-gray-900 px-1 text-sm font-medium">
+                {% trans "Skills & Expertise" %}
+              </a>
+            </li>
+            <li>
+              <a href="#social" class="text-gray-600 hover:text-gray-900 px-1 text-sm font-medium">
+                {% trans "Social Profiles" %}
+              </a>
+            </li>
+          </ul>
+        </nav>
       </div>
 
-      <!-- Personal Details -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div>
-          <label class="block text-gray-700">{% trans "Username" %}</label>
-          {{ user_form.username|add_class:"w-full px-3 py-2 border rounded" }}
-          {% if user_form.username.errors %}
-            <p class="text-red-600 text-sm mt-1">{{ user_form.username.errors|join:", " }}</p>
-          {% endif %}
-        </div>
-        <div>
-          <label class="block text-gray-700">{% trans "Email" %}</label>
-          {{ user_form.email|add_class:"w-full px-3 py-2 border rounded" }}
-          {% if user_form.email.errors %}
-            <p class="text-red-600 text-sm mt-1">{{ user_form.email.errors|join:", " }}</p>
-          {% endif %}
-          <!-- Hidden original email -->
-          <input type="hidden" id="original-email" value="{{ user.email }}">
-          <!-- If verification is required, show the verification field -->
-          {% if email_verification_required %}
-          <div class="mt-2">
-            <label class="block text-gray-700">{% trans "Verification Code" %}</label>
-            <input type="text" name="verification_code" id="verification_code" class="w-full px-3 py-2 border rounded" placeholder="Enter verification code">
+      <form method="post" action="{% url 'users-edit-profile' %}" enctype="multipart/form-data" id="profile-form" class="px-4 py-6 sm:p-8">
+        {% csrf_token %}
+
+        <!-- Basic Information Section -->
+        <section id="basic-info" class="mb-12">
+          <h2 class="text-lg font-semibold text-gray-900 mb-6 pb-2 border-b border-gray-200">
+            {% trans "Basic Information" %}
+          </h2>
+
+          <!-- Avatar Upload -->
+          <div class="mb-8 flex flex-col items-center sm:flex-row sm:items-start sm:space-x-6">
+            <div class="relative group mb-4 sm:mb-0">
+              {% if user.profile.avatar %}
+                <img id="avatar-preview" class="w-24 h-24 object-cover rounded-full border-2 border-gray-200"
+                     src="{{ user.profile.avatar.url }}" alt="Profile Picture">
+              {% else %}
+                <img id="avatar-preview" class="w-24 h-24 object-cover rounded-full border-2 border-gray-200"
+                     src="/media/default-avatar.png" alt="Profile Picture">
+              {% endif %}
+              
+              <label class="absolute bottom-0 right-0 bg-white text-gray-700 p-2 rounded-full cursor-pointer border border-gray-300 shadow-sm hover:bg-gray-50 transition-colors" title="Upload new photo">
+                <span class="sr-only">Change avatar</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
+                {{ profile_form.avatar|add_class:"hidden" }}
+              </label>
+            </div>
+            
+            <div class="w-full sm:max-w-md">
+              <div class="mb-4">
+                <label for="{{ user_form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                  {% trans "Username" %} <span class="text-red-500">*</span>
+                </label>
+                {{ user_form.username|add_class:"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" }}
+                {% if user_form.username.errors %}
+                  <p class="text-red-600 text-xs mt-1">{{ user_form.username.errors|join:", " }}</p>
+                {% endif %}
+              </div>
+
+              <div>
+                <label for="{{ user_form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                  {% trans "Email Address" %} <span class="text-red-500">*</span>
+                </label>
+                <div class="flex flex-col sm:flex-row sm:space-x-2">
+                  {{ user_form.email|add_class:"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" }}
+                  {% if email_verification_required %}
+                    <input type="text" name="verification_code" id="verification_code" 
+                          class="mt-2 sm:mt-0 w-full sm:w-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" 
+                          placeholder="Verify code">
+                  {% endif %}
+                </div>
+                <input type="hidden" id="original-email" value="{{ user.email }}">
+                {% if user_form.email.errors %}
+                  <p class="text-red-600 text-xs mt-1">{{ user_form.email.errors|join:", " }}</p>
+                {% endif %}
+                {% if email_verification_required %}
+                  <p class="text-gray-500 text-xs mt-1">{% trans "A verification code will be sent to your new email" %}</p>
+                {% endif %}
+              </div>
+            </div>
           </div>
-          {% endif %}
-        </div>
-      </div>
+        </section>
 
-      <!-- Professional Details -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div>
-          <label class="block text-gray-700">{% trans "Organization" %}</label>
-          {{ profile_form.organization|add_class:"w-full px-3 py-2 border rounded" }}
-          {% if profile_form.organization.errors %}
-            <p class="text-red-600 text-sm mt-1">{{ profile_form.organization.errors|join:", " }}</p>
-          {% endif %}
-        </div>
-        <div>
-          <label class="block text-gray-700">{% trans "Position" %}</label>
-          {{ profile_form.position|add_class:"w-full px-3 py-2 border rounded" }}
-          {% if profile_form.position.errors %}
-            <p class="text-red-600 text-sm mt-1">{{ profile_form.position.errors|join:", " }}</p>
-          {% endif %}
-        </div>
-      </div>
+        <!-- Professional Information Section -->
+        <section id="professional" class="mb-12">
+          <h2 class="text-lg font-semibold text-gray-900 mb-6 pb-2 border-b border-gray-200">
+            {% trans "Professional Information" %}
+          </h2>
 
-      <!-- Biography -->
-      <div class="mb-4">
-        <label class="block text-gray-700">{% trans "Biography" %}</label>
-        {{ profile_form.bio|add_class:"w-full px-3 py-2 border rounded" }}
-        <small class="text-gray-500">{% trans "Tell us about your academic journey" %}</small>
-        {% if profile_form.bio.errors %}
-          <p class="text-red-600 text-sm mt-1">{{ profile_form.bio.errors|join:", " }}</p>
-        {% endif %}
-      </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="{{ profile_form.organization.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                {% trans "Organization" %}
+              </label>
+              {{ profile_form.organization|add_class:"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" }}
+              {% if profile_form.organization.errors %}
+                <p class="text-red-600 text-xs mt-1">{{ profile_form.organization.errors|join:", " }}</p>
+              {% endif %}
+            </div>
+            
+            <div>
+              <label for="{{ profile_form.position.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                {% trans "Position" %}
+              </label>
+              {{ profile_form.position|add_class:"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" }}
+              {% if profile_form.position.errors %}
+                <p class="text-red-600 text-xs mt-1">{{ profile_form.position.errors|join:", " }}</p>
+              {% endif %}
+            </div>
+          </div>
 
-      <!-- University with Search -->
-{#      <div class="mb-4 relative">#}
-{#        <label class="block text-gray-700">University</label>#}
-{#        <input type="text" id="university-search" placeholder="Search University" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">#}
-{#        <div id="university-hints" class="border border-gray-200 rounded-md bg-white shadow absolute hidden z-10 w-full" style="max-height:200px; overflow-y:auto;"></div>#}
-{#        <div id="selected-university" class="mt-3 flex flex-wrap gap-2"></div>#}
-{#        <input type="hidden" name="university" id="university-hidden" value="{{ user.profile.university.id|default_if_none:'' }}">#}
-{#        {% if profile_form.university.errors %}#}
-{#          <p class="text-red-600 text-sm mt-1">{{ profile_form.university.errors|join:", " }}</p>#}
-{#        {% endif %}#}
-{#      </div>#}
-
-      <!-- Country & City with Search -->
-{#      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 relative">#}
-{#        <!-- Country -->#}
-{#        <div class="relative">#}
-{#          <label class="block text-gray-700">Country</label>#}
-{#          <input type="text" id="country-search" placeholder="Search Country" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">#}
-{#          <div id="country-hints" class="border border-gray-200 rounded-md bg-white shadow absolute hidden z-10 w-full" style="max-height:200px; overflow-y:auto;"></div>#}
-{#          <div id="selected-country" class="mt-3 flex flex-wrap gap-2"></div>#}
-{#          <input type="hidden" name="country" id="country-hidden" value="{{ user.profile.country.id|default_if_none:'' }}">#}
-{#          {% if profile_form.country.errors %}#}
-{#            <p class="text-red-600 text-sm mt-1">{{ profile_form.country.errors|join:", " }}</p>#}
-{#          {% endif %}#}
-{#        </div>#}
-{#        <!-- City -->#}
-{#        <div class="relative">#}
-{#          <label class="block text-gray-700">City</label>#}
-{#          <input type="text" id="city-search" placeholder="Search City" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" disabled>#}
-{#          <div id="city-hints" class="border border-gray-200 rounded-md bg-white shadow absolute hidden z-10 w-full" style="max-height:200px; overflow-y:auto;"></div>#}
-{#          <div id="selected-city" class="mt-3 flex flex-wrap gap-2"></div>#}
-{#          <input type="hidden" name="city" id="city-hidden" value="{{ user.profile.city.id|default_if_none:'' }}">#}
-{#          {% if profile_form.city.errors %}#}
-{#            <p class="text-red-600 text-sm mt-1">{{ profile_form.city.errors|join:", " }}</p>#}
-{#          {% endif %}#}
-{#        </div>#}
-{#      </div>#}
-
-      <!-- Categories Selection -->
-      <div class="mb-4">
-        <label class="block text-gray-700 font-medium mb-2">{% trans "Your Categories" %}</label>
-        <div id="categories-buttons" class="flex flex-wrap gap-2 mb-2">
-          {% for category in available_categories %}
-            <button type="button"
-                    class="px-4 py-2 rounded-full text-sm transition border bg-gray-50 text-gray-700 border-gray-200"
-                    data-id="{{ category.id }}">
-              {{ category.name }}
-            </button>
-          {% endfor %}
-        </div>
-        <input type="hidden" name="categories" id="categories-hidden" value="{{ profile_form.initial.categories }}">
-        {% if profile_form.categories.errors %}
-          <p class="text-red-600 text-sm mt-1">{{ profile_form.categories.errors|join:", " }}</p>
-        {% endif %}
-      </div>
-
-      <!-- Skills Selection with Search and Removable Tags -->
-         <!-- Skills Section with Search -->
-<!-- Skills Section with Search -->
-<!-- Skills Section with Search and Highlighting -->
-<div>
-  <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Required Skills" %}</label>
-  <input
-    type="text"
-    id="skill-search"
-    class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition mb-4"
-    placeholder="Search skills..."
-  />
-  <div
-    id="skill-hints"
-    class="border border-gray-200 rounded-md bg-white shadow absolute hidden z-10 w-full max-h-60 overflow-y-auto"
-  ></div>
-  <div id="selected-skills-container" class="mb-4 flex flex-wrap gap-2"></div>
-  <input type="hidden" name="skills" id="skills_required" value="{{ profile_form.initial.skills }}">
-
-
-  <div id="skills-error" class="text-red-600 text-sm mt-1"></div>
+          <div class="mt-6">
+  <label for="{{ profile_form.bio.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+    {% trans "Biography" %}
+  </label>
+  {{ profile_form.bio|add_class:"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"|attr:"rows:4" }}
+  <p class="text-gray-500 text-xs mt-1">
+    {% trans "Share your academic and professional background (max 500 characters)" %}
+  </p>
+  {% if profile_form.bio.errors %}
+    <p class="text-red-600 text-xs mt-1">
+      {{ profile_form.bio.errors|join:", " }}
+    </p>
+  {% endif %}
 </div>
 
+
+          <!-- Categories Selection -->
+          <div class="mt-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              {% trans "Your Areas of Interest" %}
+            </label>
+            <div id="categories-buttons" class="flex flex-wrap gap-2">
+              {% for category in available_categories %}
+                <button type="button"
+                        class="px-3 py-1.5 rounded-md text-sm transition border bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                        data-id="{{ category.id }}">
+                  {{ category.name }}
+                </button>
+              {% endfor %}
+            </div>
+            <input type="hidden" name="categories" id="categories-hidden" value="{{ profile_form.initial.categories }}">
+            {% if profile_form.categories.errors %}
+              <p class="text-red-600 text-xs mt-1">{{ profile_form.categories.errors|join:", " }}</p>
+            {% endif %}
+            <p class="text-gray-500 text-xs mt-2">{% trans "Select all that apply to your research interests" %}</p>
+          </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="mb-12">
+          <h2 class="text-lg font-semibold text-gray-900 mb-6 pb-2 border-b border-gray-200">
+            {% trans "Skills & Expertise" %}
+          </h2>
+          
+          <div>
+            <div class="flex justify-between mb-2">
+              <label class="block text-sm font-medium text-gray-700">
+                {% trans "Your Skills" %} <span class="text-red-500">*</span>
+              </label>
+              <span class="text-xs text-gray-500" id="skills-counter">0 selected</span>
+            </div>
+            
+            <div class="relative mb-2">
+              <div class="flex">
+                <input
+                  type="text"
+                  id="skill-search"
+                  class="flex-grow px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  placeholder="Search for skills..."
+                />
+                <span class="inline-flex items-center px-3 py-2 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                  </svg>
+                </span>
+              </div>
+              
+              <div id="skill-hints" class="absolute left-0 mt-1 w-full z-10 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto hidden divide-y divide-gray-100"></div>
+            </div>
+            
+            <div id="selected-skills-container" class="flex flex-wrap gap-2 mb-4 min-h-8"></div>
+            
+            <div class="border border-gray-200 rounded-lg p-4 bg-gray-50 mb-2">
+              <div class="text-xs text-gray-500 mb-2">{% trans "Popular skills in your field" %}</div>
+              <div id="skills-buttons" class="flex flex-wrap gap-2">
+                {% for skill in skills|slice:":10" %}
+                  <button
+                    type="button"
+                    class="px-3 py-1.5 rounded-md text-sm border transition-colors duration-200 bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                    data-id="{{ skill.id }}"
+                  >
+                    {{ skill.name }}
+                  </button>
+                {% endfor %}
+              </div>
+            </div>
+            
+            <input type="hidden" name="skills" id="skills_required" value="{{ profile_form.initial.skills }}">
+            <div id="skills-error" class="text-red-600 text-xs mt-1"></div>
+          </div>
+        </section>
+
+        <!-- Social Profiles Section -->
+        <section id="social" class="mb-8">
+  <h2 class="text-lg font-semibold text-gray-900 mb-6 pb-2 border-b border-gray-200">
+    {% trans "Social & Professional Profiles" %}
+  </h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- LinkedIn -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        <span class="flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+          </svg>
+          LinkedIn
+        </span>
+      </label>
+      <div class="mt-1 flex rounded-md shadow-sm">
+       
+        {{ profile_form.linkedin|add_class:"flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-sm" }}
+      </div>
+      {% if profile_form.linkedin.errors %}
+        <p class="text-red-600 text-xs mt-1">{{ profile_form.linkedin.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
+    <!-- GitHub -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        <span class="flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+          </svg>
+          GitHub
+        </span>
+      </label>
+      <div class="mt-1 flex rounded-md shadow-sm">
+        
+        {{ profile_form.github|add_class:"flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-sm" }}
+      </div>
+      {% if profile_form.github.errors %}
+        <p class="text-red-600 text-xs mt-1">{{ profile_form.github.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
+    <!-- Google Scholar -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        <span class="flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M21.8182 24H16.5584C15.3896 24 14.4156 23.0256 14.4156 21.8563V17.5688C14.4156 17.1401 14.0649 16.7893 13.6364 16.7893H10.4026C9.97403 16.7893 9.62338 17.1401 9.62338 17.5688V21.8173C9.62338 22.9866 8.64935 23.961 7.48052 23.961H2.14286C0.974026 23.961 0 22.9866 0 21.8173V8.21437C0 7.62972 0.311688 7.08404 0.818182 6.77223L11.1039 0.263094C11.6494 -0.0876979 12.3896 -0.0876979 12.9351 0.263094L23.2208 6.77223C23.7273 7.08404 24 7.62972 24 8.21437V21.7783C24 23.0256 23.026 24 21.8182 24ZM10.3636 15.4251H13.5974C14.7662 15.4251 15.7403 16.3995 15.7403 17.5688V21.8173C15.7403 22.246 16.0909 22.5968 16.5195 22.5968H21.8182C22.2468 22.5968 22.5974 22.246 22.5974 21.8173V8.25335C22.5974 8.13642 22.5195 8.01949 22.4416 7.94153L12.1948 1.4324C12.0779 1.35445 11.9221 1.35445 11.8442 1.4324L1.55844 7.94153C1.44156 8.01949 1.4026 8.13642 1.4026 8.25335V21.8563C1.4026 22.285 1.75325 22.6358 2.18182 22.6358H7.48052C7.90909 22.6358 8.25974 22.285 8.25974 21.8563V17.5688C8.25974 16.3995 9.23377 15.4251 10.3636 15.4251Z"/>
+          </svg>
+          Google Scholar
+        </span>
+      </label>
+      {{ profile_form.google_scholar|add_class:"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"|attr:"placeholder:Your Google Scholar profile URL" }}
+      {% if profile_form.google_scholar.errors %}
+        <p class="text-red-600 text-xs mt-1">{{ profile_form.google_scholar.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
+    <!-- Telegram -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        <span class="flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm0 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm-2.426 14.741h-3.574v-.202l1.261-1.529c.134-.158.159-.245.112-.399v-5.547c0-.215-.009-.292-.118-.406l-1.05-1.395v-.201h3.214v7.549c0 .158.025.236.112.323l1.043 1.604v.203zm5.426-7.741c0 1.52-.358 2.163-1.073 2.701-.675.506-1.5.769-2.302.769-.578 0-1.13-.145-1.477-.368l.365-1.113c.259.181.645.304 1.031.304.964 0 1.515-.56 1.515-1.795v-.202c-.257.203-.675.371-1.031.371-1.545 0-2.695-1.256-2.695-2.856 0-1.666 1.237-2.969 2.945-2.969.876 0 1.494.259 1.924.773.451.506.67 1.084.67 1.929v2.426h.128zm-1.974-2.154c0-.841-.518-1.454-1.221-1.454-.759 0-1.243.582-1.243 1.454 0 .83.492 1.529 1.243 1.529.711 0 1.221-.699 1.221-1.529z"/>
+          </svg>
+          Telegram
+        </span>
+      </label>
+      <div class="mt-1 flex rounded-md shadow-sm">
+        <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+          @
+        </span>
+        {{ profile_form.telegram|add_class:"flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-sm" }}
+      </div>
+      {% if profile_form.telegram.errors %}
+        <p class="text-red-600 text-xs mt-1">{{ profile_form.telegram.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
+  </div>
+</section>
+
+
+        <!-- Form Actions -->
+        <div class="pt-5 border-t border-gray-200 mt-8">
+          <div class="flex justify-end gap-4">
+            <a href="{% url 'users-profile' %}" class="py-2 px-4 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
+              {% trans "Cancel" %}
+            </a>
+            <button type="submit" id="save-button" class="py-2 px-6 bg-blue-600 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
+              {% trans "Save Changes" %}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-  const skillsRequiredInput = document.getElementById('skills_required');
-  const skillSearchInput = document.getElementById('skill-search');
-  const skillHints = document.getElementById('skill-hints');
-  const selectedSkillsContainer = document.getElementById('selected-skills-container');
-  const skillsError = document.getElementById('skills-error');
+document.addEventListener("DOMContentLoaded", () => {
+  // --- grab all the DOM nodes we need ---
+  const skillsRequiredInput     = document.getElementById("skills_required");
+  const skillSearchInput        = document.getElementById("skill-search");
+  const skillHints              = document.getElementById("skill-hints");
+  const selectedSkillsContainer = document.getElementById("selected-skills-container");
+  const skillsError             = document.getElementById("skills-error");
+  const skillsCounter           = document.getElementById("skills-counter");
+  const popularButtons          = document.querySelectorAll("#skills-buttons button");
 
-  let selectedSkills = skillsRequiredInput.value ? skillsRequiredInput.value.split(",").filter(Boolean) : [];
+  // --- our data store (initialize from hidden field) ---
+  let selectedSkills = skillsRequiredInput.value
+    ? skillsRequiredInput.value.split(",").filter(Boolean)
+    : [];
 
-  const allSkillsData = [
-    {% for skill in skills %}
-      { id: "{{ skill.id }}", name: "{{ skill.name|escapejs }}" },
-    {% endfor %}
-  ];
+  // --- helper: sync hidden input ---
+  function updateSkillsHiddenInput() {
+    skillsRequiredInput.value = selectedSkills.join(",");
+  }
 
+  // --- helper: ensure at least one skill is selected ---
+  function checkFormValidity() {
+    if (selectedSkills.length < 1) {
+      skillsError.textContent = "Please select at least one skill";
+      return false;
+    }
+    skillsError.textContent = "";
+    return true;
+  }
+
+  // --- render the “pill” tags from selectedSkills ---
   function updateSelectedSkillsDisplay() {
-    selectedSkillsContainer.innerHTML = '';
-    selectedSkills.forEach(skillId => {
-      const skill = allSkillsData.find(s => s.id === skillId);
-      if (!skill) return;
-      const tag = document.createElement('span');
-      tag.className = 'inline-flex items-center bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm cursor-pointer';
-      tag.textContent = skill.name + ' ×';
-      tag.addEventListener('click', () => {
-        selectedSkills = selectedSkills.filter(id => id !== skill.id);
+    selectedSkillsContainer.innerHTML = "";
+    selectedSkills.forEach(id => {
+      const btn = document.querySelector(`#skills-buttons button[data-id="${id}"]`);
+      const name = btn?.textContent.trim() || id;
+      const tag = document.createElement("span");
+      tag.className = "inline-flex items-center bg-blue-100 text-blue-700 px-3 py-1 rounded-md text-sm mr-1 mb-1";
+      tag.innerHTML = `
+        ${name}
+        <button type="button" class="ml-1 text-blue-500 hover:text-blue-700" data-id="${id}">×</button>
+      `;
+      tag.querySelector("button").addEventListener("click", () => {
+        selectedSkills = selectedSkills.filter(s => s !== id);
+        refreshPopularButtons();
         updateSelectedSkillsDisplay();
         updateSkillsHiddenInput();
         checkFormValidity();
       });
       selectedSkillsContainer.appendChild(tag);
     });
+    skillsCounter.textContent = `${selectedSkills.length} selected`;
+    updateSkillsHiddenInput();
+    checkFormValidity();
   }
 
-  function updateSkillsHiddenInput() {
-    skillsRequiredInput.value = selectedSkills.join(",");
-    skillsError.textContent = selectedSkills.length < 1 ? 'Please select at least 1 skill.' : '';
+  // --- color the popular-skill buttons based on selection ---
+  function refreshPopularButtons() {
+    popularButtons.forEach(btn => {
+      const id = btn.dataset.id;
+      if (selectedSkills.includes(id)) {
+        btn.classList.add("bg-blue-100","text-blue-700","border-blue-300");
+      } else {
+        btn.classList.remove("bg-blue-100","text-blue-700","border-blue-300");
+      }
+    });
   }
 
-  function showSkillHints(query) {
-    const matched = allSkillsData.filter(skill =>
-      skill.name.toLowerCase().includes(query.toLowerCase())
-    );
+  // --- attach one click-handler per popular button ---
+  popularButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.id;
+      const idx = selectedSkills.indexOf(id);
+      if (idx === -1) {
+        selectedSkills.push(id);
+      } else {
+        selectedSkills.splice(idx, 1);
+      }
+      updateSelectedSkillsDisplay();
+      refreshPopularButtons();
+    });
+  });
 
-    if (!query || matched.length === 0) {
-      skillHints.innerHTML = '';
-      skillHints.classList.add('hidden');
+  // --- initialize on load ---
+  updateSelectedSkillsDisplay();
+  refreshPopularButtons();
+
+
+  // --- (Optional) if you also have search-to-add below, keep that logic here ---
+  skillSearchInput.addEventListener("input", function() {
+    const term = this.value.trim().toLowerCase();
+    if (term.length < 1) {
+      skillHints.classList.add("hidden");
       return;
     }
-
-    skillHints.innerHTML = '';
-    matched.forEach(skill => {
-      const highlighted = skill.name.replace(
-        new RegExp(`(${query})`, 'gi'),
-        '<span class="text-blue-600 font-bold">$1</span>'
-      );
-      const div = document.createElement('div');
-      div.className = 'p-2 hover:bg-gray-100 cursor-pointer';
-      div.setAttribute('data-hint-id', skill.id);
-      div.setAttribute('data-hint-name', skill.name);
-      div.innerHTML = highlighted;
-      skillHints.appendChild(div);
+    // filter & show matches…
+    const matches = [...popularButtons].map(b => ({ id: b.dataset.id, name: b.textContent.trim() }))
+      .filter(s => !selectedSkills.includes(s.id) && s.name.toLowerCase().includes(term))
+      .slice(0,5);
+    if (!matches.length) {
+      skillHints.classList.add("hidden");
+      return;
+    }
+    skillHints.innerHTML = "";
+    matches.forEach(s => {
+      const item = document.createElement("div");
+      item.className = "px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer";
+      item.textContent = s.name;
+      item.addEventListener("click", () => {
+        selectedSkills.push(s.id);
+        updateSelectedSkillsDisplay();
+        refreshPopularButtons();
+        skillHints.classList.add("hidden");
+        skillSearchInput.value = "";
+      });
+      skillHints.appendChild(item);
     });
-
-    skillHints.classList.remove('hidden');
-  }
-
-  skillSearchInput.addEventListener('input', function () {
-    const query = this.value.trim();
-    showSkillHints(query);
+    skillHints.classList.remove("hidden");
   });
 
-  skillHints.addEventListener('click', function (e) {
-    const target = e.target.closest('div[data-hint-id]');
-    if (!target) return;
-    const skillId = target.dataset.hintId;
-
-    if (!selectedSkills.includes(skillId)) {
-      selectedSkills.push(skillId);
-      skillSearchInput.value = ''; // ✅ Clear input after selection
-      updateSelectedSkillsDisplay();
-      updateSkillsHiddenInput();
-      checkFormValidity();
-    }
-
-    skillHints.classList.add('hidden');
-  });
-
-  document.addEventListener('click', function (e) {
-    if (!skillHints.contains(e.target) && e.target !== skillSearchInput) {
-      skillHints.classList.add('hidden');
+  document.addEventListener("click", e => {
+    if (!skillSearchInput.contains(e.target) && !skillHints.contains(e.target)) {
+      skillHints.classList.add("hidden");
     }
   });
-
-  updateSelectedSkillsDisplay();
-  updateSkillsHiddenInput();
-
-  function checkFormValidity() {
-    const saveButton = document.getElementById('save-button');
-    const emailInput = document.querySelector('input[name="email"]');
-    const originalEmail = document.getElementById('original-email');
-    const verificationInput = document.getElementById('verification_code');
-
-    let skillsValid = selectedSkills.length >= 1;
-    let emailValid = true;
-
-    if (emailInput && originalEmail && emailInput.value !== originalEmail.value) {
-      emailValid = verificationInput && verificationInput.value.trim() !== "";
-    }
-
-    if (!skillsValid || !emailValid) {
-      saveButton.disabled = true;
-      saveButton.classList.add('opacity-50', 'cursor-not-allowed');
-    } else {
-      saveButton.disabled = false;
-      saveButton.classList.remove('opacity-50', 'cursor-not-allowed');
-    }
-  }
 });
 </script>
 
-
-
-
-      <!-- Contact Information -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div>
-          <label class="block text-gray-700">LinkedIn</label>
-          {{ profile_form.linkedin|add_class:"w-full px-3 py-2 border rounded" }}
-          {% if profile_form.linkedin.errors %}
-            <p class="text-red-600 text-sm mt-1">{{ profile_form.linkedin.errors|join:", " }}</p>
-          {% endif %}
-        </div>
-        <div>
-          <label class="block text-gray-700">GitHub</label>
-          {{ profile_form.github|add_class:"w-full px-3 py-2 border rounded" }}
-          {% if profile_form.github.errors %}
-            <p class="text-red-600 text-sm mt-1">{{ profile_form.github.errors|join:", " }}</p>
-          {% endif %}
-        </div>
-        <div>
-          <label class="block text-gray-700">Google Scholar</label>
-          {{ profile_form.google_scholar|add_class:"w-full px-3 py-2 border rounded" }}
-          {% if profile_form.google_scholar.errors %}
-            <p class="text-red-600 text-sm mt-1">{{ profile_form.google_scholar.errors|join:", " }}</p>
-          {% endif %}
-        </div>
-        <div>
-          <label class="block text-gray-700">Telegram</label>
-          {{ profile_form.telegram|add_class:"w-full px-3 py-2 border rounded" }}
-          {% if profile_form.telegram.errors %}
-            <p class="text-red-600 text-sm mt-1">{{ profile_form.telegram.errors|join:", " }}</p>
-          {% endif %}
-        </div>
-      </div>
-
-      <!-- Form Actions -->
-      <div class="flex justify-between">
-        <a href="{% url 'users-profile' %}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition inline-flex items-center">
-          <i class="fas fa-times mr-2"></i>Cancel
-        </a>
-        <button type="submit" id="save-button" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition inline-flex items-center">
-          <i class="fas fa-save mr-2"></i>Save Changes
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-    <script>
-      // ---------------------------
-  // SKILLS: Search with Highlight and Select
-  // ---------------------------
-  const skillsRequiredInput = document.getElementById('skills_required');
-  const skillSearchInput = document.getElementById('skill-search');
-  const skillHints = document.getElementById('skill-hints');
-  const selectedSkillsContainer = document.getElementById('selected-skills-container');
-  const skillsError = document.getElementById('skills-error');
-
-  let selectedSkills = skillsRequiredInput.value ? skillsRequiredInput.value.split(",").filter(Boolean) : [];
-
-  const allSkillsData = [
-    {% for skill in skills %}
-      { id: "{{ skill.id }}", name: "{{ skill.name|escapejs }}" },
-    {% endfor %}
-  ];
-
-  function updateSelectedSkillsDisplay() {
-    selectedSkillsContainer.innerHTML = '';
-    selectedSkills.forEach(skillId => {
-      const skill = allSkillsData.find(s => s.id === skillId);
-      if (!skill) return;
-      const tag = document.createElement('span');
-      tag.className = 'inline-flex items-center bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm cursor-pointer';
-      tag.textContent = skill.name + ' ×';
-      tag.addEventListener('click', () => {
-        selectedSkills = selectedSkills.filter(id => id !== skill.id);
-        updateSelectedSkillsDisplay();
-        updateSkillsHiddenInput();
-        checkFormValidity();
-      });
-      selectedSkillsContainer.appendChild(tag);
-    });
-  }
-
-  function updateSkillsHiddenInput() {
-    skillsRequiredInput.value = selectedSkills.join(",");
-    skillsError.textContent = selectedSkills.length < 1 ? 'Please select at least 1 skill.' : '';
-  }
-
-  function showSkillHints(query) {
-    const matched = allSkillsData.filter(skill =>
-      skill.name.toLowerCase().includes(query.toLowerCase())
-    );
-
-    if (!query || matched.length === 0) {
-      skillHints.innerHTML = '';
-      skillHints.classList.add('hidden');
-      return;
-    }
-
-    skillHints.innerHTML = '';
-    matched.forEach(skill => {
-      const highlighted = skill.name.replace(
-        new RegExp(`(${query})`, 'gi'),
-        '<span class="text-blue-600 font-bold">$1</span>'
-      );
-      const div = document.createElement('div');
-      div.className = 'p-2 hover:bg-gray-100 cursor-pointer';
-      div.setAttribute('data-hint-id', skill.id);
-      div.setAttribute('data-hint-name', skill.name);
-      div.innerHTML = highlighted;
-      skillHints.appendChild(div);
-    });
-
-    skillHints.classList.remove('hidden');
-  }
-
-  skillSearchInput.addEventListener('input', function () {
-    const query = this.value.trim();
-    showSkillHints(query);
-  });
-
-  skillHints.addEventListener('click', function (e) {
-    const target = e.target.closest('div[data-hint-id]');
-    if (!target) return;
-    const skillId = target.dataset.hintId;
-    if (!selectedSkills.includes(skillId)) {
-      selectedSkills.push(skillId);
-      updateSelectedSkillsDisplay();
-      updateSkillsHiddenInput();
-      checkFormValidity();
-    }
-    skillHints.classList.add('hidden');
-  });
-
-  document.addEventListener('click', function (e) {
-    if (!skillHints.contains(e.target) && e.target !== skillSearchInput) {
-      skillHints.classList.add('hidden');
-    }
-  });
-
-  updateSelectedSkillsDisplay();
-  updateSkillsHiddenInput();
-
-    </script>
-<!-- JavaScript Section -->
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function() {
   // ---------------------------
   // Live Preview for Avatar
   // ---------------------------
   const avatarInput = document.querySelector('input[type="file"][name="avatar"]');
   const avatarPreview = document.getElementById("avatar-preview");
+  
   if (avatarInput) {
     avatarInput.addEventListener("change", function(e) {
       const file = e.target.files[0];
@@ -457,250 +487,277 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ---------------------------
-  // Email Verification Check
-  // ---------------------------
-  const emailInput = document.querySelector('input[name="email"]');
-  const originalEmail = document.getElementById('original-email');
-  const verificationInput = document.getElementById('verification_code'); // may not exist if not required
-  function checkEmailVerification() {
-    if (emailInput.value !== originalEmail.value) {
-      // If email changed, require non-empty verification code
-      if (!verificationInput || verificationInput.value.trim() === "") {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  emailInput.addEventListener("input", function() {
-    checkFormValidity();
-  });
-  if (verificationInput) {
-    verificationInput.addEventListener("input", function() {
-      checkFormValidity();
-    });
-  }
-
-  // ---------------------------
-  // 1) Categories Selection
+  // Categories Selection
   // ---------------------------
   const categoryButtons = document.querySelectorAll('#categories-buttons button');
   const categoriesHidden = document.getElementById('categories-hidden');
   let selectedCategories = categoriesHidden.value ? categoriesHidden.value.split(",").filter(v => v) : [];
+  
+  // Set initial state
   selectedCategories.forEach(id => {
     const btn = document.querySelector(`#categories-buttons button[data-id="${id}"]`);
     if (btn) {
-      btn.classList.remove('bg-gray-50','text-gray-700','border-gray-200');
-      btn.classList.add('bg-blue-100','text-blue-700','border-blue-200');
+      btn.classList.remove('bg-white', 'text-gray-700');
+      btn.classList.add('bg-blue-50', 'text-blue-700', 'border-blue-200');
     }
   });
+  
+  // Add click event listeners
   categoryButtons.forEach(button => {
     button.addEventListener('click', function() {
       const id = button.getAttribute('data-id');
       if (selectedCategories.includes(id)) {
         selectedCategories = selectedCategories.filter(cid => cid !== id);
-        button.classList.remove('bg-blue-100','text-blue-700','border-blue-200');
-        button.classList.add('bg-gray-50','text-gray-700','border-gray-200');
+        button.classList.remove('bg-blue-50', 'text-blue-700', 'border-blue-200');
+        button.classList.add('bg-white', 'text-gray-700');
       } else {
         selectedCategories.push(id);
-        button.classList.remove('bg-gray-50','text-gray-700','border-gray-200');
-        button.classList.add('bg-blue-100','text-blue-700','border-blue-200');
+        button.classList.remove('bg-white', 'text-gray-700');
+        button.classList.add('bg-blue-50', 'text-blue-700', 'border-blue-200');
       }
       categoriesHidden.value = selectedCategories.join(",");
     });
   });
 
   // ---------------------------
-  // 2) Skills Selection with Search & Removable Tags
+  // Skills Selection
   // ---------------------------
-  const skillsHidden = document.getElementById('skills-hidden');
-  let selectedSkills = skillsHidden.value ? skillsHidden.value.split(",").filter(Boolean) : [];
-  const skillItems = document.querySelectorAll('.skill-item');
-  const selectedSkillsDisplay = document.getElementById('selected-skills-display');
-
-  selectedSkills.forEach(id => {
-    const el = document.querySelector(`.skill-item[data-skill-id="${id}"]`);
-    if (el) {
-      el.classList.add('bg-blue-50','text-blue-700');
-    }
-  });
-  function updateSelectedSkillsDisplay() {
-    selectedSkillsDisplay.innerHTML = "";
-    selectedSkills.forEach(skillId => {
-      const skillElem = document.querySelector(`.skill-item[data-skill-id="${skillId}"]`);
-      if (skillElem) {
-        const skillName = skillElem.getAttribute('data-skill-name');
-        const tag = document.createElement('span');
-        tag.className = "inline-flex items-center bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm cursor-pointer";
-        tag.textContent = skillName + " ×";
-        tag.addEventListener('click', () => {
-          selectedSkills = selectedSkills.filter(id => id !== skillId);
-          skillsHidden.value = selectedSkills.join(",");
-          const skillItem = document.querySelector(`.skill-item[data-skill-id="${skillId}"]`);
-          if (skillItem) skillItem.classList.remove('bg-blue-50','text-blue-700');
-          updateSelectedSkillsDisplay();
-          checkFormValidity();
-        });
-        selectedSkillsDisplay.appendChild(tag);
-      }
-    });
-  }
-  updateSelectedSkillsDisplay();
-
-  skillItems.forEach(item => {
-    item.addEventListener('click', function() {
-      const skillId = item.getAttribute('data-skill-id');
-      if (selectedSkills.includes(skillId)) {
-        selectedSkills = selectedSkills.filter(id => id !== skillId);
-        item.classList.remove('bg-blue-50','text-blue-700');
-      } else {
-        selectedSkills.push(skillId);
-        item.classList.add('bg-blue-50','text-blue-700');
-      }
-      skillsHidden.value = selectedSkills.join(",");
-      updateSelectedSkillsDisplay();
-      checkFormValidity();
-    });
-  });
-
-  // Skill Search & Hints
+  const skillsRequiredInput = document.getElementById('skills_required');
   const skillSearchInput = document.getElementById('skill-search');
   const skillHints = document.getElementById('skill-hints');
-  let allSkillsData = [];
-  skillItems.forEach(item => {
-    allSkillsData.push({
-      id: item.dataset.skillId,
-      name: item.dataset.skillName
-    });
-  });
-  function showSkillHints(query) {
-  const matched = allSkillsData.filter(s =>
-    s.name.toLowerCase().includes(query.toLowerCase())
-  );
+  const selectedSkillsContainer = document.getElementById('selected-skills-container');
+  const skillsError = document.getElementById('skills-error');
+  const skillsCounter = document.getElementById('skills-counter');
+  
+  // Initialize skills data from all available skills
+  const allSkillsData = [
+    {% for skill in skills %}
+      { id: "{{ skill.id }}", name: "{{ skill.name|escapejs }}" },
+    {% endfor %}
+  ];
 
-  if (!query || matched.length === 0) {
-    skillHints.innerHTML = '';
+  // Parse initial selected skills
+  let selectedSkills = skillsRequiredInput.value ? skillsRequiredInput.value.split(",").filter(Boolean) : [];
+  
+  // Continuing from where the code was cut off
+
+function updateSelectedSkillsDisplay() {
+  selectedSkillsContainer.innerHTML = '';
+  
+  selectedSkills.forEach(skillId => {
+    const skill = allSkillsData.find(s => s.id === skillId);
+    if (!skill) return;
+    
+    const tag = document.createElement('span');
+    tag.className = 'inline-flex items-center bg-blue-100 text-blue-700 px-3 py-1 rounded-md text-sm';
+    tag.innerHTML = `
+      ${skill.name}
+      <button type="button" class="ml-1 text-blue-500 hover:text-blue-700" data-id="${skill.id}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    `;
+    
+    tag.querySelector('button').addEventListener('click', () => removeSkill(skillId));
+    selectedSkillsContainer.appendChild(tag);
+  });
+  
+  // Update counter
+  skillsCounter.textContent = `${selectedSkills.length} selected`;
+  
+  // Update hidden input
+  skillsRequiredInput.value = selectedSkills.join(',');
+  
+  // Validate
+  validateSkills();
+}
+
+function validateSkills() {
+  if (selectedSkills.length === 0) {
+    skillsError.textContent = 'Please select at least one skill';
+    return false;
+  } else {
+    skillsError.textContent = '';
+    return true;
+  }
+}
+
+function addSkill(skillId, skillName) {
+  if (!selectedSkills.includes(skillId)) {
+    selectedSkills.push(skillId);
+    updateSelectedSkillsDisplay();
+  }
+  
+  // Clear search
+  skillSearchInput.value = '';
+  skillHints.classList.add('hidden');
+}
+
+function removeSkill(skillId) {
+  selectedSkills = selectedSkills.filter(id => id !== skillId);
+  updateSelectedSkillsDisplay();
+}
+
+// Initialize skills hints functionality
+skillSearchInput.addEventListener('input', function() {
+  const searchTerm = this.value.toLowerCase().trim();
+  
+  if (searchTerm.length < 1) {
     skillHints.classList.add('hidden');
     return;
   }
-
-  let html = '';
-  matched.forEach(skill => {
-    const highlighted = skill.name.replace(
-      new RegExp(`(${query})`, 'gi'),
-      '<span class="text-blue-600 font-bold">$1</span>'
-    );
-    html += `
-      <div class="p-2 hover:bg-gray-100 cursor-pointer" data-hint-id="${skill.id}" data-hint-name="${skill.name}">
-        ${highlighted}
-      </div>
-    `;
-  });
-
-  skillHints.innerHTML = html;
-  skillHints.classList.remove('hidden');
-}
-
-  skillSearchInput.addEventListener('input', function() {
-    const query = skillSearchInput.value.trim();
-    showSkillHints(query);
-  });
-  skillHints.addEventListener('click', function(e) {
-    const target = e.target.closest('div[data-hint-id]');
-    if (!target) return;
-    const skillId = target.dataset.hintId;
-    if (selectedSkills.includes(skillId)) {
-      selectedSkills = selectedSkills.filter(id => id !== skillId);
-      const skillItem = document.querySelector(`.skill-item[data-skill-id="${skillId}"]`);
-      if (skillItem) skillItem.classList.remove('bg-blue-50','text-blue-700');
-    } else {
-      selectedSkills.push(skillId);
-      const skillItem = document.querySelector(`.skill-item[data-skill-id="${skillId}"]`);
-      if (skillItem) skillItem.classList.add('bg-blue-50','text-blue-700');
-    }
-    skillsHidden.value = selectedSkills.join(",");
-    updateSelectedSkillsDisplay();
-    checkFormValidity();
+  
+  // Filter skills that match search term and aren't already selected
+  const matchingSkills = allSkillsData
+    .filter(skill => 
+      !selectedSkills.includes(skill.id) && 
+      skill.name.toLowerCase().includes(searchTerm)
+    )
+    .slice(0, 5); // Limit to 5 results
+  
+  if (matchingSkills.length > 0) {
+    skillHints.innerHTML = '';
+    
+    matchingSkills.forEach(skill => {
+      const item = document.createElement('div');
+      item.className = 'px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer';
+      item.textContent = skill.name;
+      item.addEventListener('click', () => addSkill(skill.id, skill.name));
+      skillHints.appendChild(item);
+    });
+    
+    skillHints.classList.remove('hidden');
+  } else {
     skillHints.classList.add('hidden');
-  });
-  document.addEventListener('click', function(e) {
-    if (!skillHints.contains(e.target) && e.target !== skillSearchInput) {
-      skillHints.classList.add('hidden');
-    }
-  });
-  skillSearchInput.value = ''; // Clear search input
-skillHints.addEventListener('click', function (e) {
-  const target = e.target.closest('div[data-hint-id]');
-  if (!target) return;
-  const skillId = target.dataset.hintId;
+  }
+});
 
-  if (!selectedSkills.includes(skillId)) {
-    selectedSkills.push(skillId);
-    skillSearchInput.value = ''; // ✅ Clear the search input
+// Hide hints when clicking outside
+document.addEventListener('click', function(e) {
+  if (!skillSearchInput.contains(e.target) && !skillHints.contains(e.target)) {
+    skillHints.classList.add('hidden');
+  }
+});
+
+// Add skill buttons click handler
+// Add popular skills click handler (with styling toggle)
+document.querySelectorAll('#skills-buttons button').forEach(button => {
+  button.addEventListener('click', function() {
+    const skillId = this.dataset.id;
+    const skillName = this.textContent.trim();
+    const isSelected = selectedSkills.includes(skillId);
+
+    if (!isSelected) {
+      // add it
+      selectedSkills.push(skillId);
+      this.classList.add('bg-blue-100','text-blue-700','border-blue-300');
+    } else {
+      // remove it
+      selectedSkills = selectedSkills.filter(id => id !== skillId);
+      this.classList.remove('bg-blue-100','text-blue-700','border-blue-300');
+    }
+
+    // update the tags area, hidden input and validation
     updateSelectedSkillsDisplay();
     updateSkillsHiddenInput();
     checkFormValidity();
-  }
-  skillHints.classList.add('hidden');
+  });
 });
 
 
-  // ---------------------------
-  // 5) Roles (Optional)
-  // ---------------------------
-  const roleButtons = document.querySelectorAll('#roles-buttons button');
-  const rolesHidden = document.getElementById('roles-hidden');
-  let selectedRoles = rolesHidden.value ? rolesHidden.value.split(",").filter(Boolean) : [];
-  roleButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const roleId = button.getAttribute('data-id');
-      if (selectedRoles.includes(roleId)) {
-        selectedRoles = selectedRoles.filter(id => id !== roleId);
-        button.classList.remove('bg-blue-100','text-blue-700','border-blue-200');
-        button.classList.add('bg-gray-50','text-gray-700','border-gray-200');
-      } else {
-        selectedRoles.push(roleId);
-        button.classList.remove('bg-gray-50','text-gray-700','border-gray-200');
-        button.classList.add('bg-blue-100','text-blue-700','border-blue-200');
-      }
-      rolesHidden.value = selectedRoles.join(",");
-      checkFormValidity();
-    });
-  });
+// Initial render of selected skills
+updateSelectedSkillsDisplay();
+refreshPopularButtons();
 
-  // ---------------------------
-  // 6) Form Validation including Email Verification Check
-  // ---------------------------
-  const saveButton = document.getElementById('save-button');
-  function checkFormValidity() {
-    // For simplicity, we require at least one skill.
-    let skillsValid = selectedSkills.length >= 1;
-    // Also, if email changed, require verification code to be non-empty.
-    let emailValid = true;
-    if (emailInput.value !== originalEmail.value) {
-      emailValid = verificationInput && verificationInput.value.trim() !== "";
-    }
-    if (!skillsValid || !emailValid) {
-      saveButton.disabled = true;
-      saveButton.classList.add('opacity-50', 'cursor-not-allowed');
+document.querySelectorAll('#skills-buttons button').forEach(button => {
+  button.addEventListener('click', function() {
+    const skillId = this.dataset.id;
+    const idx = selectedSkills.indexOf(skillId);
+    if (idx === -1) {
+      selectedSkills.push(skillId);
     } else {
-      saveButton.disabled = false;
-      saveButton.classList.remove('opacity-50', 'cursor-not-allowed');
+      selectedSkills.splice(idx, 1);
     }
-  }
-  checkFormValidity();
-
-  // ---------------------------
-  // 7) Final Form Submit Check
-  // ---------------------------
-  const profileForm = document.getElementById('profile-form');
-  profileForm.addEventListener('submit', function(e) {
-    checkFormValidity();
-    if (saveButton.disabled) {
-      e.preventDefault();
-      alert('Please fix the errors before submitting the form.');
-    }
+    updateSelectedSkillsDisplay();
+    refreshPopularButtons();   // ← re-apply coloring
   });
 });
+
+
+// ---------------------------
+// Email Verification Logic
+// ---------------------------
+const emailInput = document.querySelector('input[name="email"]');
+const originalEmail = document.getElementById('original-email').value;
+let verificationSent = false;
+
+// Function to send verification code
+async function sendVerificationCode(email) {
+  try {
+    const response = await fetch('/users/send-verification-code/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: JSON.stringify({ email })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert('Verification code sent to your email');
+      verificationSent = true;
+    } else {
+      alert('Failed to send verification code: ' + data.error);
+    }
+  } catch (error) {
+    console.error('Error sending verification code:', error);
+    alert('Error sending verification code');
+  }
+}
+
+// Listen for email changes
+if (emailInput) {
+  emailInput.addEventListener('blur', function() {
+    const newEmail = this.value.trim();
+    
+    if (newEmail !== originalEmail && newEmail !== '' && !verificationSent) {
+      if (confirm('Send verification code to new email?')) {
+        sendVerificationCode(newEmail);
+      }
+    }
+  });
+}
+
+// ---------------------------
+// Form Validation
+// ---------------------------
+const profileForm = document.getElementById('profile-form');
+const saveButton = document.getElementById('save-button');
+
+profileForm.addEventListener('submit', function(e) {
+  // Validate required fields
+  if (!validateSkills()) {
+    e.preventDefault();
+    
+    // Scroll to skills section
+    document.getElementById('skills').scrollIntoView({ behavior: 'smooth' });
+  }
+});})
+
+
+function refreshPopularButtons() {
+  document.querySelectorAll('#skills-buttons button').forEach(btn => {
+    const id = btn.dataset.id;
+    if (selectedSkills.includes(id)) {
+      btn.classList.add('bg-blue-100','text-blue-700','border-blue-300');
+    } else {
+      btn.classList.remove('bg-blue-100','text-blue-700','border-blue-300');
+    }
+  });
+}
+
 </script>
 {% endblock %}

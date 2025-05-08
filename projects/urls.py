@@ -63,5 +63,7 @@ urlpatterns = [
     path('projects/<int:project_id>/recommendations/', views.project_recommendations_view, name='project-recommendations'),
 
     path('projects/<int:project_id>/toggle_pin/', toggle_pin_project, name='toggle-pin-project'),
+    path('marketplace/favorite/toggle/', views.toggle_favorite, name='toggle_favorite'),
+
 
 ]

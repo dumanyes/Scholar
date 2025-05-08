@@ -3,265 +3,366 @@
 {% load project_tags %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto p-8">
-  <h1 class="text-2xl font-bold mb-6">
-    {% if object %}Update Project{% else %}Create Project{% endif %}
-  </h1>
+<div class="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 bg-white shadow-sm rounded-lg">
+  <!-- Form Header -->
+  <div class="border-b border-gray-200 pb-5 mb-8">
+    <h1 class="text-2xl font-bold text-gray-900">
+      {% if object %}Update Project{% else %}Create Project{% endif %}
+    </h1>
+    <p class="mt-2 text-sm text-gray-500">Complete the form below to create your project and find collaborators.</p>
+  </div>
 
   <form method="post" class="space-y-8" id="project-form">
     {% csrf_token %}
 
     {# Non-field errors #}
     {% if form.non_field_errors %}
-      <div class="mb-4 p-2 text-red-600 text-sm">
+      <div class="p-4 bg-red-50 border-l-4 border-red-500 rounded-md">
         {% for error in form.non_field_errors %}
-          <p>{{ error }}</p>
+          <p class="text-red-700 text-sm">{{ error }}</p>
         {% endfor %}
       </div>
     {% endif %}
 
-    <!-- Title -->
-    <div>
-      <label for="project-title" class="block text-sm font-medium text-gray-700 mb-2">
-        Project Title
-      </label>
-      <input
-        id="project-title"
-        type="text"
-        name="title"
-        value="{{ form.title.value|default_if_none:'' }}"
-        class="w-full px-4 py-2 border border-gray-200 rounded-lg"
-        placeholder="Enter project title"
-      />
-      <div id="title-counter" class="mt-1 text-sm text-gray-500">0/20 words</div>
-      {% if form.title.errors %}
-        <div class="text-red-600 text-sm mt-1">
-          {% for error in form.title.errors %}
-            <p>{{ error }}</p>
-          {% endfor %}
-        </div>
-      {% endif %}
-    </div>
+    <!-- Form Sections -->
+    <div class="grid grid-cols-1 gap-y-8">
+      <!-- Project Basics Section -->
+      <section class="space-y-6">
+        <h2 class="text-lg font-semibold text-gray-900">Project Details</h2>
 
-    <!-- Description -->
-    <div>
-      <label for="project-description" class="block text-sm font-medium text-gray-700 mb-2">
-        Project Description
-      </label>
-      <textarea
-        id="project-description"
-        name="description"
-        class="w-full px-4 py-2 border border-gray-200 rounded-lg"
-      >{{ form.description.value|default_if_none:'' }}</textarea>
-      <div id="description-counter" class="mt-1 text-sm text-gray-500">0/250 words</div>
-      {% if form.description.errors %}
-        <div class="text-red-600 text-sm mt-1">
-          {% for error in form.description.errors %}
-            <p>{{ error }}</p>
-          {% endfor %}
+        <!-- Title -->
+        <div>
+          <label for="project-title" class="block text-sm font-medium text-gray-700 mb-1">
+            Project Title <span class="text-red-500">*</span>
+          </label>
+          <input
+            id="project-title"
+            type="text"
+            name="title"
+            value="{{ form.title.value|default_if_none:'' }}"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+            placeholder="Enter a concise, descriptive title"
+          />
+          <div class="flex justify-between mt-1">
+            <span id="title-counter" class="text-xs text-gray-500">0/20 words</span>
+            {% if form.title.errors %}
+              <span class="text-red-600 text-xs">
+                {% for error in form.title.errors %}{{ error }}{% endfor %}
+              </span>
+            {% endif %}
+          </div>
         </div>
-      {% endif %}
-    </div>
 
-    <!-- Mission -->
-    <div>
-      <label for="project-mission" class="block text-sm font-medium text-gray-700 mb-2">
-        Project Mission (max 70 words)
-      </label>
-      <textarea
-        id="project-mission"
-        name="project_mission"
-        class="w-full px-4 py-2 border border-gray-200 rounded-lg"
-      >{{ form.project_mission.value|default_if_none:'' }}</textarea>
-      <div id="mission-counter" class="mt-1 text-sm text-gray-500">0/70 words</div>
-      {% if form.project_mission.errors %}
-        <div class="text-red-600 text-sm mt-1">
-          {% for error in form.project_mission.errors %}
-            <p>{{ error }}</p>
-          {% endfor %}
+        <!-- Description -->
+        <div>
+          <label for="project-description" class="block text-sm font-medium text-gray-700 mb-1">
+            Project Description <span class="text-red-500">*</span>
+          </label>
+          <textarea
+            id="project-description"
+            name="description"
+            rows="4"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+            placeholder="Describe your project in detail, including background and context"
+          >{{ form.description.value|default_if_none:'' }}</textarea>
+          <div class="flex justify-between mt-1">
+            <span id="description-counter" class="text-xs text-gray-500">0/250 words</span>
+            {% if form.description.errors %}
+              <span class="text-red-600 text-xs">
+                {% for error in form.description.errors %}{{ error }}{% endfor %}
+              </span>
+            {% endif %}
+          </div>
         </div>
-      {% endif %}
-    </div>
 
-    <!-- Objectives -->
-    <div>
-      <label for="project-objectives" class="block text-sm font-medium text-gray-700 mb-2">
-        Project Objectives (max 150 words)
-      </label>
-      <textarea
-        id="project-objectives"
-        name="project_objectives"
-        class="w-full px-4 py-2 border border-gray-200 rounded-lg"
-      >{{ form.project_objectives.value|default_if_none:'' }}</textarea>
-      <div id="objectives-counter" class="mt-1 text-sm text-gray-500">0/150 words</div>
-      {% if form.project_objectives.errors %}
-        <div class="text-red-600 text-sm mt-1">
-          {% for error in form.project_objectives.errors %}
-            <p>{{ error }}</p>
-          {% endfor %}
+        <!-- Mission -->
+        <div>
+          <label for="project-mission" class="block text-sm font-medium text-gray-700 mb-1">
+            Project Mission <span class="text-red-500">*</span>
+          </label>
+          <textarea
+            id="project-mission"
+            name="project_mission"
+            rows="3"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+            placeholder="Describe the core mission and vision of your project"
+          >{{ form.project_mission.value|default_if_none:'' }}</textarea>
+          <div class="flex justify-between mt-1">
+            <span id="mission-counter" class="text-xs text-gray-500">0/70 words</span>
+            {% if form.project_mission.errors %}
+              <span class="text-red-600 text-xs">
+                {% for error in form.project_mission.errors %}{{ error }}{% endfor %}
+              </span>
+            {% endif %}
+          </div>
         </div>
-      {% endif %}
-    </div>
 
-    <!-- Link (optional) -->
-    <div>
-      <label for="project-link" class="block text-sm font-medium text-gray-700 mb-2">
-        Project Link (optional)
-      </label>
-      <input
-        id="project-link"
-        type="url"
-        name="project_link"
-        value="{{ form.project_link.value|default_if_none:'' }}"
-        class="w-full px-4 py-2 border border-gray-200 rounded-lg"
-        placeholder="Enter project link"
-      />
-      {% if form.project_link.errors %}
-        <div class="text-red-600 text-sm mt-1">
-          {% for error in form.project_link.errors %}
-            <p>{{ error }}</p>
-          {% endfor %}
+        <!-- Objectives -->
+        <div>
+          <label for="project-objectives" class="block text-sm font-medium text-gray-700 mb-1">
+            Project Objectives <span class="text-red-500">*</span>
+          </label>
+          <textarea
+            id="project-objectives"
+            name="project_objectives"
+            rows="3"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+            placeholder="List specific, measurable objectives you aim to achieve"
+          >{{ form.project_objectives.value|default_if_none:'' }}</textarea>
+          <div class="flex justify-between mt-1">
+            <span id="objectives-counter" class="text-xs text-gray-500">0/150 words</span>
+            {% if form.project_objectives.errors %}
+              <span class="text-red-600 text-xs">
+                {% for error in form.project_objectives.errors %}{{ error }}{% endfor %}
+              </span>
+            {% endif %}
+          </div>
         </div>
-      {% endif %}
-    </div>
 
-    <!-- Categories (max 5) -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">
-        Project Categories (max 5)
-      </label>
-      <div id="categories-buttons" class="flex flex-wrap gap-2 mb-4">
-        {% for category in available_categories %}
-          <button
-            type="button"
-            class="px-4 py-2 rounded-full text-sm border category-btn
-            {% if category.id in selected_categories_list %}
-               bg-blue-100 text-blue-700 border-blue-200
-            {% else %}
-               bg-gray-50 text-gray-700 border-gray-200
-            {% endif %}"
-            data-id="{{ category.id }}"
-          >
-            {{ category.name }}
-          </button>
-        {% endfor %}
+        <!-- Project Link -->
+        <div>
+          <label for="project-link" class="block text-sm font-medium text-gray-700 mb-1">
+            Project Link <span class="text-gray-400 text-xs">(optional)</span>
+          </label>
+          <input
+            id="project-link"
+            type="url"
+            name="project_link"
+            value="{{ form.project_link.value|default_if_none:'' }}"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+            placeholder="https://example.com"
+          />
+          {% if form.project_link.errors %}
+            <p class="text-red-600 text-xs mt-1">
+              {% for error in form.project_link.errors %}{{ error }}{% endfor %}
+            </p>
+          {% endif %}
+        </div>
+      </section>
+
+      <!-- Project Categories Section -->
+      <section class="pt-6 border-t border-gray-200 space-y-6">
+        <h2 class="text-lg font-semibold text-gray-900">Project Classification</h2>
+
+        <!-- Categories -->
+        <div>
+          <div class="flex justify-between mb-1">
+            <label class="block text-sm font-medium text-gray-700">
+              Project Categories <span class="text-red-500">*</span>
+            </label>
+            <span class="text-xs text-gray-500" id="categories-counter">0/5 selected</span>
+          </div>
+
+          <div class="mb-2 text-xs text-gray-500">Select up to 5 categories that best describe your project</div>
+
+          <div class="border border-gray-300 rounded-lg p-4 bg-gray-50">
+            <div id="categories-buttons" class="flex flex-wrap gap-2">
+              {% for category in available_categories %}
+                <button
+                  type="button"
+                  class="px-3 py-1.5 rounded-full text-sm border transition-colors duration-200 category-btn
+                  {% if category.id in selected_categories_list %}
+                    bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200
+                  {% else %}
+                    bg-white text-gray-700 border-gray-300 hover:bg-gray-100
+                  {% endif %}"
+                  data-id="{{ category.id }}"
+                >
+                  {{ category.name }}
+                </button>
+              {% endfor %}
+            </div>
+          </div>
+          <input type="hidden" name="category" id="categories-hidden" value="{{ selected_categories }}">
+        </div>
+
+        <!-- Languages -->
+        <div>
+          <div class="flex justify-between mb-1">
+            <label class="block text-sm font-medium text-gray-700">
+              Project Languages <span class="text-red-500">*</span>
+            </label>
+            <span class="text-xs text-gray-500" id="languages-counter">0 selected</span>
+          </div>
+
+          <div class="mb-2 text-xs text-gray-500">Select all languages used in your project</div>
+
+          <div class="border border-gray-300 rounded-lg p-4 bg-gray-50">
+            <div id="languages-buttons" class="flex flex-wrap gap-2">
+              {% for lang in languages %}
+                <button
+                  type="button"
+                  class="px-3 py-1.5 rounded-full text-sm border transition-colors duration-200 language-btn
+                  {% if lang.id in selected_languages_list %}
+                    bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200
+                  {% else %}
+                    bg-white text-gray-700 border-gray-300 hover:bg-gray-100
+                  {% endif %}"
+                  data-id="{{ lang.id }}"
+                >
+                  {{ lang.name }}
+                </button>
+              {% endfor %}
+            </div>
+          </div>
+          <input type="hidden" name="languages" id="languages-hidden" value="{{ selected_languages }}">
+        </div>
+      </section>
+
+      <!-- Team Requirements Section -->
+      <section class="pt-6 border-t border-gray-200 space-y-6">
+        <h2 class="text-lg font-semibold text-gray-900">Team Requirements</h2>
+
+        <!-- Skills Required with Search -->
+        <div>
+          <div class="flex justify-between mb-1">
+            <label class="block text-sm font-medium text-gray-700">
+              Required Skills <span class="text-red-500">*</span>
+            </label>
+            <span class="text-xs text-gray-500" id="skills-counter">0 selected</span>
+          </div>
+
+          <div class="mb-2 text-xs text-gray-500">Select or search for skills needed for this project</div>
+
+          <div class="relative mb-2">
+            <div class="flex">
+              <input
+                type="text"
+                id="skill-search"
+                class="flex-grow px-4 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+                placeholder="Search skills..."
+              />
+              <span class="inline-flex items-center px-3 rounded-r-lg border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+              </span>
+            </div>
+            <div
+              id="skill-hints"
+              class="absolute left-0 top-full mt-1 w-full border border-gray-300 rounded-md bg-white shadow-lg z-10 max-h-60 overflow-y-auto hidden"
+            ></div>
+          </div>
+
+          <div id="selected-skills-container" class="flex flex-wrap gap-2 mb-3 min-h-8">
+            {% for skill_id in form.skills_required.value|split:"," %}
+              {% with skill=skill_id|get_skill %}
+                {% if skill %}
+                  <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm cursor-pointer flex items-center" data-skill-id="{{ skill.id }}">
+                    <span>{{ skill.name }}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </span>
+                {% endif %}
+              {% endwith %}
+            {% endfor %}
+          </div>
+
+          <div class="border border-gray-300 rounded-lg p-4 bg-gray-50">
+            <div class="text-xs text-gray-500 mb-2">Popular skills</div>
+            <div id="skills-buttons" class="flex flex-wrap gap-2">
+              {% for skill in skills|slice:":15" %}
+                <button
+                  type="button"
+                  class="px-3 py-1.5 rounded-full text-sm border transition-colors duration-200 skill-btn
+                  {% if skill.id|stringformat:"s" in form.skills_required.value|default_if_none:""|split:"," %}
+                    bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200
+                  {% else %}
+                    bg-white text-gray-700 border-gray-300 hover:bg-gray-100
+                  {% endif %}"
+                  data-id="{{ skill.id }}"
+                >
+                  {{ skill.name }}
+                </button>
+              {% endfor %}
+            </div>
+          </div>
+
+          <input type="hidden" name="skills_required" id="skills-hidden" value="{{ form.skills_required.value }}">
+          <div id="skills-error" class="text-red-600 text-xs mt-1"></div>
+        </div>
+
+        <!-- Required Roles -->
+        <div>
+          <div class="flex justify-between mb-1">
+            <label class="block text-sm font-medium text-gray-700">
+              Required Team Roles <span class="text-red-500">*</span>
+            </label>
+            <span class="text-xs text-gray-500" id="roles-counter">0 selected</span>
+          </div>
+
+          <div class="mb-2 text-xs text-gray-500">Select all roles needed for your project team</div>
+
+          <div class="border border-gray-300 rounded-lg p-4 bg-gray-50">
+            <div id="roles-buttons" class="flex flex-wrap gap-2">
+              {% for role in required_roles %}
+                <button
+                  type="button"
+                  class="px-3 py-1.5 rounded-full text-sm border transition-colors duration-200 role-btn
+                  {% if role.id in selected_required_roles_list %}
+                    bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200
+                  {% else %}
+                    bg-white text-gray-700 border-gray-300 hover:bg-gray-100
+                  {% endif %}"
+                  data-id="{{ role.id }}"
+                >
+                  {{ role.name }}
+                </button>
+              {% endfor %}
+            </div>
+          </div>
+          <input type="hidden" name="required_roles" id="roles-hidden" value="{{ selected_required_roles }}">
+        </div>
+      </section>
+
+      <!-- Form Progress -->
+      <div class="pt-6 border-t border-gray-200">
+        <div class="flex items-center mb-2">
+          <span class="text-sm font-medium text-gray-700">Form Completion</span>
+          <span class="ml-auto text-xs text-gray-500" id="completion-percentage">0%</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2">
+          <div class="bg-blue-600 h-2 rounded-full" id="completion-bar" style="width: 0%"></div>
+        </div>
       </div>
-      <input type="hidden" name="categories" id="categories-hidden" value="{{ selected_categories }}">
-    </div>
 
-   <!-- Skills Section with Search -->
-<div>
-  <label class="block text-sm font-medium text-gray-700 mb-2">Required Skills</label>
-  <div class="relative">
-    <input
-      type="text"
-      id="skill-search"
-      class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition mb-4"
-      placeholder="Search skills..."
-    />
-    <div
-      id="skill-hints"
-      class="absolute left-0 top-full mt-1 w-full border border-gray-200 rounded-md bg-white shadow z-10 max-h-60 overflow-y-auto hidden"
-    ></div>
-  </div>
-
-  <div id="selected-skills-container" class="mb-4 flex flex-wrap gap-2">
-    {% for skill_id in form.skills_required.value|split:"," %}
-      {% with skill=skill_id|get_skill %}
-        {% if skill %}
-          <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm cursor-pointer" data-skill-id="{{ skill.id }}">
-            {{ skill.name }} ×
-          </span>
-        {% endif %}
-      {% endwith %}
-    {% endfor %}
-  </div>
-
-  <input type="hidden" name="skills_required" id="skills_required" value="{{ form.skills_required.value }}">
-  <div id="skills-error" class="text-red-600 text-sm mt-1"></div>
-
-  <!-- Hidden divs to preload skill data -->
-  <div class="hidden">
-    {% for skill in skills %}
-      <div class="skill-item" data-skill-id="{{ skill.id }}" data-skill-name="{{ skill.name }}"></div>
-    {% endfor %}
-  </div>
-</div>
-
-
-
-
-    <!-- Project Languages -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">
-        Project Languages
-      </label>
-      <div id="languages-buttons" class="flex flex-wrap gap-2 mb-4">
-        {% for lang in languages %}
-          <button
-            type="button"
-            class="px-4 py-2 rounded-full text-sm border language-btn
-            {% if lang.id in selected_languages_list %}
-               bg-blue-100 text-blue-700 border-blue-200
-            {% else %}
-               bg-gray-50 text-gray-700 border-gray-200
-            {% endif %}"
-            data-id="{{ lang.id }}"
-          >
-            {{ lang.name }}
-          </button>
-        {% endfor %}
+      <!-- Submit Button -->
+      <div class="pt-6">
+        <button
+          type="submit"
+          id="submit-button"
+          class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled
+        >
+          {% if object %}Update Project{% else %}Create Project{% endif %}
+        </button>
       </div>
-      <input type="hidden" name="languages" id="languages-hidden" value="{{ selected_languages }}">
     </div>
-
-    <!-- Required Roles -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">
-        Required Roles
-      </label>
-      <div id="roles-buttons" class="flex flex-wrap gap-2 mb-4">
-        {% for role in required_roles %}
-          <button
-            type="button"
-            class="px-4 py-2 rounded-full text-sm border role-btn
-            {% if role.id in selected_required_roles_list %}
-               bg-blue-100 text-blue-700 border-blue-200
-            {% else %}
-               bg-gray-50 text-gray-700 border-gray-200
-            {% endif %}"
-            data-id="{{ role.id }}"
-          >
-            {{ role.name }}
-          </button>
-        {% endfor %}
-      </div>
-      <input type="hidden" name="required_roles" id="roles-hidden" value="{{ selected_required_roles }}">
-    </div>
-
-    <!-- Submit -->
-    <button
-      type="submit"
-      id="submit-button"
-      class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition font-medium"
-    >
-      {% if object %}Update Project{% else %}Create Project{% endif %}
-    </button>
   </form>
-</div>
-
-<!-- Debug Information (Optional) -->
-<div id="debug-info" style="background:#f9f9f9; padding:10px; margin-top:20px;">
-  <h4 class="font-bold mb-2">Debug Information</h4>
-  <p>Selected Categories: {{ selected_categories_list }}</p>
-  <p>Selected Languages: {{ selected_languages_list }}</p>
-  <p>Selected Roles: {{ selected_required_roles_list }}</p>
-  <p>Skills Value: {{ form.skills_required.value }}</p>
 </div>
 
 <!-- JavaScript -->
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  // Form validation & progress tracking
+  const form = document.getElementById('project-form');
+  const submitButton = document.getElementById('submit-button');
+  const completionBar = document.getElementById('completion-bar');
+  const completionPercentage = document.getElementById('completion-percentage');
+
+  // Required fields
+  const requiredInputs = [
+    { id: 'project-title', type: 'input' },
+    { id: 'project-description', type: 'textarea' },
+    { id: 'project-mission', type: 'textarea' },
+    { id: 'project-objectives', type: 'textarea' },
+    { id: 'categories-hidden', type: 'hidden', minLength: 1 },
+    { id: 'languages-hidden', type: 'hidden', minLength: 1 },
+    { id: 'skills-hidden', type: 'hidden', minLength: 1 },
+    { id: 'roles-hidden', type: 'hidden', minLength: 1 }
+  ];
+
   // Word counters
   function wordCounter(inputId, counterId, max) {
     const input = document.getElementById(inputId);
@@ -269,68 +370,164 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function update() {
       const words = input.value.trim().split(/\s+/).filter(Boolean);
-      counter.textContent = `${words.length}/${max} words`;
+      const count = words.length;
+      counter.textContent = `${count}/${max} words`;
+
+      // Add visual feedback for word count
+      if (count > max) {
+        counter.classList.add('text-red-600');
+        counter.classList.remove('text-gray-500');
+      } else {
+        counter.classList.remove('text-red-600');
+        counter.classList.add('text-gray-500');
+      }
+
+      checkFormValidity();
     }
 
     update();
     input.addEventListener('input', update);
   }
 
+  // Selection counters
+  function selectionCounter(hiddenInputId, counterId, limit = null) {
+    const hiddenInput = document.getElementById(hiddenInputId);
+    const counter = document.getElementById(counterId);
+
+    function update() {
+      const selected = hiddenInput.value ? hiddenInput.value.split(',').filter(Boolean).length : 0;
+      counter.textContent = limit ? `${selected}/${limit} selected` : `${selected} selected`;
+
+      checkFormValidity();
+    }
+
+    update();
+    hiddenInput.addEventListener('change', update);
+
+    return update;
+  }
+
+  // Setup word counters
   wordCounter('project-title', 'title-counter', 20);
   wordCounter('project-description', 'description-counter', 250);
   wordCounter('project-mission', 'mission-counter', 70);
   wordCounter('project-objectives', 'objectives-counter', 150);
 
-  // Selection manager
-  function setupSelection(buttonSelector, hiddenInputId, max = Infinity) {
+  // Setup selection counters
+  const updateCategoriesCounter = selectionCounter('categories-hidden', 'categories-counter', 5);
+  const updateLanguagesCounter = selectionCounter('languages-hidden', 'languages-counter');
+  const updateSkillsCounter = selectionCounter('skills-hidden', 'skills-counter');
+  const updateRolesCounter = selectionCounter('roles-hidden', 'roles-counter');
+
+  // Form validation
+  function checkFormValidity() {
+    let valid = true;
+    let completedFields = 0;
+    const totalFields = requiredInputs.length;
+
+    requiredInputs.forEach(field => {
+      const element = document.getElementById(field.id);
+      let isValid = false;
+
+      if (field.type === 'hidden') {
+        const values = element.value ? element.value.split(',').filter(Boolean) : [];
+        isValid = values.length >= (field.minLength || 1);
+      } else {
+        isValid = element.value.trim().length > 0;
+      }
+
+      if (isValid) completedFields++;
+      valid = valid && isValid;
+    });
+
+    // Update progress bar
+    const percentage = Math.round((completedFields / totalFields) * 100);
+    completionBar.style.width = `${percentage}%`;
+    completionPercentage.textContent = `${percentage}%`;
+
+    // Enable/disable submit button
+    submitButton.disabled = !valid;
+  }
+
+  // Selection manager with improved UI
+  function setupSelection(buttonSelector, hiddenInputId, max = Infinity, updateCounter = null) {
     const buttons = document.querySelectorAll(buttonSelector);
     const hiddenInput = document.getElementById(hiddenInputId);
-    let selected = new Set(hiddenInput.value ? hiddenInput.value.split(',') : []);
+    let selected = new Set(hiddenInput.value ? hiddenInput.value.split(',').filter(Boolean) : []);
 
-    // Initialize button states
+    // Initial state
     buttons.forEach(btn => {
-      if (selected.has(btn.dataset.id)) {
-        btn.classList.add('bg-blue-100', 'text-blue-700', 'border-blue-200');
-        btn.classList.remove('bg-gray-50', 'text-gray-700', 'border-gray-200');
+      const id = btn.dataset.id;
+      if (selected.has(id)) {
+        btn.classList.add('bg-blue-100', 'text-blue-700', 'border-blue-300');
+        btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
       }
     });
 
-    // Toggle selection
+    // Toggle selection with UI feedback
     buttons.forEach(btn => {
       btn.addEventListener('click', () => {
         const id = btn.dataset.id;
 
         if (selected.has(id)) {
           selected.delete(id);
-          btn.classList.remove('bg-blue-100', 'text-blue-700', 'border-blue-200');
-          btn.classList.add('bg-gray-50', 'text-gray-700', 'border-gray-200');
+          btn.classList.remove('bg-blue-100', 'text-blue-700', 'border-blue-300');
+          btn.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
         } else {
           if (selected.size < max) {
             selected.add(id);
-            btn.classList.add('bg-blue-100', 'text-blue-700', 'border-blue-200');
-            btn.classList.remove('bg-gray-50', 'text-gray-700', 'border-gray-200');
+            btn.classList.add('bg-blue-100', 'text-blue-700', 'border-blue-300');
+            btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
           } else {
-            alert(`Maximum ${max} selections allowed`);
+            // Show max selection notification
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-md z-50';
+            notification.innerHTML = `<p>Maximum ${max} selections allowed</p>`;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+              notification.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+              setTimeout(() => document.body.removeChild(notification), 500);
+            }, 3000);
           }
         }
 
         hiddenInput.value = Array.from(selected).join(',');
+        hiddenInput.dispatchEvent(new Event('change'));
+
+        if (updateCounter) updateCounter();
+        checkFormValidity();
       });
     });
   }
 
   // Initialize selections
-  setupSelection('.category-btn', 'categories-hidden', 5);
-  setupSelection('.language-btn', 'languages-hidden');
-  setupSelection('.role-btn', 'roles-hidden');
+  setupSelection('.category-btn', 'categories-hidden', 5, updateCategoriesCounter);
+  setupSelection('.language-btn', 'languages-hidden', Infinity, updateLanguagesCounter);
+  setupSelection('.role-btn', 'roles-hidden', Infinity, updateRolesCounter);
+  setupSelection('.skill-btn', 'skills-hidden', Infinity, () => {
+   // 1) update the little "0/… selected" counter:
+  updateSkillsCounter();
+
+  // 2) sync our global selectedSkills Set
+  selectedSkills = new Set(
+    document
+      .getElementById('skills-hidden')
+      .value
+      .split(',')
+      .filter(Boolean)
+  );
+
+  updateSelectedSkills();
 });
-</script>
-    <script>
-document.addEventListener('DOMContentLoaded', function () {
+
+
+
+  // Skills search functionality
   const skillSearchInput = document.getElementById('skill-search');
   const skillHints = document.getElementById('skill-hints');
   const selectedSkillsContainer = document.getElementById('selected-skills-container');
-  const skillsHidden = document.getElementById('skills_required');
+  const skillsHidden = document.getElementById('skills-hidden');
   const skillsError = document.getElementById('skills-error');
 
   const allSkillsData = [
@@ -349,29 +546,57 @@ document.addEventListener('DOMContentLoaded', function () {
       const skill = allSkillsData.find(s => s.id === skillId);
       if (!skill) return;
       const tag = document.createElement('span');
-      tag.className = 'bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm cursor-pointer';
-      tag.textContent = skill.name + ' ×';
+      tag.className = 'bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm cursor-pointer flex items-center';
+      tag.innerHTML = `
+        <span>${skill.name}</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      `;
       tag.setAttribute('data-skill-id', skill.id);
       tag.addEventListener('click', () => {
         selectedSkills.delete(skill.id);
         updateSelectedSkills();
+
+        // Also update button UI if exists
+        const skillBtn = document.querySelector(`.skill-btn[data-id="${skill.id}"]`);
+        if (skillBtn) {
+          skillBtn.classList.remove('bg-blue-100', 'text-blue-700', 'border-blue-300');
+          skillBtn.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+        }
       });
       selectedSkillsContainer.appendChild(tag);
     });
+
     skillsHidden.value = Array.from(selectedSkills).join(',');
-    checkSkillsValidity();
+    skillsHidden.dispatchEvent(new Event('change'));
+    updateSkillsCounter();
+    checkFormValidity();
   }
 
   function showSkillHints(query) {
     skillHints.innerHTML = '';
     if (!query) return skillHints.classList.add('hidden');
+
     const matched = allSkillsData.filter(skill =>
       skill.name.toLowerCase().includes(query.toLowerCase())
     );
-    if (matched.length === 0) return skillHints.classList.add('hidden');
-    matched.forEach(skill => {
+
+    if (matched.length === 0) {
+      const div = document.createElement('div');
+      div.className = 'p-3 text-center text-gray-500 text-sm';
+      div.textContent = 'No matching skills found';
+      skillHints.appendChild(div);
+      skillHints.classList.remove('hidden');
+      return;
+    }
+
+    matched.slice(0, 10).forEach(skill => {
       const div = document.createElement('div');
       div.className = 'p-2 hover:bg-gray-100 cursor-pointer';
+      if (selectedSkills.has(skill.id)) {
+        div.classList.add('bg-blue-50');
+      }
       div.setAttribute('data-hint-id', skill.id);
       div.setAttribute('data-hint-name', skill.name);
       div.innerHTML = skill.name.replace(
@@ -380,38 +605,51 @@ document.addEventListener('DOMContentLoaded', function () {
       );
       skillHints.appendChild(div);
     });
+
     skillHints.classList.remove('hidden');
   }
 
-  skillSearchInput.addEventListener('input', function () {
+  skillSearchInput.addEventListener('input', function() {
     showSkillHints(this.value.trim());
   });
 
-  skillHints.addEventListener('click', function (e) {
-    const target = e.target.closest('div[data-hint-id]');
-    if (!target) return;
-    const skillId = target.dataset.hintId;
-    selectedSkills.add(skillId);
-    updateSelectedSkills();
-    skillHints.classList.add('hidden');
+  skillSearchInput.addEventListener('focus', function() {
+    if (this.value.trim()) {
+      showSkillHints(this.value.trim());
+    }
   });
 
-  document.addEventListener('click', function (e) {
+  skillHints.addEventListener('click', function(e) {
+    const target = e.target.closest('div[data-hint-id]');
+    if (!target) return;
+
+    const skillId = target.dataset.hintId;
+    if (!selectedSkills.has(skillId)) {
+      selectedSkills.add(skillId);
+      updateSelectedSkills();
+
+      // Also update button UI if exists
+      const skillBtn = document.querySelector(`.skill-btn[data-id="${skillId}"]`);
+      if (skillBtn) {
+        skillBtn.classList.add('bg-blue-100', 'text-blue-700', 'border-blue-300');
+        skillBtn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+      }
+    }
+
+    skillHints.classList.add('hidden');
+    skillSearchInput.value = '';
+    skillSearchInput.focus();
+  });
+
+  document.addEventListener('click', function(e) {
     if (!skillHints.contains(e.target) && e.target !== skillSearchInput) {
       skillHints.classList.add('hidden');
     }
   });
 
-  function checkSkillsValidity() {
-    if (selectedSkills.size < 1) {
-      skillsError.textContent = 'Please select at least 1 skill.';
-    } else {
-      skillsError.textContent = '';
-    }
-  }
-
+  // Initial form check
   updateSelectedSkills();
+  checkFormValidity();
 });
 </script>
-
 {% endblock %}

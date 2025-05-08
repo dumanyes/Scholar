@@ -237,9 +237,12 @@
   <div class="blob-shape bg-primary opacity-5 w-96 h-96 rounded-full -bottom-48 -right-48"></div>
 
   <div class="container max-w-6xl mx-auto px-4">
-    <h2 class="text-3xl md:text-4xl font-bold text-center mb-16 font-serif">Our Global Research Community</h2>
+    <h2 class="text-3xl md:text-4xl font-bold text-center mb-16 font-serif">
+      Our Global Research Community
+    </h2>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- Active Researchers -->
       <div class="feature-card p-8 text-center">
         <div class="icon-container w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
           <i class="fas fa-users text-xl"></i>
@@ -249,6 +252,7 @@
         <p class="text-text-light">Brilliant minds collaborating</p>
       </div>
 
+      <!-- Research Projects -->
       <div class="feature-card p-8 text-center">
         <div class="icon-container w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
           <i class="fas fa-project-diagram text-xl"></i>
@@ -257,18 +261,10 @@
         <p class="stat-number text-5xl text-secondary mb-2 counter-animation">{{ total_projects }}+</p>
         <p class="text-text-light">Groundbreaking initiatives</p>
       </div>
-
-      <div class="feature-card p-8 text-center">
-        <div class="icon-container w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-          <i class="fas fa-globe-americas text-xl"></i>
-        </div>
-        <h3 class="text-xl font-bold text-primary mb-3">Countries Represented</h3>
-        <p class="stat-number text-5xl text-secondary mb-2 counter-animation">85+</p>
-        <p class="text-text-light">Global research network</p>
-      </div>
     </div>
   </div>
 </section>
+
 
 <!-- Features Section with Interactive Cards -->
 <section class="py-20 bg-paper relative">
@@ -357,55 +353,55 @@
 </section>
 
 <!-- Testimonials Section -->
-<section class="py-20 bg-background relative">
-  <div class="blob-shape bg-tertiary opacity-5 w-72 h-72 rounded-full bottom-20 right-20"></div>
-
-  <div class="container max-w-6xl mx-auto px-4">
-    <h2 class="text-3xl md:text-4xl font-bold text-center mb-16 font-serif">What Researchers Say</h2>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div class="testimonial-card">
-        <div class="flex items-center mb-4">
-          <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white mr-4">
-            <i class="fas fa-user"></i>
-          </div>
-          <div>
-            <h4 class="font-bold text-primary">Dr. Sarah Chen</h4>
-            <p class="text-text-light text-sm">Molecular Biology, Stanford University</p>
-          </div>
-        </div>
-        <p class="text-text-light italic">"ScholarHub transformed our multi-university research project. The AI-powered tools helped us identify patterns we would have missed, and the collaboration features made working across time zones seamless."</p>
-        <div class="flex mt-4">
-          <i class="fas fa-star text-secondary"></i>
-          <i class="fas fa-star text-secondary"></i>
-          <i class="fas fa-star text-secondary"></i>
-          <i class="fas fa-star text-secondary"></i>
-          <i class="fas fa-star text-secondary"></i>
-        </div>
-      </div>
-
-      <div class="testimonial-card">
-        <div class="flex items-center mb-4">
-          <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white mr-4">
-            <i class="fas fa-user"></i>
-          </div>
-          <div>
-            <h4 class="font-bold text-primary">Prof. James Wilson</h4>
-            <p class="text-text-light text-sm">Quantum Physics, MIT</p>
-          </div>
-        </div>
-        <p class="text-text-light italic">"Finding collaborative partners used to take months. With ScholarHub's matching algorithm, I connected with the perfect research team in days, and we've since published three groundbreaking papers together."</p>
-        <div class="flex mt-4">
-          <i class="fas fa-star text-secondary"></i>
-          <i class="fas fa-star text-secondary"></i>
-          <i class="fas fa-star text-secondary"></i>
-          <i class="fas fa-star text-secondary"></i>
-          <i class="fas fa-star text-secondary"></i>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+{#<section class="py-20 bg-background relative">#}
+{#  <div class="blob-shape bg-tertiary opacity-5 w-72 h-72 rounded-full bottom-20 right-20"></div>#}
+{##}
+{#  <div class="container max-w-6xl mx-auto px-4">#}
+{#    <h2 class="text-3xl md:text-4xl font-bold text-center mb-16 font-serif">What Researchers Say</h2>#}
+{##}
+{#    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">#}
+{#      <div class="testimonial-card">#}
+{#        <div class="flex items-center mb-4">#}
+{#          <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white mr-4">#}
+{#            <i class="fas fa-user"></i>#}
+{#          </div>#}
+{#          <div>#}
+{#            <h4 class="font-bold text-primary">Dr. Sarah Chen</h4>#}
+{#            <p class="text-text-light text-sm">Molecular Biology, Stanford University</p>#}
+{#          </div>#}
+{#        </div>#}
+{#        <p class="text-text-light italic">"ScholarHub transformed our multi-university research project. The AI-powered tools helped us identify patterns we would have missed, and the collaboration features made working across time zones seamless."</p>#}
+{#        <div class="flex mt-4">#}
+{#          <i class="fas fa-star text-secondary"></i>#}
+{#          <i class="fas fa-star text-secondary"></i>#}
+{#          <i class="fas fa-star text-secondary"></i>#}
+{#          <i class="fas fa-star text-secondary"></i>#}
+{#          <i class="fas fa-star text-secondary"></i>#}
+{#        </div>#}
+{#      </div>#}
+{##}
+{#      <div class="testimonial-card">#}
+{#        <div class="flex items-center mb-4">#}
+{#          <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white mr-4">#}
+{#            <i class="fas fa-user"></i>#}
+{#          </div>#}
+{#          <div>#}
+{#            <h4 class="font-bold text-primary">Prof. James Wilson</h4>#}
+{#            <p class="text-text-light text-sm">Quantum Physics, MIT</p>#}
+{#          </div>#}
+{#        </div>#}
+{#        <p class="text-text-light italic">"Finding collaborative partners used to take months. With ScholarHub's matching algorithm, I connected with the perfect research team in days, and we've since published three groundbreaking papers together."</p>#}
+{#        <div class="flex mt-4">#}
+{#          <i class="fas fa-star text-secondary"></i>#}
+{#          <i class="fas fa-star text-secondary"></i>#}
+{#          <i class="fas fa-star text-secondary"></i>#}
+{#          <i class="fas fa-star text-secondary"></i>#}
+{#          <i class="fas fa-star text-secondary"></i>#}
+{#        </div>#}
+{#      </div>#}
+{#    </div>#}
+{#  </div>#}
+{#</section>#}
 
 <!-- CTA Section with Gradient Background -->
 {#<section class="py-20 relative overflow-hidden">#}

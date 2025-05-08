@@ -2,222 +2,239 @@
 {% load static %}
 {% load project_tags %}
 
-{% block title %}My Favorite Projects{% endblock title %}
+{% block title %}My Favorite Projects{% endblock %}
 
 {% block content %}
-<!-- Tailwind & jQuery -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          primary: '#6D3AFF',
-          secondary: '#8B5CFF',
-          accent: '#FF69B4',
-          dark: '#1A1A2E',
-        }
-      }
-    }
-  }
-</script>
-
-<!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
 
-<!-- Chart.js CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-
-<style>
-  .gradient-text {
-    background: linear-gradient(135deg, #6D3AFF 0%, #FF69B4 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .feature-card {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .feature-card:hover {
-    transform: translateY(-5px);
-  }
-</style>
-
-
-<div class="container mx-auto px-4 py-8 mt-[30px] max-w-6xl">
-    <!-- Header Section -->
-    <div class="mb-10 text-center border-b border-gray-200 pb-8">
-        <h1 class="text-4xl font-bold text-gray-800 mb-3">Favorite Projects</h1>
-        <p class="text-gray-600">Your curated collection of saved research projects</p>
+<div class="bg-gray-50 min-h-screen pb-12">
+  <div class="container mx-auto px-4 py-8 max-w-6xl">
+    <!-- Header + Stats -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-800">Favorite Projects</h1>
+        <p class="text-gray-600 mt-1">Your curated collection of research projects</p>
+      </div>
+      <div class="flex items-center gap-6 mt-4 md:mt-0">
+{#        <div class="flex items-center gap-2">#}
+{#          <span class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600">#}
+{#            <i class="fas fa-heart text-sm"></i>#}
+{#          </span>#}
+{#          <div>#}
+{#            <p class="text-xs text-gray-500">Saved</p>#}
+{#            <p class="font-semibold">{{ projects.paginator.count }}</p>#}
+{#          </div>#}
+{#        </div>#}
+{#        <div class="flex items-center gap-2">#}
+{#          <span class="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600">#}
+{#            <i class="fas fa-check text-sm"></i>#}
+{#          </span>#}
+{#          <div>#}
+{#            <p class="text-xs text-gray-500">Applied</p>#}
+{#            <p class="font-semibold">{{ applied_count }}</p>#}
+{#          </div>#}
+{#        </div>#}
+        <a href="{% url 'marketplace' %}"
+           class="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center gap-1">
+          Discover more <i class="fas fa-arrow-right text-xs"></i>
+        </a>
+      </div>
     </div>
 
+{#    <!-- Filters -->#}
+{#    <form method="get" class="bg-white rounded-xl shadow-sm p-4 mb-8 flex flex-wrap gap-3 items-center">#}
+{#      <div class="text-gray-600 font-medium text-sm mr-2">Filter by:</div>#}
+{##}
+{#      <!-- Category -->#}
+{#      <select name="category"#}
+{#              class="bg-gray-50 text-gray-700 text-sm rounded-lg px-3 py-2 border border-gray-200 focus:ring-2 focus:ring-blue-500">#}
+{#        <option value="">All Categories</option>#}
+{#        {% for cat in all_categories %}#}
+{#          <option value="{{ cat.id }}"#}
+{#                  {% if request.GET.category == cat.id|stringformat:"s" %}selected{% endif %}>#}
+{#            {{ cat.name }}#}
+{#          </option>#}
+{#        {% endfor %}#}
+{#      </select>#}
+{##}
+{#      <!-- Skill Match -->#}
+{#      <select name="match"#}
+{#              class="bg-gray-50 text-gray-700 text-sm rounded-lg px-3 py-2 border border-gray-200 focus:ring-2 focus:ring-blue-500">#}
+{#        <option value="">All Skill Matches</option>#}
+{#        <option value="high"   {% if request.GET.match == 'high'   %}selected{% endif %}>High (70%+)</option>#}
+{#        <option value="medium" {% if request.GET.match == 'medium' %}selected{% endif %}>Medium (40–70%)</option>#}
+{#        <option value="low"    {% if request.GET.match == 'low'    %}selected{% endif %}>Low (0–40%)</option>#}
+{#      </select>#}
+{##}
+{#      <!-- Sort -->#}
+{#      <select name="sort"#}
+{#              class="bg-gray-50 text-gray-700 text-sm rounded-lg px-3 py-2 border border-gray-200 focus:ring-2 focus:ring-blue-500">#}
+{#        <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>Newest First</option>#}
+{#        <option value="oldest" {% if request.GET.sort == 'oldest' %}selected{% endif %}>Oldest First</option>#}
+{#        <option value="match"  {% if request.GET.sort == 'match'  %}selected{% endif %}>Best Match</option>#}
+{#      </select>#}
+{##}
+{#      <button type="submit"#}
+{#              class="ml-auto bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-2">#}
+{#        <i class="fas fa-sync-alt text-xs"></i>#}
+{#        Apply Filters#}
+{#      </button>#}
+{#    </form>#}
+
     {% if projects %}
-        <div class="space-y-8">
-            {% for project in projects %}
-            <!-- Project Card -->
-            <div class="bg-white rounded-2xl shadow-sm p-8 border border-gray-100 transition-all hover:shadow-md">
-                <!-- Top Section -->
-                <div class="flex items-center justify-between mb-6">
-                    <!-- Badges -->
-                    <div class="flex items-center gap-3">
-                        <span class="inline-flex items-center px-4 py-2 bg-gray-100 rounded-full text-sm font-medium text-gray-700">
-                            {% for category in project.category.all %}
-                                {{ category.name }}{% if not forloop.last %}, {% endif %}
-                            {% empty %}
-                                No category
-                            {% endfor %}
-                        </span>
-                        {% with match=project|skill_match:user %}
-                        <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium
-                            {% if match > 71 %}
-                                bg-green-100 text-green-700
-                            {% elif match > 41 %}
-                                bg-yellow-100 text-yellow-700
-                            {% else %}
-                                bg-pink-100 text-pink-700
-                            {% endif %}">
-                            <i class="fas fa-percentage mr-2 text-sm"></i>{{ match }}% Match
-                        </span>
-                        {% endwith %}
-                    </div>
+      <!-- Projects Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for project in projects %}
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
+            <!-- removed the lightbulb banner here -->
+<div class="p-6">
+  <!-- Categories & FAISS‐Score Bar -->
+  <div class="flex justify-between items-center mb-3">
+    <!-- Categories -->
+    <div class="flex flex-wrap gap-2">
+      {% for cat in project.category.all %}
+        <span class="inline-flex items-center px-2.5 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
+          {{ cat.name }}
+        </span>
+      {% endfor %}
+    </div>
+    <!-- FAISS Score -->
+    {% if project.faiss_score %}
+  <span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+    <i class="fas fa-star mr-1"></i> {{ project.faiss_score }}%
+  </span>
+{% endif %}
 
-                    <!-- Heart Button -->
-                    <button type="button" onclick="saveProject(event, {{ project.id }})"
-                            class="p-2 rounded-full hover:bg-red-50 transition-colors focus:outline-none"
-                            id="fav-btn-{{ project.id }}">
-                        {% if project.id in favorite_ids %}
-                            <i class="fas fa-heart text-red-500 text-xl"></i>
-                        {% else %}
-                            <i class="far fa-heart text-gray-400 hover:text-red-500 text-xl"></i>
-                        {% endif %}
-                    </button>
-                </div>
+  </div>
 
-                <!-- User Info -->
-                <div class="flex items-center gap-4 mb-6">
-                    {% if project.owner.profile.avatar %}
-                    <a href="{% url 'project-user-profile' project.owner.username %}" class="shrink-0">
-                        <img src="{{ project.owner.profile.avatar.url }}" alt="{{ project.owner.username }}"
-                             class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm">
-                    </a>
-                    {% else %}
-                    <a href="{% url 'project-user-profile' project.owner.username %}"
-                       class="w-12 h-12 rounded-full flex items-center justify-center bg-primary text-white font-bold shadow-sm">
-                        {{ project.owner.username|first|upper }}
-                    </a>
-                    {% endif %}
-                    <div>
-                        <a href="{% url 'project-user-profile' project.owner.username %}"
-                           class="text-gray-800 font-medium hover:text-primary transition-colors">
-                            @{{ project.owner.username }}
-                        </a>
-                        {% if project.owner.profile.city or project.owner.profile.country %}
-                        <p class="text-sm text-gray-500">
-                            {% if project.owner.profile.city %}{{ project.owner.profile.city }}{% endif %}
-                            {% if project.owner.profile.country %}, {{ project.owner.profile.country }}{% endif %}
-                        </p>
-                        {% endif %}
-                    </div>
-                </div>
+  <!-- Title & Favorite -->
+  <div class="flex justify-between items-center mb-3">
+    <h2 class="text-lg font-bold text-gray-800 line-clamp-1">{{ project.title }}</h2>
+    <button
+      type="button"
+      onclick="saveProject(event, {{ project.id }})"
+      id="fav-btn-{{ project.id }}"
+      class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 focus:outline-none"
+      aria-label="Toggle favorite"
+    >
+      {% if project.id in favorite_ids %}
+        <i class="fas fa-heart text-red-500"></i>
+      {% else %}
+        <i class="far fa-heart text-gray-400 hover:text-red-500"></i>
+      {% endif %}
+    </button>
+  </div>
+              <p class="text-gray-600 text-sm mb-4 line-clamp-2">{{ project.description }}</p>
 
-                <!-- Project Content -->
-                <div class="mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4">{{ project.title }}</h2>
-                    <p class="text-gray-600 mb-6 line-clamp-4 leading-relaxed">
-                        {{ project.description }}
-                    </p>
-                    <div class="flex items-center text-sm text-gray-500">
-                        <i class="fas fa-eye mr-2"></i>
-                        <span>{{ project.view_count }} Views</span>
-                    </div>
-                </div>
+              <div class="flex items-center gap-3 mb-4">
+                {% if project.owner.profile.avatar %}
+                  <a href="{% url 'project-user-profile' project.owner.username %}">
+                    <img src="{{ project.owner.profile.avatar.url }}"
+                         class="w-8 h-8 rounded-full object-cover border border-gray-100">
+                  </a>
+                {% else %}
+                  <a href="{% url 'project-user-profile' project.owner.username %}"
+                     class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                    {{ project.owner.username|first|upper }}
+                  </a>
+                {% endif %}
+                <a href="{% url 'project-user-profile' project.owner.username %}"
+                   class="text-sm font-medium text-gray-800 hover:text-blue-600 truncate">
+                  @{{ project.owner.username }}
+                </a>
+              </div>
 
-                <!-- Action Buttons -->
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-t border-gray-100 pt-6">
-                    <a href="{% url 'project-detail' pk=project.pk %}"
-                       class="px-6 py-3 bg-primary text-white rounded-xl hover:bg-secondary transition-colors font-medium flex items-center gap-2">
-                        View Details
-                        <i class="fas fa-arrow-right text-sm"></i>
-                    </a>
-
-                    {% if project.owner != request.user %}
-                        <div class="flex gap-3">
-                            {% if project.user_application %}
-                                {% if project.user_application.status == 'PENDING' %}
-                                    <a href="{% url 'withdraw-application' project_id=project.id %}"
-                                       class="px-6 py-3 bg-red-100 text-red-700 rounded-xl hover:bg-red-200 transition-colors font-medium">
-                                        Withdraw Application
-                                    </a>
-                                {% elif project.user_application.status == 'ACCEPTED' %}
-                                    <a href="{% url 'chat' user_id=project.owner.id %}"
-                                       class="px-6 py-3 bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 transition-colors font-medium">
-                                        Open Chat
-                                    </a>
-                                {% endif %}
-                            {% else %}
-                                <a href="{% url 'apply-project' project_id=project.id %}"
-                                   class="px-6 py-3 bg-green-100 text-green-700 rounded-xl hover:bg-green-200 transition-colors font-medium">
-                                    Apply Now
-                                </a>
-                            {% endif %}
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <!-- Empty State -->
-        <div class="bg-white rounded-2xl shadow-sm p-12 text-center border border-dashed border-gray-200">
-            <div class="flex justify-center mb-6">
-                <span class="text-5xl text-gray-300">
-                    <i class="fas fa-heart"></i>
+              <div class="flex gap-4 text-xs text-gray-500 mb-5">
+                <span class="flex items-center">
+                  <i class="fas fa-eye mr-1"></i>{{ project.view_count }} Views
                 </span>
+                <span class="flex items-center">
+                  <i class="fas fa-calendar-alt mr-1"></i>
+                  {{ project.created_at|date:"M d, Y" }}
+                </span>
+              </div>
+
+              <div class="flex flex-wrap gap-2">
+                <a href="{% url 'project-detail' project.id %}"
+                   class="flex-1 text-center py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+                  View Details
+                </a>
+                {% if project.user_application %}
+                  {% if project.user_application.status == 'PENDING' %}
+                    <a href="{% url 'withdraw-application' project_id=project.id %}"
+                       class="flex-1 text-center py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 text-sm font-medium">
+                      Withdraw
+                    </a>
+                  {% elif project.user_application.status == 'ACCEPTED' %}
+                    <a href="{% url 'chat' user_id=project.owner.id %}"
+                       class="flex-1 text-center py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 text-sm font-medium">
+                      Open Chat
+                    </a>
+                  {% endif %}
+                {% else %}
+                  <a href="{% url 'apply-project' project_id=project.id %}"
+                     class="flex-1 text-center py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium">
+                    Apply Now
+                  </a>
+                {% endif %}
+              </div>
             </div>
-            <h3 class="text-xl font-medium text-gray-700 mb-2">No Favorites Yet</h3>
-            <p class="text-gray-500 mb-8 max-w-md mx-auto">
-                Start building your collection by saving interesting projects you find!
-            </p>
-            <a href="{% url 'marketplace' %}"
-               class="inline-flex items-center px-6 py-3 bg-primary text-white rounded-xl hover:bg-secondary transition-colors font-medium">
-                Explore Marketplace
-            </a>
-        </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      <div class="mt-8 flex justify-center">
+        <nav class="inline-flex rounded-md shadow-sm">
+          {% if projects.has_previous %}
+            <a href="?page={{ projects.previous_page_number }}{% if request.GET.category %}&category={{request.GET.category}}{% endif %}"
+               class="px-4 py-2 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50">Previous</a>
+          {% endif %}
+
+          {% for num in projects.paginator.page_range %}
+            {% if projects.number == num %}
+              <span class="px-4 py-2 bg-blue-50 border border-gray-300 text-blue-700">{{ num }}</span>
+            {% elif num > projects.number|add:'-3' and num < projects.number|add:'3' %}
+              <a href="?page={{ num }}{% if request.GET.category %}&category={{request.GET.category}}{% endif %}"
+                 class="px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50">{{ num }}</a>
+            {% endif %}
+          {% endfor %}
+
+          {% if projects.has_next %}
+            <a href="?page={{ projects.next_page_number }}{% if request.GET.category %}&category={{request.GET.category}}{% endif %}"
+               class="px-4 py-2 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50">Next</a>
+          {% endif %}
+        </nav>
+      </div>
+    {% else %}
+      <div class="bg-white rounded-xl shadow-sm p-12 text-center">
+        <h3 class="text-xl font-medium text-gray-700 mb-2">No Favorites Yet</h3>
+        <p class="text-gray-500 mb-8">You haven't saved any projects yet. Explore the marketplace!</p>
+        <a href="{% url 'marketplace' %}"
+           class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          Explore Marketplace <i class="fas fa-arrow-right ml-2"></i>
+        </a>
+      </div>
     {% endif %}
+  </div>
 </div>
 
-<!-- JavaScript for Favorite Button -->
 <script>
 function saveProject(e, projectId) {
-    e.preventDefault();
-    $.ajax({
-        type: "POST",
-        url: "{% url 'toggle-favorite' %}",
-        data: {
-            project_id: projectId,
-            csrfmiddlewaretoken: "{{ csrf_token }}"
-        },
-        success: function(response) {
-            if(response.success) {
-                const btn = $("#fav-btn-" + projectId);
-                if(response.is_favorite) {
-                    btn.html('<i class="fas fa-heart text-red-500 text-xl"></i>');
-                    btn.addClass('text-red-500').removeClass('text-gray-400');
-                } else {
-                    btn.html('<i class="far fa-heart text-gray-400 hover:text-red-500 text-xl"></i>');
-                    btn.addClass('text-gray-400').removeClass('text-red-500');
-                }
-            } else {
-                alert("Error: " + response.error);
-            }
-        },
-        error: function(xhr, status, error) {
-            alert("An error occurred: " + error);
-        }
-    });
+  e.preventDefault();
+  $.post("{% url 'toggle-favorite' %}", {
+    project_id: projectId,
+    csrfmiddlewaretoken: "{{ csrf_token }}"
+  }).done(function(resp) {
+    if (resp.success) {
+      let btn = $("#fav-btn-" + projectId);
+      btn.html(resp.is_favorite
+        ? '<i class="fas fa-heart text-red-500"></i>'
+        : '<i class="far fa-heart text-gray-400 hover:text-red-500"></i>');
+    }
+  });
 }
 </script>
-{% endblock content %}
+{% endblock %}

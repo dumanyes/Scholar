@@ -1,7 +1,7 @@
 import os
 import requests
 from django.contrib.auth.forms import SetPasswordForm
-from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth import update_session_auth_hash, login, authenticate
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.contrib.auth.views import LoginView
@@ -232,7 +232,7 @@ class RegisterView(View):
     form_class = RegisterForm
     template_name = 'users/register.html'
     steps = ['personal', 'verify', 'password', 'skills', 'research']
-    min_selections = 5
+    min_selections = 1
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
@@ -425,7 +425,17 @@ class RegisterView(View):
                 profile.categories.set(data['categories'])
             request.session.pop('registration_data', None)
             request.session.pop('verification_code', None)
-            messages.success(request, 'Registration completed successfully!')
+            profile.save()
+
+            user = authenticate(request,
+                                username=data['username'],
+                                password=data['password'])
+            if user is None:
+                messages.error(request, "Could not log you in automatically.")
+                return redirect('login')
+
+            login(request, user)
+            messages.success(request, "Welcome aboard! You are now logged in.")
             return redirect('users-home')
         except Exception as e:
             logger.error(f"Registration failed: {str(e)}")

@@ -5,31 +5,51 @@
 
 {% block content %}
 
-<!-- Hero Section -->
-<section class="py-20 bg-paper">
-  <div class="container mx-auto text-center">
-    <h1 class="text-4xl md:text-5xl font-bold mb-4 text-primary">{% trans "About ScholarHub" %}</h1>
-    <p class="text-lg text-text-light mb-8">
-      {% trans "Connecting researchers, students, and professionals across the globe with AI-powered tools and smart collaboration." %}
-    </p>
-    <a href="{% url 'users-register' %}" class="btn-primary">{% trans "Join Our Community" %}</a>
+<!-- Hero Section: Cleaner with better visual hierarchy -->
+<section class="py-16 bg-white border-b border-gray-100">
+  <div class="container mx-auto px-4 max-w-5xl">
+    <div class="flex flex-col items-center">
+      <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-blue-800">{% trans "About ScholarHub" %}</h1>
+      <p class="text-lg text-gray-600 mb-8 max-w-2xl text-center leading-relaxed">
+        {% trans "Connecting researchers, students, and professionals across the globe with AI-powered tools and smart collaboration." %}
+      </p>
+      <a href="{% url 'users-register' %}" class="inline-flex items-center justify-center px-6 py-3 bg-blue-700 text-white font-medium rounded-lg hover:bg-blue-800 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+        {% trans "Join Our Community" %} <span class="ml-2">→</span>
+      </a>
+    </div>
   </div>
 </section>
 
-<!-- Mission & Vision Section -->
-<section class="py-16 bg-background">
-  <div class="container mx-auto">
-    <h2 class="text-3xl md:text-4xl font-bold text-center text-primary mb-12">{% trans "Our Mission & Vision" %}</h2>
+
+<!-- Mission & Vision Section: Better card design -->
+<section class="py-16 bg-white">
+  <div class="container mx-auto px-4 max-w-5xl">
+    <h2 class="text-2xl md:text-3xl font-bold text-center text-blue-800 mb-3">{% trans "Our Mission & Vision" %}</h2>
+    <p class="text-gray-600 text-center mb-12 max-w-3xl mx-auto">{% trans "Building a global research ecosystem to accelerate discoveries and innovation across disciplines." %}</p>
     <div class="grid md:grid-cols-2 gap-8">
-      <div class="card p-6">
-        <h3 class="text-xl font-bold text-primary mb-3">{% trans "Our Mission" %}</h3>
-        <p class="text-text-light">
+      <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition duration-300">
+        <div class="flex items-center mb-4">
+          <span class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </span>
+          <h3 class="text-xl font-bold text-blue-800">{% trans "Our Mission" %}</h3>
+        </div>
+        <p class="text-gray-600 leading-relaxed">
           {% trans "To break down geographic and disciplinary barriers by offering an AI-powered matching system and a dynamic project marketplace—connecting researchers based on shared interests and expertise." %}
         </p>
       </div>
-      <div class="card p-6">
-        <h3 class="text-xl font-bold text-primary mb-3">{% trans "Our Vision" %}</h3>
-        <p class="text-text-light">
+      <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition duration-300">
+        <div class="flex items-center mb-4">
+          <span class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+          </span>
+          <h3 class="text-xl font-bold text-blue-800">{% trans "Our Vision" %}</h3>
+        </div>
+        <p class="text-gray-600 leading-relaxed">
           {% trans "To transform the global research community through interdisciplinary collaborations, accelerating scientific breakthroughs and empowering innovation." %}
         </p>
       </div>
@@ -37,105 +57,319 @@
   </div>
 </section>
 
-<!-- Our Story in Three Languages -->
-<section class="py-16 bg-paper">
-  <div class="container mx-auto">
-    <h2 class="text-3xl md:text-4xl font-bold text-center text-primary mb-12">{% trans "Our Story" %}</h2>
-    <p class="text-center text-text-light max-w-2xl mx-auto mb-8">
+<!-- How It Works: New section for better UX -->
+<section class="py-16 bg-gray-50">
+  <div class="container mx-auto px-4 max-w-5xl">
+    <h2 class="text-2xl md:text-3xl font-bold text-center text-blue-800 mb-3">{% trans "How ScholarHub Works" %}</h2>
+    <p class="text-gray-600 text-center mb-12 max-w-3xl mx-auto">{% trans "Our platform makes research collaboration simple and effective." %}</p>
+    
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="bg-white p-6 rounded-lg border border-gray-200 flex flex-col items-center text-center">
+        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+          <span class="text-blue-700 font-bold">1</span>
+        </div>
+        <h3 class="text-lg font-bold text-gray-800 mb-3">{% trans "Create Your Profile" %}</h3>
+        <p class="text-gray-600">{% trans "Share your research interests, expertise, and current projects to be discovered." %}</p>
+      </div>
+      
+      <div class="bg-white p-6 rounded-lg border border-gray-200 flex flex-col items-center text-center">
+        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+          <span class="text-blue-700 font-bold">2</span>
+        </div>
+        <h3 class="text-lg font-bold text-gray-800 mb-3">{% trans "Get AI-Powered Matches" %}</h3>
+        <p class="text-gray-600">{% trans "Our algorithm connects you with relevant researchers and projects based on your profile." %}</p>
+      </div>
+      
+      <div class="bg-white p-6 rounded-lg border border-gray-200 flex flex-col items-center text-center">
+        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+          <span class="text-blue-700 font-bold">3</span>
+        </div>
+        <h3 class="text-lg font-bold text-gray-800 mb-3">{% trans "Collaborate & Innovate" %}</h3>
+        <p class="text-gray-600">{% trans "Connect, communicate, and collaborate on groundbreaking research projects." %}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Our Story in Three Languages: Improved layout -->
+<section class="py-16 bg-white">
+  <div class="container mx-auto px-4 max-w-5xl">
+    <h2 class="text-2xl md:text-3xl font-bold text-center text-blue-800 mb-3">{% trans "Our Story" %}</h2>
+    <p class="text-gray-600 text-center max-w-3xl mx-auto mb-10">
       {% trans "ScholarHub is designed to connect students, researchers, and professionals by matching interests, expertise, and ongoing projects. Our story is told in three languages." %}
     </p>
+    
     <div class="grid md:grid-cols-3 gap-8">
-      <div class="card p-6 text-center">
-        <h3 class="text-xl font-bold text-primary mb-3">{% trans "English" %}</h3>
-        <p class="text-text-light">{% trans "ScholarHub is a website designed to connect students, researchers, and professionals based on their interests, expertise, and ongoing projects." %}</p>
+      <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition duration-300">
+        <div class="inline-block p-3 bg-blue-100 rounded-lg mb-4">
+          <span class="text-lg font-bold text-blue-700">EN</span>
+        </div>
+        <h3 class="text-lg font-bold text-gray-800 mb-3">{% trans "English" %}</h3>
+        <p class="text-gray-600">{% trans "ScholarHub is a website designed to connect students, researchers, and professionals based on their interests, expertise, and ongoing projects." %}</p>
       </div>
-      <div class="card p-6 text-center">
-        <h3 class="text-xl font-bold text-primary mb-3">{% trans "Russian" %}</h3>
-        <p class="text-text-light">{% trans "ScholarHub — это веб-сайт, предназначенный для соединения студентов, исследователей и профессионалов на основе их интересов, экспертизы и текущих проектов." %}</p>
+      
+      <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition duration-300">
+        <div class="inline-block p-3 bg-blue-100 rounded-lg mb-4">
+          <span class="text-lg font-bold text-blue-700">RU</span>
+        </div>
+        <h3 class="text-lg font-bold text-gray-800 mb-3">{% trans "Russian" %}</h3>
+        <p class="text-gray-600">{% trans "ScholarHub — это веб-сайт, предназначенный для соединения студентов, исследователей и профессионалов на основе их интересов, экспертизы и текущих проектов." %}</p>
       </div>
-      <div class="card p-6 text-center">
-        <h3 class="text-xl font-bold text-primary mb-3">{% trans "Kazakh" %}</h3>
-        <p class="text-text-light">{% trans "ScholarHub — бұл студенттерді, зерттеушілер мен мамандарды олардың қызығушылықтары, тәжірибесі және ағымдағы жобалары негізінде байланыстыратын веб-сайт." %}</p>
+      
+      <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition duration-300">
+        <div class="inline-block p-3 bg-blue-100 rounded-lg mb-4">
+          <span class="text-lg font-bold text-blue-700">KK</span>
+        </div>
+        <h3 class="text-lg font-bold text-gray-800 mb-3">{% trans "Kazakh" %}</h3>
+        <p class="text-gray-600">{% trans "ScholarHub — бұл студенттерді, зерттеушілер мен мамандарды олардың қызығушылықтары, тәжірибесі және ағымдағы жобалары негізінде байланыстыратын веб-сайт." %}</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Roadmap -->
-<section class="py-16 bg-background">
-  <div class="container mx-auto">
-    <h2 class="text-3xl md:text-4xl font-bold text-center text-primary mb-12">{% trans "Development Roadmap" %}</h2>
-    <div class="grid md:grid-cols-3 gap-8">
-      <div class="card p-6">
-        <h3 class="text-xl font-bold text-primary mb-4">{% trans "Phase 1: Concept & Planning" %}</h3>
-        <ul class="list-disc list-inside text-text-light">
-          <li>{% trans "Project conceptualization & requirements" %}</li>
-          <li>{% trans "Wireframing & prototyping" %}</li>
-          <li>{% trans "Database & API planning" %}</li>
-        </ul>
+<!-- Roadmap: More visual with better spacing -->
+<section class="py-16 bg-gray-50">
+  <div class="container mx-auto px-4 max-w-5xl">
+    <h2 class="text-2xl md:text-3xl font-bold text-center text-blue-800 mb-3">{% trans "Development Roadmap" %}</h2>
+    <p class="text-gray-600 text-center mb-12 max-w-3xl mx-auto">{% trans "Our journey to build the most effective research collaboration platform." %}</p>
+    
+    <div class="flex flex-col md:flex-row">
+      <!-- Phase 1 -->
+      <div class="flex-1 relative pb-12 md:pb-0">
+        <div class="relative z-10">
+          <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm md:mr-4">
+            <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+              <span class="text-blue-700 font-bold">1</span>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800 mb-3">{% trans "Phase 1: Concept & Planning" %}</h3>
+            <ul class="space-y-2 text-gray-600">
+              <li class="flex items-start">
+                <svg class="h-5 w-5 text-blue-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                {% trans "Project conceptualization & requirements" %}
+              </li>
+              <li class="flex items-start">
+                <svg class="h-5 w-5 text-blue-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                {% trans "Wireframing & prototyping" %}
+              </li>
+              <li class="flex items-start">
+                <svg class="h-5 w-5 text-blue-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                {% trans "Database & API planning" %}
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="absolute top-0 bottom-0 right-0 hidden md:block w-px bg-blue-200 left-1/2 transform translate-x-px"></div>
       </div>
-      <div class="card p-6">
-        <h3 class="text-xl font-bold text-primary mb-4">{% trans "Phase 2: Development" %}</h3>
-        <ul class="list-disc list-inside text-text-light">
-          <li>{% trans "Core feature implementation" %}</li>
-          <li>{% trans "AI-powered matching system" %}</li>
-          <li>{% trans "Dynamic project marketplace & resource hub" %}</li>
-        </ul>
+      
+      <!-- Phase 2 -->
+      <div class="flex-1 relative pb-12 md:pb-0">
+        <div class="relative z-10">
+          <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm md:mx-4">
+            <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+              <span class="text-blue-700 font-bold">2</span>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800 mb-3">{% trans "Phase 2: Development" %}</h3>
+            <ul class="space-y-2 text-gray-600">
+              <li class="flex items-start">
+                <svg class="h-5 w-5 text-blue-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                {% trans "Core feature implementation" %}
+              </li>
+              <li class="flex items-start">
+                <svg class="h-5 w-5 text-blue-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                {% trans "AI-powered matching system" %}
+              </li>
+              <li class="flex items-start">
+                <svg class="h-5 w-5 text-blue-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                {% trans "Dynamic project marketplace & resource hub" %}
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="absolute top-0 bottom-0 right-0 hidden md:block w-px bg-blue-200 left-1/2 transform translate-x-px"></div>
       </div>
-      <div class="card p-6">
-        <h3 class="text-xl font-bold text-primary mb-4">{% trans "Phase 3: Testing & Deployment" %}</h3>
-        <ul class="list-disc list-inside text-text-light">
-          <li>{% trans "User acceptance testing" %}</li>
-          <li>{% trans "Performance optimization" %}</li>
-          <li>{% trans "Final deployment & monitoring" %}</li>
-        </ul>
+      
+      <!-- Phase 3 -->
+      <div class="flex-1 relative">
+        <div class="relative z-10">
+          <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm md:ml-4">
+            <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+              <span class="text-blue-700 font-bold">3</span>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800 mb-3">{% trans "Phase 3: Testing & Deployment" %}</h3>
+            <ul class="space-y-2 text-gray-600">
+              <li class="flex items-start">
+                <svg class="h-5 w-5 text-blue-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                {% trans "User acceptance testing" %}
+              </li>
+              <li class="flex items-start">
+                <svg class="h-5 w-5 text-blue-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                {% trans "Performance optimization" %}
+              </li>
+              <li class="flex items-start">
+                <svg class="h-5 w-5 text-blue-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                {% trans "Final deployment & monitoring" %}
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Team -->
-<section class="py-16 bg-paper">
-  <div class="container mx-auto">
-    <h2 class="text-3xl md:text-4xl font-bold text-center text-primary mb-12">{% trans "Our Team" %}</h2>
-    <div class="grid md:grid-cols-3 gap-8">
-      <div class="card p-6 text-center">
-        <div class="w-16 h-16 bg-primary bg-opacity-10 rounded-full mx-auto mb-4 flex items-center justify-center">
-          <i class="fas fa-briefcase text-primary text-2xl"></i>
+<!-- Features: New section for better UX -->
+<section class="py-16 bg-white">
+  <div class="container mx-auto px-4 max-w-5xl">
+    <h2 class="text-2xl md:text-3xl font-bold text-center text-blue-800 mb-3">{% trans "Platform Features" %}</h2>
+    <p class="text-gray-600 text-center mb-12 max-w-3xl mx-auto">{% trans "Powerful tools designed to enhance research collaboration." %}</p>
+    
+    <div class="grid md:grid-cols-2 gap-8">
+      <!-- Feature 1 -->
+      <div class="flex items-start">
+        <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mr-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
         </div>
-        <h3 class="text-xl font-bold text-primary mb-2">Zhanar Mazhit</h3>
-        <p class="text-text-light">{% trans "Project Manager & ML Engineer" %}</p>
+        <div>
+          <h3 class="text-lg font-bold text-gray-800 mb-2">{% trans "AI Matchmaking" %}</h3>
+          <p class="text-gray-600">{% trans "Our advanced algorithms connect you with researchers and projects based on interests, expertise, and goals." %}</p>
+        </div>
       </div>
-      <div class="card p-6 text-center">
-        <div class="w-16 h-16 bg-primary bg-opacity-10 rounded-full mx-auto mb-4 flex items-center justify-center">
-          <i class="fas fa-code text-primary text-2xl"></i>
+      
+      <!-- Feature 2 -->
+      <div class="flex items-start">
+        <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mr-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
         </div>
-        <h3 class="text-xl font-bold text-primary mb-2">Duman Yessenbay &amp; Alikhan Nurbek</h3>
-        <p class="text-text-light">{% trans "Backend Developers" %}</p>
+        <div>
+          <h3 class="text-lg font-bold text-gray-800 mb-2">{% trans "Project Marketplace" %}</h3>
+          <p class="text-gray-600">{% trans "Browse, join, or create research projects across disciplines and geographic boundaries." %}</p>
+        </div>
       </div>
-      <div class="card p-6 text-center">
-        <div class="w-16 h-16 bg-primary bg-opacity-10 rounded-full mx-auto mb-4 flex items-center justify-center">
-          <i class="fas fa-laptop-code text-primary text-2xl"></i>
+      
+      <!-- Feature 3 -->
+      <div class="flex items-start">
+        <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mr-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
         </div>
-        <h3 class="text-xl font-bold text-primary mb-2">Omargali Tlepbergenov &amp; Rakhman Aidaruly</h3>
-        <p class="text-text-light">{% trans "Frontend Developers" %}</p>
+        <div>
+          <h3 class="text-lg font-bold text-gray-800 mb-2">{% trans "Collaboration Tools" %}</h3>
+          <p class="text-gray-600">{% trans "Integrated tools for scheduling, document sharing, and real-time collaboration." %}</p>
+        </div>
+      </div>
+      
+      <!-- Feature 4 -->
+      <div class="flex items-start">
+        <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mr-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-gray-800 mb-2">{% trans "Resource Library" %}</h3>
+          <p class="text-gray-600">{% trans "Access a growing collection of research papers, datasets, and educational resources." %}</p>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Partners -->
-<section class="py-16 bg-background">
-  <div class="container mx-auto">
-    <h2 class="text-2xl font-bold text-center text-primary mb-12">{% trans "Trusted by Leading Institutions" %}</h2>
-    <div class="flex flex-wrap justify-center items-center gap-8">
-      <img src="/media/img_12.png" alt="Partner Logo" class="w-32 h-auto">
-      <div class="w-32 h-12 bg-gray-200 rounded flex items-center justify-center">{% trans "University 2" %}</div>
-      <div class="w-32 h-12 bg-gray-200 rounded flex items-center justify-center">{% trans "Institute 3" %}</div>
-      <div class="w-32 h-12 bg-gray-200 rounded flex items-center justify-center">{% trans "Research Lab 4" %}</div>
-      <div class="w-32 h-12 bg-gray-200 rounded flex items-center justify-center">{% trans "Organization 5" %}</div>
+<!-- Team: Improved with proper spacing and icons -->
+<section class="py-16 bg-gray-50">
+  <div class="container mx-auto px-4 max-w-5xl">
+    <h2 class="text-2xl md:text-3xl font-bold text-center text-blue-800 mb-3">{% trans "Our Team" %}</h2>
+    <p class="text-gray-600 text-center mb-12 max-w-3xl mx-auto">{% trans "Meet the people bringing ScholarHub to life." %}</p>
+    
+    <div class="grid md:grid-cols-3 gap-8">
+      <!-- Team Member 1 -->
+      <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm flex flex-col items-center text-center">
+        <div class="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-800 mb-1">Zhanar Mazhit</h3>
+        <p class="text-blue-700 font-medium mb-3">{% trans "Project Manager & ML Engineer" %}</p>
+        <p class="text-gray-600 text-sm">{% trans "Leading the project vision and machine learning implementation." %}</p>
+      </div>
+      
+      <!-- Team Member 2 -->
+      <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm flex flex-col items-center text-center">
+        <div class="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-800 mb-1">Duman Yessenbay &amp; Alikhan Nurbek</h3>
+        <p class="text-blue-700 font-medium mb-3">{% trans "Backend Developers" %}</p>
+        <p class="text-gray-600 text-sm">{% trans "Building the robust backend infrastructure and APIs." %}</p>
+      </div>
+      
+      <!-- Team Member 3 -->
+      <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm flex flex-col items-center text-center">
+        <div class="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-800 mb-1">Omargali Tlepbergenov &amp; Rakhman Aidaruly</h3>
+        <p class="text-blue-700 font-medium mb-3">{% trans "Frontend Developers" %}</p>
+        <p class="text-gray-600 text-sm">{% trans "Creating the intuitive user interface and experience." %}</p>
+      </div>
     </div>
   </div>
 </section>
+
+<!-- Partners: Improved with consistent styling -->
+<section class="py-16 bg-white">
+  <div class="container mx-auto px-4 max-w-5xl">
+    <h2 class="text-2xl md:text-3xl font-bold text-center text-blue-800 mb-3">{% trans "Trusted by Leading Institutions" %}</h2>
+    <p class="text-gray-600 text-center mb-12 max-w-3xl mx-auto">{% trans "Join the growing network of academic and research institutions using ScholarHub." %}</p>
+    
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
+      <div class="bg-white rounded-lg p-4 flex items-center justify-center border border-gray-200 shadow-sm hover:shadow-md transition duration-300 h-24">
+        <img src="/media/img_12.png" alt="Partner Logo" class="max-h-12 max-w-full">
+      </div>
+      <div class="bg-white rounded-lg p-4 flex items-center justify-center border border-gray-200 shadow-sm hover:shadow-md transition duration-300 h-24">
+        <span class="text-gray-700 font-medium">{% trans "University 2" %}</span>
+      </div>
+      <div class="bg-white rounded-lg p-4 flex items-center justify-center border border-gray-200 shadow-sm hover:shadow-md transition duration-300 h-24">
+        <span class="text-gray-700 font-medium">{% trans "Institute 3" %}</span>
+      </div>
+      <div class="bg-white rounded-lg p-4 flex items-center justify-center border border-gray-200 shadow-sm hover:shadow-md transition duration-300 h-24">
+        <span class="text-gray-700 font-medium">{% trans "Research Lab 4" %}</span>
+      </div>
+      <div class="bg-white rounded-lg p-4 flex items-center justify-center border border-gray-200 shadow-sm hover:shadow-md transition duration-300 h-24">
+        <span class="text-gray-700 font-medium">{% trans "Organization 5" %}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
 
 {% endblock content %}

@@ -1,144 +1,182 @@
+# recommendation.py
+
 import faiss
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from projects.models import Project
 from users.models import Profile
 
+# Global TF–IDF model and FAISS index, built once per process
+_GLOBAL_TFIDF = None       # TfidfVectorizer instance
+_GLOBAL_IDS = None         # list of project IDs in the TF–IDF corpus
+_GLOBAL_VEC = None         # numpy array of their TF–IDF vectors
+_GLOBAL_INDEX = None       # faiss.IndexFlatL2 built on _GLOBAL_VEC
+
 def build_text_profile(project):
     """
     Build a textual profile for a project by combining its skills,
     mission, objectives, description, and categories.
     """
-    skills_text = " ".join([skill.name for skill in project.skills_required.all()])
-    mission_text = project.project_mission or ""
-    objectives_text = project.project_objectives or ""
+    skills_text      = " ".join([skill.name for skill in project.skills_required.all()])
+    mission_text     = project.project_mission or ""
+    objectives_text  = project.project_objectives or ""
     description_text = project.description or ""
-    categories_text = " ".join([cat.name for cat in project.category.all()])
-    return " ".join([skills_text, mission_text, objectives_text, description_text, categories_text]).strip()
+    categories_text  = " ".join([cat.name for cat in project.category.all()])
+    return " ".join([
+        skills_text,
+        mission_text,
+        objectives_text,
+        description_text,
+        categories_text
+    ]).strip()
+
+def _init_global_tfidf():
+    """
+    Initialize the global TF–IDF vectorizer, project vectors, and FAISS index
+    on all active projects.
+    """
+    global _GLOBAL_TFIDF, _GLOBAL_IDS, _GLOBAL_VEC, _GLOBAL_INDEX
+
+    if _GLOBAL_TFIDF is None:
+        # 1) load all active projects
+        projects = list(Project.objects.filter(is_active=True))
+        texts    = [build_text_profile(p) for p in projects]
+        ids      = [p.id for p in projects]
+
+        # 2) fit TF–IDF on every project description
+        vec    = TfidfVectorizer()
+        matrix = vec.fit_transform(texts).toarray().astype('float32')
+
+        # 3) build a FAISS L2 index
+        d      = matrix.shape[1]
+        index  = faiss.IndexFlatL2(d)
+        index.add(matrix)
+
+        # store globals
+        _GLOBAL_TFIDF = vec
+        _GLOBAL_IDS   = ids
+        _GLOBAL_VEC   = matrix
+        _GLOBAL_INDEX = index
 
 def rank_projects_with_faiss(projects, user):
     """
-    Given a list of project objects and a user, compute a ranking of project IDs
-    based on the similarity between each project's text profile and the user's profile.
+    Rank the given list of project objects by FAISS-based similarity to the user.
+    Uses a global TF–IDF model trained on all active projects so that scores
+    are consistent across Marketplace and Favorites.
     Returns:
-        A tuple: (ordered_project_ids, faiss_scores)
-            ordered_project_ids: list of project IDs ordered from most similar (lowest L2 distance) to least.
-            faiss_scores: dictionary mapping project ID to a computed similarity percentage.
+        (ordered_project_ids, faiss_scores)
     """
-    project_texts = []
-    project_ids = []
-    for project in projects:
-        text = build_text_profile(project)
-        project_texts.append(text)
-        project_ids.append(project.id)
-    if not project_texts:
-        return [], {}
-    # Create TF-IDF vectors for all project profiles.
-    vectorizer = TfidfVectorizer()
-    project_vectors = vectorizer.fit_transform(project_texts).toarray().astype('float32')
-    d = project_vectors.shape[1]
-    index = faiss.IndexFlatL2(d)
-    index.add(project_vectors)
-    # Build the user's profile using their skills, bio, and categories.
-    user_skills_text = " ".join([skill.name for skill in user.profile.skills.all()])
-    bio_text = user.profile.bio or ""
-    user_categories_text = " ".join([cat.name for cat in user.profile.categories.all()])
-    user_profile_text = " ".join([user_skills_text, bio_text, user_categories_text]).strip()
-    user_vector = vectorizer.transform([user_profile_text]).toarray().astype('float32')
-    total_projects = len(project_ids)
-    distances, indices = index.search(user_vector, total_projects)
-    # Compute a similarity percentage from each L2 distance.
+    _init_global_tfidf()
+
+    # build the user profile vector
+    user_skills_text      = " ".join([skill.name for skill in user.profile.skills.all()])
+    bio_text              = user.profile.bio or ""
+    user_categories_text  = " ".join([cat.name for cat in user.profile.categories.all()])
+    user_profile_text     = " ".join([
+        user_skills_text,
+        bio_text,
+        user_categories_text
+    ]).strip()
+
+    user_vec = _GLOBAL_TFIDF.transform([user_profile_text]) \
+                             .toarray() \
+                             .astype('float32')
+
+    # search over the full index
+    distances, indices = _GLOBAL_INDEX.search(user_vec, len(_GLOBAL_IDS))
+
+    # convert distances → similarity % and build a dict
     faiss_scores = {}
     for rank, idx in enumerate(indices[0]):
-        distance = distances[0][rank]
-        # Convert L2 distance into a similarity score (higher is better)
-        similarity = (1 / (1 + distance)) * 100
-        faiss_scores[project_ids[idx]] = round(similarity, 2)
-    ordered_ids = [project_ids[i] for i in indices[0]]
+        dist       = distances[0][rank]
+        similarity = (1 / (1 + dist)) * 100
+        pid        = _GLOBAL_IDS[idx]
+        faiss_scores[pid] = round(similarity, 2)
+
+    # now filter and order only the projects passed in
+    project_id_set = {p.id for p in projects}
+    ordered_ids    = [pid for pid in _GLOBAL_IDS if pid in project_id_set]
+
     return ordered_ids, faiss_scores
 
 def recommend_projects_for_user(user):
     """
-    Recommend all active projects for the given user, sorted by similarity.
-    Each project will have an attribute 'faiss_score' representing the matching percentage.
+    Recommend all active projects for the given user, sorted by FAISS similarity.
+    Each returned Project instance gets a .faiss_score attribute.
     """
-    projects = Project.objects.filter(is_active=True)
-    projects_list = list(projects)
-    if not projects_list:
+    all_active = list(Project.objects.filter(is_active=True))
+    if not all_active:
         return []
-    ordered_ids, faiss_scores = rank_projects_with_faiss(projects_list, user)
-    recommended_projects = Project.objects.filter(id__in=ordered_ids)
-    # Preserve FAISS ordering
-    recommended_projects = sorted(recommended_projects, key=lambda p: ordered_ids.index(p.id))
-    for project in recommended_projects:
-        project.faiss_score = faiss_scores.get(project.id, 0)
-    return recommended_projects
 
+    ordered_ids, faiss_scores = rank_projects_with_faiss(all_active, user)
 
+    # fetch them in bulk and preserve the ranking
+    projs = Project.objects.filter(id__in=ordered_ids)
+    projs = sorted(projs, key=lambda p: ordered_ids.index(p.id))
 
+    for p in projs:
+        p.faiss_score = faiss_scores.get(p.id, 0)
 
-#reserse, recommend users to project
+    return projs
+
+# --- user ranking reversed: unchanged from before ---
 
 def rank_users_with_faiss(users, project):
     """
-    Given a list of candidate users and a project,
-    compute a ranking of user IDs based on the similarity between each user's profile text
-    (constructed from their skills, bio, and categories) and the project's text profile.
-    Returns:
-        A tuple: (ordered_user_ids, faiss_scores)
-            ordered_user_ids: list of user IDs ordered from most similar (highest similarity) to least.
-            faiss_scores: dictionary mapping user ID to a computed similarity percentage.
+    Rank candidate users by FAISS similarity to the given project.
     """
     from sklearn.feature_extraction.text import TfidfVectorizer
-    user_texts = []
-    user_ids = []
-    for user in users:
-        # Build user profile text
-        skills_text = " ".join([skill.name for skill in user.profile.skills.all()])
-        bio_text = user.profile.bio or ""
-        categories_text = " ".join([cat.name for cat in user.profile.categories.all()])
-        text = " ".join([skills_text, bio_text, categories_text]).strip()
-        user_texts.append(text)
-        user_ids.append(user.id)
+
+    # build user texts
+    user_texts, user_ids = [], []
+    for u in users:
+        skills_text      = " ".join([s.name for s in u.profile.skills.all()])
+        bio_text         = u.profile.bio or ""
+        categories_text  = " ".join([c.name for c in u.profile.categories.all()])
+        txt = " ".join([skills_text, bio_text, categories_text]).strip()
+        user_texts.append(txt)
+        user_ids.append(u.id)
+
     if not user_texts:
         return [], {}
-    # Vectorize the user texts
-    vectorizer = TfidfVectorizer()
-    user_vectors = vectorizer.fit_transform(user_texts).toarray().astype('float32')
-    d = user_vectors.shape[1]
-    import faiss
+
+    vec         = TfidfVectorizer()
+    user_matrix = vec.fit_transform(user_texts).toarray().astype('float32')
+
+    d     = user_matrix.shape[1]
     index = faiss.IndexFlatL2(d)
-    index.add(user_vectors)
-    # Build the project profile vector using your existing build_text_profile function
-    project_text = build_text_profile(project)
-    project_vector = vectorizer.transform([project_text]).toarray().astype('float32')
-    total_users = len(user_ids)
-    distances, indices = index.search(project_vector, total_users)
-    # Convert L2 distances to similarity percentages (higher is better)
+    index.add(user_matrix)
+
+    proj_text   = build_text_profile(project)
+    proj_vector = vec.transform([proj_text]).toarray().astype('float32')
+
+    distances, indices = index.search(proj_vector, len(user_ids))
+
     faiss_scores = {}
     for rank, idx in enumerate(indices[0]):
-        distance = distances[0][rank]
-        similarity = (1 / (1 + distance)) * 100
-        faiss_scores[user_ids[idx]] = round(similarity, 2)
-    ordered_ids = [user_ids[i] for i in indices[0]]
-    return ordered_ids, faiss_scores
+        dist       = distances[0][rank]
+        similarity = (1 / (1 + dist)) * 100
+        uid        = user_ids[idx]
+        faiss_scores[uid] = round(similarity, 2)
+
+    ordered = [user_ids[i] for i in indices[0]]
+    return ordered, faiss_scores
 
 def recommend_users_for_project(project, top_n=5):
     """
-    Recommend candidate users for the given project.
-    Excludes the project owner and returns the top N users sorted by a FAISS-based match score.
-    Each returned user will have an attribute 'faiss_score' with the computed match percentage.
+    Wrap-up: returns top-N users for the project, each with a .faiss_score.
     """
     from django.contrib.auth import get_user_model
-    User = get_user_model()
-    # Consider active users excluding the project owner
+    User       = get_user_model()
     candidates = User.objects.filter(is_active=True).exclude(id=project.owner.id)
-    ordered_ids, faiss_scores = rank_users_with_faiss(candidates, project)
-    top_ids = ordered_ids[:top_n]
-    recommended_users = User.objects.filter(id__in=top_ids)
-    # Preserve the FAISS ordering
-    recommended_users = sorted(recommended_users, key=lambda u: top_ids.index(u.id))
-    for user in recommended_users:
-        user.faiss_score = faiss_scores.get(user.id, 0)
-    return recommended_users
 
+    ordered_ids, faiss_scores = rank_users_with_faiss(candidates, project)
+    top_ids                   = ordered_ids[:top_n]
+
+    users = list(User.objects.filter(id__in=top_ids))
+    users = sorted(users, key=lambda u: top_ids.index(u.id))
+
+    for u in users:
+        u.faiss_score = faiss_scores.get(u.id, 0)
+
+    return users

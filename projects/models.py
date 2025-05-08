@@ -12,7 +12,7 @@ def get_default_owner():
     user, _ = User.objects.get_or_create(
         username='default_owner',
         defaults={
-            'is_active': False,
+            'is_active': True,
             'password': 'unusable_password'
         }
     )

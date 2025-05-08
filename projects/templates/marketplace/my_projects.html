@@ -8,113 +8,201 @@
   var favorite_ids = {{ favorite_ids|safe }};
 </script>
 
-<div class="container mx-auto px-4 py-12 max-w-6xl">
-  <!-- Header -->
-  <header class="text-center mb-12">
-    <h1 class="text-4xl font-bold mb-3 text-blue-600">
-      My Research Projects
-    </h1>
-    <p class="text-gray-600">
-      Organize and track your personal research initiatives
-    </p>
+<div class="container mx-auto px-4 py-8 max-w-7xl">
+  <!-- Header with breadcrumbs -->
+  <header class="mb-8">
+    <nav class="flex mb-4" aria-label="Breadcrumb">
+      <ol class="inline-flex items-center space-x-1 md:space-x-2">
+        <li class="inline-flex items-center">
+          <a href="{% url 'marketplace' %}" class="text-sm text-gray-500 hover:text-blue-600">
+            <i class="fas fa-home mr-1"></i> Home
+          </a>
+        </li>
+        <li>
+          <div class="flex items-center">
+            <i class="fas fa-chevron-right text-gray-400 mx-1 text-xs"></i>
+            <span class="text-sm font-medium text-blue-600">Research Projects</span>
+          </div>
+        </li>
+      </ol>
+    </nav>
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-800">
+          My Research Projects
+        </h1>
+        <p class="text-gray-600 mt-1">
+          Organize and track your research initiatives
+        </p>
+      </div>
+      <a
+        href="{% url 'project-create' %}"
+        class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition shadow-sm whitespace-nowrap"
+      >
+        <i class="fas fa-plus mr-2"></i> New Project
+      </a>
+    </div>
   </header>
 
-  <!-- Search & Filter Bar -->
-  <section class="mb-10 p-6 bg-white rounded-xl shadow-sm">
-    <form id="searchForm" method="GET" class="flex flex-col sm:flex-row items-center gap-4">
-      <input type="hidden" id="sort" name="sort" value="{{ request.GET.sort|default:'-created_at' }}">
-      <input type="hidden" id="selectedCategories" name="categories" value="{{ selected_categories|join:',' }}">
-      <input type="hidden" id="status" name="status" value="{{ status }}">
-      <div class="relative w-full sm:flex-1">
-        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-        <input
-          type="text"
-          name="q"
-          value="{{ request.GET.q }}"
-          placeholder="Search projects..."
-          class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-        >
-      </div>
-      <div>
-        <a
-          href="{% url 'project-create' %}"
-          class="inline-flex items-center px-6 py-3 rounded-lg bg-blue-600 text-white font-medium shadow-sm hover:bg-blue-700 transition"
-        >
-          <i class="fas fa-plus mr-2"></i> New Project
-        </a>
-      </div>
-    </form>
+  <!-- Search & Filter Section -->
+  <section class="mb-8 bg-white rounded-xl shadow-sm border border-gray-100">
+    <div class="p-5 border-b border-gray-100">
+      <h2 class="text-lg font-semibold text-gray-800">Search & Filter</h2>
+    </div>
 
-    <!-- Status & Category Filters -->
-    <div class="mt-6 flex flex-wrap gap-2">
-      <!-- Status Filters -->
-      <span
-        class="cursor-pointer px-4 py-2 rounded-lg text-sm font-medium transition
-               {% if not request.GET.status %}bg-blue-100 text-blue-600{% else %}bg-gray-100 text-gray-600{% endif %}"
-        onclick="clearStatusFilter()"
-      >
-        All
-      </span>
-      <span
-        class="cursor-pointer px-4 py-2 rounded-lg text-sm font-medium transition
-               {% if request.GET.status == 'active' %}bg-blue-100 text-blue-600{% else %}bg-gray-100 text-gray-600{% endif %}"
-        onclick="setStatusFilter('active')"
-      >
-        Active
-      </span>
-      <span
-        class="cursor-pointer px-4 py-2 rounded-lg text-sm font-medium transition
-               {% if request.GET.status == 'inactive' %}bg-blue-100 text-blue-600{% else %}bg-gray-100 text-gray-600{% endif %}"
-        onclick="setStatusFilter('inactive')"
-      >
-        Inactive
-      </span>
-      <!-- Category Filters -->
-      {% with selected_cats=request.GET.categories|split:"," %}
-      {% for cat in all_categories %}
-      <span
-        class="cursor-pointer px-4 py-2 rounded-lg text-sm font-medium transition
-               {% if cat.id|stringformat:'s' in selected_cats %}bg-blue-100 text-blue-600{% else %}bg-gray-100 text-gray-600{% endif %}"
-        onclick="toggleCategory('{{ cat.id }}')"
-      >
-        {{ cat.name }}
-      </span>
-      {% endfor %}
-      {% endwith %}
+    <div class="p-5">
+      <form id="searchForm" method="GET" class="flex flex-col md:flex-row items-center gap-4">
+        <input type="hidden" id="sort" name="sort" value="{{ request.GET.sort|default:'-created_at' }}">
+        <input type="hidden" id="selectedCategories" name="categories" value="{{ selected_categories|join:',' }}">
+        <input type="hidden" id="status" name="status" value="{{ status }}">
+
+        <div class="relative w-full">
+          <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+            <i class="fas fa-search text-gray-400"></i>
+          </div>
+          <input
+            type="text"
+            name="q"
+            value="{{ request.GET.q }}"
+            placeholder="Search by project title or description..."
+            class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+          <button
+            type="submit"
+            class="absolute right-2.5 bottom-2.5 bg-blue-600 text-white rounded-lg px-3 py-1 hover:bg-blue-700"
+          >
+            Search
+          </button>
+        </div>
+      </form>
+
+      <!-- Status & Category Filters -->
+      <div class="mt-5">
+        <div class="flex items-center mb-3">
+          <i class="fas fa-filter text-gray-500 mr-2"></i>
+          <h3 class="text-sm font-semibold text-gray-700">Filters</h3>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <!-- Status Filters -->
+          <div class="inline-flex rounded-md shadow-sm" role="group">
+            <span
+              class="cursor-pointer px-4 py-2 text-sm font-medium transition rounded-l-lg border border-gray-200
+                    {% if not request.GET.status %}bg-blue-50 text-blue-600 border-blue-300{% else %}bg-white text-gray-600 hover:bg-gray-50{% endif %}"
+              onclick="clearStatusFilter()"
+            >
+              All
+            </span>
+            <span
+              class="cursor-pointer px-4 py-2 text-sm font-medium transition border-t border-b border-gray-200
+                    {% if request.GET.status == 'active' %}bg-blue-50 text-blue-600 border-blue-300{% else %}bg-white text-gray-600 hover:bg-gray-50{% endif %}"
+              onclick="setStatusFilter('active')"
+            >
+              <i class="fas fa-circle text-green-500 text-xs mr-2"></i>Active
+            </span>
+            <span
+              class="cursor-pointer px-4 py-2 text-sm font-medium transition rounded-r-lg border border-gray-200
+                    {% if request.GET.status == 'inactive' %}bg-blue-50 text-blue-600 border-blue-300{% else %}bg-white text-gray-600 hover:bg-gray-50{% endif %}"
+              onclick="setStatusFilter('inactive')"
+            >
+              <i class="fas fa-circle text-red-500 text-xs mr-2"></i>Inactive
+            </span>
+          </div>
+
+          <!-- Category Filters -->
+          <div class="inline-flex items-center ml-2">
+            <span class="text-sm text-gray-600 mr-2">Categories:</span>
+            <div class="flex flex-wrap gap-1">
+              {% with selected_cats=request.GET.categories|split:"," %}
+              {% for cat in all_categories %}
+              <span
+                class="cursor-pointer px-3 py-1.5 rounded-lg text-sm font-medium transition
+                      {% if cat.id|stringformat:'s' in selected_cats %}bg-blue-100 text-blue-600 border border-blue-200{% else %}bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200{% endif %}"
+                onclick="toggleCategory('{{ cat.id }}')"
+              >
+                {{ cat.name }}
+              </span>
+              {% endfor %}
+              {% endwith %}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- Sort Options -->
+  <div class="flex justify-end mb-4">
+    <div class="inline-flex items-center rounded-lg bg-white border border-gray-200 px-3 py-2">
+      <span class="text-sm text-gray-600 mr-2">Sort by:</span>
+      <select
+        onchange="updateSort(this.value)"
+        class="text-sm text-gray-700 bg-transparent focus:outline-none"
+      >
+        <option value="-created_at" {% if request.GET.sort == '-created_at' %}selected{% endif %}>Newest first</option>
+        <option value="created_at" {% if request.GET.sort == 'created_at' %}selected{% endif %}>Oldest first</option>
+        <option value="title" {% if request.GET.sort == 'title' %}selected{% endif %}>Title A-Z</option>
+        <option value="-title" {% if request.GET.sort == '-title' %}selected{% endif %}>Title Z-A</option>
+      </select>
+    </div>
+  </div>
+
   <!-- Pinned Projects Section -->
-  <section class="mb-12">
-    <h2 class="text-2xl font-bold mb-6 text-blue-600">Pinned Projects</h2>
-    <div id="pinnedProjectsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  <section class="mb-8">
+    <div class="flex items-center mb-4">
+      <h2 class="text-xl font-bold text-gray-800">Pinned Projects</h2>
+      <span class="ml-2 px-2 py-0.5 bg-blue-100 text-blue-600 text-xs font-medium rounded-full">{{ pinned_projects|length }}</span>
+    </div>
+
+    <div id="pinnedProjectsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
       {% for project in pinned_projects %}
       <div
-        class="bg-white rounded-xl shadow-sm p-6 flex flex-col transition hover:shadow-md"
+        class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition"
         id="pinned-{{ project.pk }}"
       >
-        <h3 class="text-lg font-semibold mb-3 line-clamp-2">
-          <a href="{% url 'project-detail' pk=project.pk %}" class="text-blue-600 hover:text-blue-800">
-            {{ project.title }}
+        <!-- Project Header with Pin -->
+        <div class="bg-blue-50 p-3 flex justify-between items-center">
+          <span class="text-sm font-medium text-blue-600 flex items-center">
+            <i class="fas fa-thumbtack mr-2"></i> Pinned
+          </span>
+          <button
+            onclick="togglePin({{ project.pk }}, this)"
+            class="text-blue-600 hover:text-blue-800 p-1 rounded-full hover:bg-blue-100"
+            title="Unpin this project"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Project Content -->
+        <div class="p-4">
+          <h3 class="text-lg font-semibold mb-2 line-clamp-1">
+            <a href="{% url 'project-detail' pk=project.pk %}" class="text-gray-800 hover:text-blue-600">
+              {{ project.title }}
+            </a>
+          </h3>
+
+          <div class="flex items-center text-xs text-gray-500 mb-3">
+            <i class="fas fa-calendar-alt mr-1"></i>
+            <span>{{ project.created_at|date:"M d, Y" }}</span>
+            <span class="mx-2">•</span>
+            <span class="{% if project.is_active %}text-green-600{% else %}text-red-600{% endif %}">
+              {% if project.is_active %}Active{% else %}Inactive{% endif %}
+            </span>
+          </div>
+
+          <a
+            href="{% url 'project-detail' pk=project.pk %}"
+            class="mt-3 block text-sm text-blue-600 hover:text-blue-800 hover:underline"
+          >
+            View Details <i class="fas fa-arrow-right ml-1"></i>
           </a>
-        </h3>
-        <a
-          href="{% url 'project-detail' pk=project.pk %}"
-          class="text-sm text-blue-600 hover:text-blue-800 mt-auto"
-        >
-          View Details
-        </a>
-        <button
-          onclick="togglePin({{ project.pk }}, this)"
-          class="mt-4 text-sm text-gray-500 hover:text-gray-700 flex items-center justify-center"
-        >
-          <i class="fas fa-thumbtack mr-2"></i> Unpin
-        </button>
+        </div>
       </div>
       {% empty %}
-      <div class="col-span-full text-center p-10 border border-dashed border-gray-300 rounded-xl bg-gray-50">
-        <i class="fas fa-thumbtack text-gray-400 text-3xl mb-3"></i>
-        <p class="text-gray-500">No pinned projects yet</p>
+      <div class="col-span-full text-center p-8 border border-dashed border-gray-300 rounded-lg bg-gray-50">
+        <i class="fas fa-thumbtack text-gray-400 text-2xl mb-2"></i>
+        <p class="text-gray-500">Pin important projects for quick access</p>
       </div>
       {% endfor %}
     </div>
@@ -122,118 +210,138 @@
 
   <!-- Projects List -->
   <section>
-    <h2 class="text-2xl font-bold mb-6 text-blue-600">All Projects</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+    <div class="flex items-center mb-4">
+      <h2 class="text-xl font-bold text-gray-800">All Projects</h2>
+      <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">{{ projects|length }}</span>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
       {% for project in projects %}
-      <div class="bg-white rounded-xl shadow-sm overflow-hidden transition hover:shadow-md flex flex-col h-full">
-        <!-- Top Bar with Status and Actions -->
-        <div class="flex justify-between items-center p-4 border-b border-gray-100">
-          <!-- Active/Inactive Badge -->
+      <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition h-full flex flex-col">
+        <!-- Status Badge -->
+        <div class="px-4 pt-4 pb-1 flex justify-between items-center">
           <span
-            class="px-3 py-1 rounded-full text-xs font-medium
-                   {% if project.is_active %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}"
+            class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium
+                  {% if project.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}"
           >
+            <span class="w-2 h-2 mr-1 rounded-full {% if project.is_active %}bg-green-600{% else %}bg-red-600{% endif %}"></span>
             {% if project.is_active %}Active{% else %}Inactive{% endif %}
           </span>
-          <!-- Favorite & Pin Buttons -->
-          <div class="flex space-x-3">
-            <!-- Favorite Button -->
-            <button id="fav-btn-{{ project.pk }}" class="p-1 text-gray-400 hover:text-red-500" title="Toggle Favorite">
-              <i class="{% if project.pk in favorite_ids %}fas fa-heart text-red-500{% else %}far fa-heart{% endif %} transition"></i>
+
+          <!-- Action Icons -->
+          <div class="flex space-x-1">
+            <button
+              id="fav-btn-{{ project.pk }}"
+              class="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-red-500"
+              title="{% if project.pk in favorite_ids %}Remove from favorites{% else %}Add to favorites{% endif %}"
+            >
+              <i class="{% if project.pk in favorite_ids %}fas fa-heart text-red-500{% else %}far fa-heart{% endif %}"></i>
             </button>
-            <!-- Pin Button -->
+
             <button
               onclick="togglePin({{ project.pk }}, this)"
               id="pin-btn-{{ project.pk }}"
-              class="p-1 {% if project.pk in pinned_ids %}text-blue-600{% else %}text-gray-400 hover:text-blue-600{% endif %}"
-              title="Toggle Pin"
+              class="p-1.5 rounded-full hover:bg-gray-100 {% if project.pk in pinned_ids %}text-blue-600{% else %}text-gray-400 hover:text-blue-600{% endif %}"
+              title="{% if project.pk in pinned_ids %}Unpin project{% else %}Pin project{% endif %}"
             >
-              <i class="fas fa-thumbtack transition"></i>
+              <i class="fas fa-thumbtack"></i>
             </button>
           </div>
         </div>
 
         <!-- Project Content -->
-        <div class="p-4">
-          <!-- Project Title & Date -->
-          <h3 class="text-xl font-semibold mb-2">
-            <a href="{% url 'project-detail' pk=project.pk %}" class="text-blue-600 hover:text-blue-800">
+        <div class="px-4 py-3 flex-grow">
+          <!-- Title -->
+          <h3 class="text-lg font-semibold mb-2">
+            <a href="{% url 'project-detail' pk=project.pk %}" class="text-gray-800 hover:text-blue-600">
               {{ project.title }}
             </a>
           </h3>
+
+          <!-- Date & Time Info -->
           <div class="flex items-center text-xs text-gray-500 mb-3">
             <i class="fas fa-calendar-alt mr-1"></i>
-            <span>{{ project.created_at|date:"M d, Y" }} ({{ project.created_at|timesince }} ago)</span>
+            <span>{{ project.created_at|date:"M d, Y" }}</span>
+            <span class="mx-1">•</span>
+            <span title="Created {{ project.created_at|date:'F j, Y \a\t g:i a' }}">{{ project.created_at|timesince }} ago</span>
           </div>
 
           <!-- Categories -->
+          {% if project.category.all %}
           <div class="flex flex-wrap gap-1 mb-3">
             {% for category in project.category.all %}
-            <span class="px-2 py-1 bg-gray-100 rounded-md text-xs">{{ category.name }}</span>
-            {% empty %}
-            <span class="text-xs text-gray-500">No category</span>
+            <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded-md text-xs">{{ category.name }}</span>
             {% endfor %}
           </div>
+          {% endif %}
 
           <!-- Description -->
           <div class="mb-4">
-            <p id="desc-{{ project.pk }}" class="text-sm text-gray-600 line-clamp-3">
+            <div id="desc-{{ project.pk }}" class="text-sm text-gray-600 line-clamp-3">
               {{ project.description }}
-            </p>
+            </div>
+            {% if project.description|length > 150 %}
             <button
               onclick="toggleDescription({{ project.pk }}, event)"
-              class="text-xs text-blue-500 hover:text-blue-700 mt-1 focus:outline-none"
+              class="text-xs text-blue-500 hover:text-blue-700 mt-1 focus:outline-none hover:underline"
             >
               Read more
             </button>
+            {% endif %}
           </div>
 
-          <!-- Roles -->
+          <!-- Roles if any -->
           {% if project.required_roles.all %}
-          <div class="mb-4 flex flex-wrap gap-1">
-            {% for role in project.required_roles.all %}
-            <span class="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-md inline-flex items-center">
-              <i class="fas fa-user mr-1"></i> {{ role.name }}
-            </span>
-            {% endfor %}
+          <div class="mb-3">
+            <div class="text-xs font-medium text-gray-500 mb-1">Required roles:</div>
+            <div class="flex flex-wrap gap-1">
+              {% for role in project.required_roles.all %}
+              <span class="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md inline-flex items-center">
+                <i class="fas fa-user-tag mr-1"></i> {{ role.name }}
+              </span>
+              {% endfor %}
+            </div>
           </div>
           {% endif %}
         </div>
 
         <!-- Footer Actions -->
-        <div class="mt-auto p-4 bg-gray-50 flex items-center justify-between">
-  {% if project.owner == user %}
-  <form method="POST" action="{% url 'project-toggle' project.pk %}" class="mr-2">
-    {% csrf_token %}
-    <button
-      type="submit"
-      class="px-3 py-1 rounded-md text-xs font-medium transition
-             {% if project.is_active %}bg-red-100 text-red-700 hover:bg-red-200{% else %}bg-green-100 text-green-700 hover:bg-green-200{% endif %}"
-    >
-      {% if project.is_active %}Deactivate{% else %}Activate{% endif %}
-    </button>
-  </form>
-  {% endif %}
+        <div class="px-4 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between mt-auto">
+          {% if project.owner == user %}
+          <form method="POST" action="{% url 'project-toggle' project.pk %}">
+            {% csrf_token %}
+            <button
+              type="submit"
+              class="px-3 py-1.5 rounded-md text-xs font-medium transition
+                    {% if project.is_active %}bg-red-100 text-red-700 hover:bg-red-200{% else %}bg-green-100 text-green-700 hover:bg-green-200{% endif %}"
+            >
+              {% if project.is_active %}
+              <i class="fas fa-toggle-off mr-1"></i> Deactivate
+              {% else %}
+              <i class="fas fa-toggle-on mr-1"></i> Activate
+              {% endif %}
+            </button>
+          </form>
+          {% endif %}
 
-  <a
-    href="{% url 'project-detail' pk=project.pk %}"
-    class="text-sm text-blue-600 hover:text-blue-800 ml-auto"
-  >
-    View Details <i class="fas fa-arrow-right ml-1"></i>
-  </a>
-</div>
-
+          <a
+            href="{% url 'project-detail' pk=project.pk %}"
+            class="text-sm text-blue-600 hover:text-blue-800 hover:underline ml-auto flex items-center"
+          >
+            View Details <i class="fas fa-arrow-right ml-1"></i>
+          </a>
+        </div>
       </div>
       {% empty %}
-      <div class="col-span-full p-10 border border-dashed border-gray-300 rounded-xl text-center bg-gray-50">
+      <div class="col-span-full p-10 border border-dashed border-gray-300 rounded-lg text-center bg-gray-50">
         <i class="fas fa-folder-open text-gray-400 text-4xl mb-4"></i>
-        <h3 class="text-xl font-semibold mb-3">No projects yet</h3>
-        <p class="text-gray-600 mb-6">Create your first research project and let your creativity shine!</p>
+        <h3 class="text-xl font-semibold mb-3">No projects found</h3>
+        <p class="text-gray-600 mb-6">Start your research journey by creating your first project!</p>
         <a
           href="{% url 'project-create' %}"
           class="inline-flex items-center px-6 py-3 rounded-lg bg-blue-600 text-white font-medium shadow-sm hover:bg-blue-700 transition"
         >
-          <i class="fas fa-plus mr-2"></i> Start Your First Project
+          <i class="fas fa-plus mr-2"></i> Create Your First Project
         </a>
       </div>
       {% endfor %}
@@ -242,23 +350,25 @@
 
   <!-- Pagination -->
   {% if is_paginated %}
-  <div class="mt-10">
-    <nav class="flex justify-center">
-      <ul class="inline-flex items-center">
+  <div class="mt-8">
+    <nav class="flex justify-center" aria-label="Pagination">
+      <ul class="inline-flex items-center -space-x-px">
         {% if page_obj.has_previous %}
         <li>
           <a
             href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}"
-            class="px-4 py-2 border rounded-l-lg text-gray-700 bg-white hover:bg-gray-50 transition"
+            class="block px-3 py-2 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700"
           >
             <i class="fas fa-chevron-left"></i>
+            <span class="sr-only">Previous</span>
           </a>
         </li>
         {% endif %}
+
         {% for num in page_obj.paginator.page_range %}
           {% if num == page_obj.number %}
           <li>
-            <span class="px-4 py-2 border-t border-b bg-blue-50 text-blue-600 font-medium border-gray-200">
+            <span class="z-10 px-3 py-2 leading-tight border text-blue-600 border-blue-300 bg-blue-50 font-medium">
               {{ num }}
             </span>
           </li>
@@ -266,20 +376,22 @@
           <li>
             <a
               href="?page={{ num }}&{{ request.GET.urlencode }}"
-              class="px-4 py-2 border border-gray-200 text-gray-700 hover:bg-gray-50 transition"
+              class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700"
             >
               {{ num }}
             </a>
           </li>
           {% endif %}
         {% endfor %}
+
         {% if page_obj.has_next %}
         <li>
           <a
             href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}"
-            class="px-4 py-2 border rounded-r-lg text-gray-700 bg-white hover:bg-gray-50 transition"
+            class="block px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700"
           >
             <i class="fas fa-chevron-right"></i>
+            <span class="sr-only">Next</span>
           </a>
         </li>
         {% endif %}
@@ -289,11 +401,16 @@
   {% endif %}
 </div>
 
+<!-- Toast Notification Component -->
+<div id="toast-container" class="fixed bottom-5 right-5 z-50"></div>
+
 <!-- Scripts -->
 <script>
-  // Favorite button using jQuery
+  // Favorite button handler
   $(document).on('click', '[id^="fav-btn-"]', function(e) {
-    e.stopPropagation(); // ensures we only handle the button click
+    e.preventDefault();
+    e.stopPropagation();
+
     const projectId = this.id.split('-')[2];
     const btn = $(this);
     const icon = btn.find('i');
@@ -308,26 +425,33 @@
       success: function(response) {
         if (response.success) {
           if (response.is_favorite) {
-            icon.removeClass("far").addClass("fas text-red-500 animate__animated animate__heartBeat");
+            icon.removeClass("far").addClass("fas text-red-500");
+            btn.attr('title', 'Remove from favorites');
             favorite_ids.push(parseInt(projectId));
+            showToast("Added to favorites", "success");
           } else {
-            icon.removeClass("fas text-red-500").addClass("far animate__animated animate__heartBeat");
+            icon.removeClass("fas text-red-500").addClass("far");
+            btn.attr('title', 'Add to favorites');
             const index = favorite_ids.indexOf(parseInt(projectId));
             if (index > -1) {
               favorite_ids.splice(index, 1);
             }
+            showToast("Removed from favorites", "info");
           }
         }
       },
       error: function(xhr) {
         console.error('Error:', xhr.responseJSON?.error || 'Unknown error');
+        showToast("Failed to update favorites", "error");
       }
     });
   });
 
-  // Toggle pin
+  // Toggle pin function
   async function togglePin(projectId, button) {
+    event.preventDefault();
     event.stopPropagation();
+
     button.disabled = true;
     try {
       const response = await fetch(`{% url 'toggle-pin-project' 0 %}`.replace('0', projectId), {
@@ -337,79 +461,125 @@
           'Content-Type': 'application/json'
         },
       });
+
       const data = await response.json();
-      const icon = button.querySelector('i');
+
       if (data.status === 'pinned') {
-        // Remove empty pinned state if present
-        const emptyElem = document.querySelector('.empty-pinned');
-        if (emptyElem) emptyElem.remove();
+        // Update the pin button in the project list
+        const pinBtn = document.getElementById(`pin-btn-${projectId}`);
+        if (pinBtn) {
+          pinBtn.classList.add('text-blue-600');
+          pinBtn.classList.remove('text-gray-400');
+          pinBtn.setAttribute('title', 'Unpin project');
+        }
+
+        // Remove empty state if present
+        const emptyPinned = document.querySelector('#pinnedProjectsContainer div.border-dashed');
+        if (emptyPinned) emptyPinned.remove();
+
         // Create new pinned card
         const newCard = document.createElement('div');
-        newCard.className = 'bg-white rounded-xl shadow-sm p-6 flex flex-col transition hover:shadow-md';
+        newCard.className = 'bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition';
         newCard.id = `pinned-${projectId}`;
         newCard.innerHTML = `
-          <h3 class="text-lg font-semibold mb-3 line-clamp-2">
+          <div class="bg-blue-50 p-3 flex justify-between items-center">
+            <span class="text-sm font-medium text-blue-600 flex items-center">
+              <i class="fas fa-thumbtack mr-2"></i> Pinned
+            </span>
+            <button
+              onclick="togglePin(${data.project_pk}, this)"
+              class="text-blue-600 hover:text-blue-800 p-1 rounded-full hover:bg-blue-100"
+              title="Unpin this project"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold mb-2 line-clamp-1">
+              <a href="{% url 'project-detail' pk=0 %}".replace('0', data.project_pk) class="text-gray-800 hover:text-blue-600">
+                ${data.project_title}
+              </a>
+            </h3>
+            <div class="flex items-center text-xs text-gray-500 mb-3">
+              <i class="fas fa-calendar-alt mr-1"></i>
+              <span>${data.created_at}</span>
+              <span class="mx-2">•</span>
+              <span class="${data.is_active ? 'text-green-600' : 'text-red-600'}">
+                ${data.is_active ? 'Active' : 'Inactive'}
+              </span>
+            </div>
             <a href="{% url 'project-detail' pk=0 %}".replace('0', data.project_pk)
-               class="text-blue-600 hover:text-blue-800">
-              ${data.project_title}
+               class="mt-3 block text-sm text-blue-600 hover:text-blue-800 hover:underline">
+              View Details <i class="fas fa-arrow-right ml-1"></i>
             </a>
-          </h3>
-          <a href="{% url 'project-detail' pk=0 %}".replace('0', data.project_pk)
-             class="text-sm text-blue-600 hover:text-blue-800 mt-auto">
-            View Details
-          </a>
-          <button onclick="togglePin(${data.project_pk}, this)"
-                  class="mt-4 text-sm text-gray-500 hover:text-gray-700 flex items-center justify-center">
-            <i class="fas fa-thumbtack mr-2"></i> Unpin
-          </button>
+          </div>
         `;
-        document.getElementById('pinnedProjectsContainer').appendChild(newCard);
 
-        if (icon) {
-          icon.classList.remove('text-gray-400');
-          icon.classList.add('text-blue-600');
-        }
-        showNotification("Project pinned!");
+        document.getElementById('pinnedProjectsContainer').appendChild(newCard);
+        showToast("Project pinned successfully", "success");
       } else if (data.status === 'unpinned') {
+        // Update the pin button in the project list
+        const pinBtn = document.getElementById(`pin-btn-${projectId}`);
+        if (pinBtn) {
+          pinBtn.classList.remove('text-blue-600');
+          pinBtn.classList.add('text-gray-400');
+          pinBtn.setAttribute('title', 'Pin project');
+        }
+
+        // Remove the pinned card with animation
         const card = document.getElementById(`pinned-${projectId}`);
         if (card) {
-          card.classList.add('animate__animated', 'animate__fadeOut');
+          card.style.transition = 'opacity 0.3s ease';
+          card.style.opacity = '0';
           setTimeout(() => {
             card.remove();
-            // If pinned container is now empty, reinsert empty pinned state
-            if (document.getElementById('pinnedProjectsContainer').children.length === 0) {
+
+            // Check if pinned container is now empty
+            const pinnedContainer = document.getElementById('pinnedProjectsContainer');
+            if (pinnedContainer.children.length === 0) {
               const emptyDiv = document.createElement('div');
-              emptyDiv.className = 'col-span-full text-center p-10 border border-dashed border-gray-300 rounded-xl bg-gray-50';
-              emptyDiv.innerHTML = `<i class="fas fa-thumbtack text-gray-400 text-3xl mb-3"></i><p class="text-gray-500">No pinned projects yet</p>`;
-              document.getElementById('pinnedProjectsContainer').appendChild(emptyDiv);
+              emptyDiv.className = 'col-span-full text-center p-8 border border-dashed border-gray-300 rounded-lg bg-gray-50';
+              emptyDiv.innerHTML = `
+                <i class="fas fa-thumbtack text-gray-400 text-2xl mb-2"></i>
+                <p class="text-gray-500">Pin important projects for quick access</p>
+              `;
+              pinnedContainer.appendChild(emptyDiv);
             }
-          }, 1000);
+          }, 300);
         }
-        if (icon) {
-          icon.classList.remove('text-blue-600');
-          icon.classList.add('text-gray-400');
-        }
-        showNotification("Project unpinned!", "#ef4444");
+
+        showToast("Project unpinned", "info");
       }
     } catch (error) {
       console.error('Error toggling pin:', error);
-      showNotification("An error occurred", "#ef4444");
+      showToast("Failed to update pin status", "error");
     } finally {
       button.disabled = false;
     }
   }
 
-  // Toggle description (Read more/less)
+  // Toggle description expand/collapse
   function toggleDescription(projectId, event) {
+    event.preventDefault();
     event.stopPropagation();
+
     const desc = document.getElementById(`desc-${projectId}`);
+    const button = event.target;
+
     if (desc.classList.contains('line-clamp-3')) {
       desc.classList.remove('line-clamp-3');
-      event.target.innerText = 'Read less';
+      button.innerText = 'Read less';
     } else {
       desc.classList.add('line-clamp-3');
-      event.target.innerText = 'Read more';
+      button.innerText = 'Read more';
     }
+  }
+
+  // Update sort order
+  function updateSort(sortValue) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('sort', sortValue);
+    window.location.href = url.toString();
   }
 
   // Helper: get CSRF token
@@ -428,46 +598,56 @@
     return cookieValue;
   }
 
-  // Simple notification popup
-  function showNotification(message, bgColor = '#3b82f6') {
-    const notif = document.createElement('div');
-    notif.className = 'fixed bottom-4 right-4 p-4 rounded-lg shadow-lg text-white animate__animated animate__fadeIn';
-    notif.style.background = bgColor;
-    notif.innerText = message;
-    document.body.appendChild(notif);
+  // Toast notification system
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+
+    // Define toast colors based on type
+    let bgColor, iconClass;
+    switch(type) {
+      case 'success':
+        bgColor = 'bg-green-500';
+        iconClass = 'fas fa-check-circle';
+        break;
+      case 'error':
+        bgColor = 'bg-red-500';
+        iconClass = 'fas fa-exclamation-circle';
+        break;
+      case 'warning':
+        bgColor = 'bg-yellow-500';
+        iconClass = 'fas fa-exclamation-triangle';
+        break;
+      default:
+        bgColor = 'bg-blue-500';
+        iconClass = 'fas fa-info-circle';
+    }
+
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `${bgColor} text-white p-4 rounded-lg shadow-lg mb-3 flex items-center max-w-md`;
+    toast.innerHTML = `
+      <i class="${iconClass} mr-3"></i>
+      <div class="flex-grow">${message}</div>
+      <button class="ml-4 text-white hover:text-gray-200" onclick="this.parentElement.remove()">
+        <i class="fas fa-times"></i>
+      </button>
+    `;
+
+    // Add to container
+    container.appendChild(toast);
+
+    // Auto-remove after 3 seconds
     setTimeout(() => {
-      notif.classList.add('animate__fadeOut');
-      setTimeout(() => { notif.remove(); }, 500);
-    }, 2000);
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.5s ease';
+      setTimeout(() => toast.remove(), 500);
+    }, 3000);
   }
 
   // Filter Functions
   function setStatusFilter(statusVal) {
     const url = new URL(window.location.href);
-    if (statusVal) {
-      url.searchParams.set('status', statusVal);
-    } else {
-      url.searchParams.delete('status');
-    }
-    window.location.href = url.toString();
-  }
-
-  function toggleCategory(catId) {
-    const url = new URL(window.location.href);
-    let categories = url.searchParams.get('categories')
-      ? url.searchParams.get('categories').split(',').filter(c => c)
-      : [];
-    const index = categories.indexOf(catId);
-    if (index > -1) {
-      categories.splice(index, 1);
-    } else {
-      categories.push(catId);
-    }
-    if (categories.length > 0) {
-      url.searchParams.set('categories', categories.join(','));
-    } else {
-      url.searchParams.delete('categories');
-    }
+    url.searchParams.set('status', statusVal);
     window.location.href = url.toString();
   }
 
@@ -477,5 +657,50 @@
     url.searchParams.delete('categories');
     window.location.href = url.toString();
   }
+
+  function toggleCategory(catId) {
+    const url = new URL(window.location.href);
+    let categories = url.searchParams.get('categories')
+      ? url.searchParams.get('categories').split(',').filter(c => c)
+      : [];
+
+    const index = categories.indexOf(catId);
+    if (index > -1) {
+      categories.splice(index, 1);
+    } else {
+      categories.push(catId);
+    }
+
+    if (categories.length > 0) {
+      url.searchParams.set('categories', categories.join(','));
+    } else {
+      url.searchParams.delete('categories');
+    }
+
+    window.location.href = url.toString();
+  }
+
+  // Initialize tooltips if needed
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add keyboard navigation for common actions
+    document.addEventListener('keydown', function(e) {
+      // Alt+N to create new project
+      if (e.altKey && e.key === 'n') {
+        e.preventDefault();
+        window.location.href = "{% url 'project-create' %}";
+      }
+
+      // Alt+S to focus search
+      if (e.altKey && e.key === 's') {
+        e.preventDefault();
+        document.querySelector('[name="q"]').focus();
+      }
+    });
+
+    // Auto-focus search if query parameter exists
+    if (new URLSearchParams(window.location.search).has('q')) {
+      document.querySelector('[name="q"]').focus();
+    }
+  });
 </script>
-{% endblock %}
+  {% endblock %}

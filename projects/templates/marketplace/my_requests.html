@@ -2,129 +2,212 @@
 {% load static %}
 
 {% block content %}
-<!-- Inline Style with Refined Color Palette -->
-<style>
-:root {
-  --primary: #1A365D;       /* Deep navy blue */
-  --primary-light: #2D4A7A; /* Lighter navy blue */
-  --secondary: #F0B429;     /* Golden accent */
-  --tertiary: #48BB78;      /* Soft green */
-  --background: #F7FAFC;    /* Off-white background */
-  --paper: #FFFFFF;         /* Pure white */
-  --text: #2D3748;          /* Dark slate for text */
-  --text-light: #718096;    /* Medium slate for secondary text */
-  --border: #E2E8F0;        /* Light gray for borders */
-}
-</style>
+<div class="bg-gray-50 min-h-screen py-10">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
-<div class="min-h-screen container mx-auto px-4 py-8">
-  <div class="max-w-4xl mx-auto">
-    <!-- Header Section -->
-    <div class="mb-10 text-center">
-      <h1 class="text-3xl font-bold mb-3" style="color: var(--primary);">
-        My Applications
-      </h1>
-      <p class="text-lg" style="color: var(--text-light);">
-        Track the status of your project applications
-      </p>
+    <!-- Top Bar: Back + Header + Stats -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+      <a href="{% url 'marketplace' %}"
+         class="inline-flex items-center mb-4 sm:mb-0 text-gray-700 hover:text-gray-900">
+        <i class="fas fa-arrow-left mr-2"></i> Back to Marketplace
+      </a>
+      <div>
+        <h1 class="text-3xl font-bold text-blue-800">My Applications</h1>
+        <p class="text-gray-600">Track and manage your project applications in one place</p>
+      </div>
+      <!-- Quick Stats -->
+      <div class="mt-6 sm:mt-0 grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+          <p class="text-sm text-gray-500">Total</p>
+          <p class="text-2xl font-bold text-blue-800">{{ total_count }}</p>
+        </div>
+        <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+          <p class="text-sm text-gray-500">Pending</p>
+          <p class="text-2xl font-bold text-yellow-600">{{ pending_count }}</p>
+        </div>
+        <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+          <p class="text-sm text-gray-500">Accepted</p>
+          <p class="text-2xl font-bold text-green-600">{{ accepted_count }}</p>
+        </div>
+        <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+          <p class="text-sm text-gray-500">Rejected</p>
+          <p class="text-2xl font-bold text-red-600">{{ rejected_count }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter & Sort -->
+    <div class="mb-6 flex flex-col sm:flex-row justify-between gap-4">
+      <div class="flex space-x-2">
+        <a href="?status=all{% if current_sort %}&sort={{ current_sort }}{% endif %}"
+           class="px-4 py-2 rounded-md text-sm font-medium
+             {% if current_status == 'all' %}bg-blue-100 text-blue-800{% else %}bg-white text-gray-700 hover:bg-gray-100{% endif %}
+             border border-gray-200 shadow-sm">
+          All
+        </a>
+        <a href="?status=pending{% if current_sort %}&sort={{ current_sort }}{% endif %}"
+           class="px-4 py-2 rounded-md text-sm font-medium
+             {% if current_status == 'pending' %}bg-blue-100 text-blue-800{% else %}bg-white text-gray-700 hover:bg-gray-100{% endif %}
+             border border-gray-200 shadow-sm">
+          Pending
+        </a>
+        <a href="?status=accepted{% if current_sort %}&sort={{ current_sort }}{% endif %}"
+           class="px-4 py-2 rounded-md text-sm font-medium
+             {% if current_status == 'accepted' %}bg-blue-100 text-blue-800{% else %}bg-white text-gray-700 hover:bg-gray-100{% endif %}
+             border border-gray-200 shadow-sm">
+          Accepted
+        </a>
+        <a href="?status=rejected{% if current_sort %}&sort={{ current_sort }}{% endif %}"
+           class="px-4 py-2 rounded-md text-sm font-medium
+             {% if current_status == 'rejected' %}bg-blue-100 text-blue-800{% else %}bg-white text-gray-700 hover:bg-gray-100{% endif %}
+             border border-gray-200 shadow-sm">
+          Rejected
+        </a>
+      </div>
+      <div class="relative">
+        <select
+          name="sort"
+          onchange="location.search='?sort='+this.value+'{% if current_status and current_status != 'all' %}&status={{ current_status }}{% endif %}'"
+          class="appearance-none rounded-md border border-gray-300 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest first</option>
+          <option value="oldest"  {% if current_sort == 'oldest'  %}selected{% endif %}>Oldest first</option>
+        </select>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+          <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1
+                     0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1
+                     0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </div>
+      </div>
     </div>
 
     <!-- Applications List -->
     {% if applications %}
-    <div class="space-y-4">
-      {% for application in applications %}
-      <div class="bg-paper rounded-xl shadow-sm p-6 transition-all hover:shadow-md" style="border: 1px solid var(--border);">
-        <div class="flex flex-col md:flex-row items-start justify-between gap-4">
-          <!-- Application Info -->
-          <div class="flex-1">
-            <h2 class="text-lg font-semibold mb-2" style="color: var(--primary);">
-              <a href="{% url 'project-detail' pk=application.project.pk %}" class="hover:text-secondary transition-colors">
-                {{ application.project.title }}
-              </a>
-            </h2>
-            <div class="flex items-center text-sm" style="color: var(--text-light);">
-              <i class="fas fa-clock mr-2"></i>
-              Applied {{ application.applied_at|timesince }} ago
+      <div class="space-y-4">
+        {% for app in applications %}
+          <div class="bg-white rounded-lg shadow-sm border
+                      {% if app.status == 'ACCEPTED' %}border-green-200
+                      {% elif app.status == 'REJECTED' %}border-red-200
+                      {% else %}border-yellow-200{% endif %}
+                      overflow-hidden hover:shadow-md transition-shadow">
+            <div class="p-5 flex flex-col sm:flex-row justify-between gap-4">
+              <!-- Info -->
+              <div class="flex-1">
+                <div class="flex items-center mb-2">
+                  <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-800 mr-3">
+                    <i class="fas fa-user"></i>
+                  </div>
+                  <div>
+                    <h2 class="text-lg font-medium text-gray-900">
+                      <a href="{% url 'project-detail' app.project.pk %}" class="hover:text-blue-700 transition-colors">
+                        {{ app.project.title }}
+                      </a>
+                    </h2>
+                    <p class="text-sm text-gray-600">{{ app.project.owner.username }}</p>
+                  </div>
+                </div>
+                <div class="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-600">
+                  <div class="flex items-center">
+                    <i class="fas fa-calendar-alt mr-2 text-gray-400"></i>
+                    Applied {{ app.applied_at|date:"M d, Y" }}
+                  </div>
+                  <div class="flex items-center">
+                    <i class="fas fa-clock mr-2 text-gray-400"></i>
+                    {{ app.applied_at|timesince }} ago
+                  </div>
+                </div>
+                {% if app.message %}
+                  <div class="mt-3 text-sm text-gray-700">
+                    <p class="line-clamp-2">{{ app.message|truncatechars:150 }}</p>
+                  </div>
+                {% endif %}
+              </div>
+
+              <!-- Status & Actions -->
+              <div class="flex flex-col items-end space-y-3 sm:min-w-[140px]">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium
+                             {% if app.status == 'ACCEPTED' %}bg-green-100 text-green-800
+                             {% elif app.status == 'REJECTED' %}bg-red-100 text-red-800
+                             {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                  <i class="fas
+                    {% if app.status == 'ACCEPTED' %}fa-check-circle
+                    {% elif app.status == 'REJECTED' %}fa-times-circle
+                    {% else %}fa-clock{% endif %}
+                    mr-1.5"></i>
+                  {{ app.get_status_display }}
+                </span>
+
+                <div class="flex gap-2 flex-col sm:flex-row">
+                  {% if app.status == 'ACCEPTED' %}
+                    <a href="{% url 'chat' app.project.owner.id %}"
+                       class="px-3 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                      <i class="fas fa-comments mr-1.5"></i> Chat
+                    </a>
+                  {% endif %}
+                  <a href="{% url 'project-detail' app.project.pk %}"
+                     class="px-3 py-2 rounded-md bg-white text-blue-600 text-sm font-medium border border-blue-200 hover:bg-blue-50">
+                    <i class="fas fa-file-alt mr-1.5"></i> Details
+                  </a>
+                  {% if app.status == 'PENDING' %}
+                    <a href="{% url 'withdraw-application' project_id=app.project.id %}"
+                       class="px-3 py-2 rounded-md bg-white text-red-600 text-sm font-medium border border-red-200 hover:bg-red-50">
+                      <i class="fas fa-times mr-1.5"></i> Withdraw
+                    </a>
+                  {% endif %}
+                </div>
+              </div>
             </div>
           </div>
+        {% endfor %}
+      </div>
 
-          <!-- Status & Actions -->
-          <div class="flex flex-col items-end gap-3">
-            <span class="px-3 py-1 rounded-full text-sm font-medium flex items-center
-              {% if application.status == 'ACCEPTED' %}
-                bg-green-100 text-green-700
-              {% elif application.status == 'REJECTED' %}
-                bg-red-100 text-red-700
-              {% else %}
-                bg-yellow-100 text-yellow-700
-              {% endif %}">
-              <i class="fas
-                {% if application.status == 'ACCEPTED' %}fa-check-circle
-                {% elif application.status == 'REJECTED' %}fa-times-circle
-                {% else %}fa-clock{% endif %} mr-2 text-sm"></i>
-              {{ application.get_status_display }}
-            </span>
-
-            <div class="flex gap-2">
-              {% if application.status == 'ACCEPTED' %}
-              <a href="{% url 'chat' application.project.owner.id %}" class="flex items-center px-4 py-2 rounded-lg transition-colors text-sm" style="background-color: var(--primary); color: white;" onmouseover="this.style.backgroundColor='var(--secondary)'" onmouseout="this.style.backgroundColor='var(--primary)'">
-                <i class="fas fa-comments mr-2"></i> Chat
+      <!-- Pagination -->
+      {% if is_paginated %}
+        <div class="mt-8 flex justify-center">
+          <nav class="inline-flex -space-x-px rounded-md shadow-sm">
+            {% if page_obj.has_previous %}
+              <a href="?page={{ page_obj.previous_page_number }}&status={{ current_status }}&sort={{ current_sort }}"
+                 class="px-3 py-2 rounded-l-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
+                <i class="fas fa-chevron-left"></i>
               </a>
+            {% endif %}
+            {% for i in paginator.page_range %}
+              {% if i == page_obj.number %}
+                <span class="px-4 py-2 border border-gray-300 bg-blue-50 text-blue-600">{{ i }}</span>
+              {% elif i >= page_obj.number|add:'-2' and i <= page_obj.number|add:'2' %}
+                <a href="?page={{ i }}&status={{ current_status }}&sort={{ current_sort }}"
+                   class="px-4 py-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">{{ i }}</a>
               {% endif %}
-
-              {% if application.status == 'PENDING' %}
-              <a href="{% url 'withdraw-application' project_id=application.project.id %}" class="flex items-center px-4 py-2 rounded-lg transition-colors text-sm" style="background-color: var(--secondary); color: var(--primary);" onmouseover="this.style.backgroundColor='var(--secondary)'" onmouseout="this.style.backgroundColor='var(--secondary)'">
-                <i class="fas fa-times mr-2"></i> Withdraw
+            {% endfor %}
+            {% if page_obj.has_next %}
+              <a href="?page={{ page_obj.next_page_number }}&status={{ current_status }}&sort={{ current_sort }}"
+                 class="px-3 py-2 rounded-r-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
+                <i class="fas fa-chevron-right"></i>
               </a>
-              {% endif %}
-            </div>
-          </div>
+            {% endif %}
+          </nav>
         </div>
-      </div>
-      {% endfor %}
-    </div>
-
-    <!-- Pagination -->
-    {% if is_paginated %}
-    <div class="mt-8 flex justify-center">
-      <nav class="inline-flex rounded-lg shadow-sm bg-paper overflow-hidden" style="border: 1px solid var(--border);">
-        {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 text-sm transition-colors hover:bg-gray-50" style="color: var(--text); border-right: 1px solid var(--border);">
-          <i class="fas fa-chevron-left text-xs mr-1"></i> Previous
-        </a>
-        {% endif %}
-        <span class="px-4 py-2 bg-gray-50 text-sm" style="color: var(--text);">
-          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-        </span>
-        {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 text-sm transition-colors hover:bg-gray-50" style="color: var(--text); border-left: 1px solid var(--border);">
-          Next <i class="fas fa-chevron-right text-xs ml-1"></i>
-        </a>
-        {% endif %}
-      </nav>
-    </div>
-    {% endif %}
+      {% endif %}
     {% else %}
-    <!-- Empty State -->
-    <div class="bg-paper rounded-xl shadow-sm p-12 text-center border-dashed" style="border: 2px dashed var(--border);">
-      <div class="flex justify-center mb-6">
-        <span class="text-5xl" style="color: var(--text-light);">
-          <i class="fas fa-inbox"></i>
-        </span>
+      <!-- Empty State -->
+      <div class="bg-white rounded-lg shadow-sm p-10 text-center">
+        <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
+          <i class="fas fa-inbox text-3xl"></i>
+        </div>
+        <h3 class="text-xl font-medium text-gray-900 mb-2">No Applications Yet</h3>
+        <p class="text-gray-600 mb-6 max-w-md mx-auto">
+          You haven't applied to any projects yet. Explore the marketplace to find projects that match your skills and interests.
+        </p>
+        <a href="{% url 'marketplace' %}"
+           class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+          <i class="fas fa-search mr-2"></i> Browse Projects
+        </a>
       </div>
-      <h3 class="text-xl font-medium mb-2" style="color: var(--primary);">No Applications Found</h3>
-      <p class="text-gray-500 mb-8 max-w-md mx-auto">
-        You haven't applied to any projects yet. Start exploring projects in the marketplace!
-      </p>
-    </div>
     {% endif %}
 
-    <!-- Back Button -->
-    <div class="mt-10 text-center">
-      <a href="{% url 'marketplace' %}" class="inline-flex items-center px-6 py-3 rounded-lg font-medium transition-colors" style="background-color: var(--primary); color: white;" onmouseover="this.style.backgroundColor='var(--secondary)'" onmouseout="this.style.backgroundColor='var(--primary)'">
-        <i class="fas fa-arrow-left mr-2"></i> Back to Marketplace
-      </a>
-    </div>
   </div>
 </div>
 {% endblock %}

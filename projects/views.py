@@ -590,18 +590,20 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
 
     def post(self, request, *args, **kwargs):
         post_data = request.POST.copy()
-        for field in ['languages', 'skills_required', 'required_roles', 'categories']:
+        for field in ['languages', 'skills_required', 'required_roles', 'category']:
             if field in post_data:
                 post_data.setlist(field, post_data.get(field, '').split(','))
         self.request.POST = post_data
         return super().post(request, *args, **kwargs)
 
     def form_valid(self, form):
+
         skill_ids = form.cleaned_data.get('skills_required', [])
         selected_skills = Skill.objects.filter(id__in=skill_ids)
         if len(selected_skills) < 1:
             messages.error(self.request, "Please select at least 1 skill.")
             return self.render_to_response(self.get_context_data(form=form))
+        form.instance.is_active = True
         form.instance.owner = self.request.user
         self.object = form.save(commit=False)
         self.object.save()
@@ -648,7 +650,7 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
         project = self.get_object()
         initial['skills_required'] = ",".join(str(skill.id) for skill in project.skills_required.all())
         initial['required_roles'] = ",".join(str(role.id) for role in project.required_roles.all())
-        initial['categories'] = ",".join(str(cat.id) for cat in project.category.all())
+        initial['category']   = ",".join(str(cat.id) for cat in project.category.all())
         return initial
 
     def get_context_data(self, **kwargs):
@@ -699,7 +701,7 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
 
     def post(self, request, *args, **kwargs):
         post_data = request.POST.copy()
-        for field in ['languages', 'skills_required', 'required_roles', 'categories']:
+        for field in ['languages', 'skills_required', 'required_roles', 'category']:
             if field in post_data:
                 post_data.setlist(field, post_data.get(field, '').split(','))
         request.POST = post_data
@@ -710,7 +712,7 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
         self.object.owner = self.request.user
         self.object.save()
         form.save_m2m()
-        self.object.category.set(form.cleaned_data.get('categories', []))
+        self.object.category.set(form.cleaned_data['category'])
         self.object.languages.set(form.cleaned_data.get('languages', []))
         self.object.required_roles.set(form.cleaned_data.get('required_roles', []))
         messages.success(self.request, "✅ Project updated successfully!")
@@ -758,23 +760,33 @@ def toggle_favorite(request):
 
 
 class FavoritesListView(LoginRequiredMixin, ListView):
-    template_name = 'marketplace/favorites.html'
+    template_name      = 'marketplace/favorites.html'
     context_object_name = 'projects'
-    paginate_by = 10
+    paginate_by        = 10
 
     def get_queryset(self):
-        queryset = Project.objects.filter(favorited_by__user=self.request.user).distinct()
-        for project in queryset:
-            user_app = project.applications.filter(applicant=self.request.user).first()
-            project.user_application = user_app
-        return queryset
+        qs = list(Project.objects.filter(favorited_by__user=self.request.user).distinct())
+        if qs:
+            recommended_order, faiss_scores = rank_projects_with_faiss(qs, self.request.user)
+            id_to_proj = {p.id: p for p in qs}
+            ordered = []
+            for pk in recommended_order:
+                proj = id_to_proj.get(pk)
+                if proj:
+                    proj.faiss_score = faiss_scores.get(pk, 0)
+                    ordered.append(proj)
+
+            return ordered
+
+        return qs
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        favorite_ids = self.request.user.favorite_projects.values_list('project_id', flat=True)
-        context['favorite_ids'] = list(favorite_ids)
-        context['favorite_page'] = True
-        return context
+        ctx = super().get_context_data(**kwargs)
+        ctx['favorite_ids']   = list(self.request.user.favorite_projects.values_list('project_id', flat=True))
+        ctx['applied_count']  = ProjectApplication.objects.filter(applicant=self.request.user).count()
+        ctx['all_categories'] = Category.objects.all()
+        ctx['favorite_page']  = True
+        return ctx
 
 
 from projects.recommendation import recommend_projects_for_user
@@ -903,13 +915,38 @@ def chat_messages(request, user_id):
 
 
 class MyRequestsView(LoginRequiredMixin, ListView):
-    model = ProjectApplication
-    template_name = 'marketplace/my_requests.html'
+    model               = ProjectApplication
+    template_name       = 'marketplace/my_requests.html'
     context_object_name = 'applications'
-    paginate_by = 10
+    paginate_by         = 10
 
     def get_queryset(self):
-        return ProjectApplication.objects.filter(applicant=self.request.user).order_by('-applied_at')
+        qs     = ProjectApplication.objects.filter(applicant=self.request.user)
+        status = self.request.GET.get('status')
+        if status in ('pending','accepted','rejected'):
+            qs = qs.filter(status=status.upper())
+        # sort:
+        sort = self.request.GET.get('sort')
+        if sort == 'oldest':
+            qs = qs.order_by('applied_at')
+        else:  # newest first
+            qs = qs.order_by('-applied_at')
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        base = ProjectApplication.objects.filter(applicant=self.request.user)
+        ctx.update({
+            'pending_count':  base.filter(status='PENDING').count(),
+            'accepted_count': base.filter(status='ACCEPTED').count(),
+            'rejected_count': base.filter(status='REJECTED').count(),
+            'total_count':    base.count(),
+        })
+        # re-echo the current filters up to the template
+        ctx['current_status'] = self.request.GET.get('status','all')
+        ctx['current_sort']   = self.request.GET.get('sort','newest')
+        return ctx
+
 
 
 @login_required
